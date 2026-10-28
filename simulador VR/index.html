@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sandbox VR · validação de interações</title>
+<script>
+  // Versão do build: mude SÓ aqui. Todos os módulos locais recebem ?v=VERSAO pelo import map (fura o cache do GitHub Pages).
+  window.APP_VERSION = '0.1.1';
+  (function () {
+    var v = window.APP_VERSION, files = ['main', 'kit', 'physics', 'debug', 'validation', 'xr/interaction', 'xr/locomotion', 'xr/hands',
+      'stations/e0_pegada', 'stations/e1_mecanica', 'stations/e2_eletrica', 'stations/e3_vidro', 'stations/e4_controles',
+      'stations/e5_mecanismos', 'stations/e6_cargas', 'stations/e7_logistica'];
+    var imports = {
+      'three': 'https://cdn.jsdelivr.net/npm/three@0.185.1/build/three.module.js',
+      'three/addons/': 'https://cdn.jsdelivr.net/npm/three@0.185.1/examples/jsm/',
+      '@dimforge/rapier3d-compat': 'https://cdn.jsdelivr.net/npm/@dimforge/rapier3d-compat@0.21.0/dist/rapier.mjs'
+    };
+    files.forEach(function (f) { imports['./js/' + f + '.js'] = './js/' + f + '.js?v=' + v; });
+    document.write('<script type="importmap">' + JSON.stringify({ imports: imports }) + '<\/script>');
+  })();
+</script>
+<style>
+  html, body { margin: 0; height: 100%; background: #14181c; color: #e8ebed; font: 15px/1.4 system-ui, "Segoe UI", Roboto, sans-serif; overflow: hidden; }
+  #stage { position: fixed; inset: 0; }
+  #stage canvas { display: block; }
+  #side { position: fixed; top: 0; left: 0; bottom: 0; width: 360px; background: rgba(20,24,28,.94); border-right: 1px solid #313a42; padding: 14px; box-sizing: border-box; display: flex; flex-direction: column; gap: 10px; z-index: 2; }
+  #side.min { width: auto; bottom: auto; }
+  #side.min > :not(header) { display: none; }
+  header { display: flex; align-items: center; gap: 8px; }
+  h1 { font-size: 16px; margin: 0; flex: 1; }
+  .ver { font-family: ui-monospace, Menlo, monospace; color: #f2c230; }
+  #status { font-size: 13px; color: #98a2aa; } #status.bad { color: #e5484d; }
+  button { background: #1c2228; color: #e8ebed; border: 1px solid #313a42; border-radius: 3px; padding: 8px 10px; font: inherit; cursor: pointer; }
+  button:hover:not(:disabled) { border-color: #f2c230; }
+  button:disabled { color: #5e666d; cursor: default; }
+  #btnVR { background: #f2c230; color: #111; font-weight: 700; border: 0; padding: 12px; font-size: 16px; }
+  #btnVR:disabled { background: #2a3036; color: #98a2aa; }
+  .row { display: flex; gap: 6px; flex-wrap: wrap; }
+  textarea { flex: 1; min-height: 120px; background: #0f1215; color: #e8ebed; border: 1px solid #313a42; font: 12px/1.35 ui-monospace, Menlo, monospace; padding: 8px; resize: none; }
+  details { font-size: 13px; color: #c3c9ce; } summary { cursor: pointer; color: #e8ebed; }
+  kbd { border: 1px solid #5e666d; border-radius: 3px; padding: 0 4px; font-size: 12px; }
+  #flash { color: #3da56a; font-size: 13px; min-height: 18px; }
+</style>
+</head>
+<body>
+<div id="stage"></div>
+<aside id="side">
+  <header><h1>Sandbox VR <span class="ver" id="ver"></span></h1><button id="btnMin" title="recolher">–</button></header>
+  <div id="status">Carregando…</div>
+  <button id="btnVR" disabled>Verificando WebXR…</button>
+  <details>
+    <summary>Controles</summary>
+    <p><b>VR (destro; troque em Menu › Config):</b> grip = pegar perto · gatilho = clicar/puxar à distância · polegar esq. = andar, clique nele = correr · polegar dir. = girar · <b>Y</b> = menu · palma esquerda para cima = menu de pulso · teleporte: opcional no menu.</p>
+    <p><b>Desktop:</b> <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> andar · <kbd>Q</kbd><kbd>E</kbd> girar · <kbd>Shift</kbd> correr · botão direito arrastando = olhar · clique esquerdo = pegar/acionar (arraste para mover) · roda = distância do objeto · <kbd>M</kbd> menu · <kbd>F</kbd> FPS.</p>
+  </details>
+  <div><b>Relatório</b> <span id="flash"></span></div>
+  <textarea id="report" readonly></textarea>
+  <div class="row">
+    <button id="btnCopy">Copiar</button><button id="btnDownload">Baixar .txt</button><button id="btnRefresh">Atualizar</button><button id="btnClear">Limpar checklist</button>
+  </div>
+</aside>
+<script>
+  document.getElementById('ver').textContent = 'v' + window.APP_VERSION;
+  document.getElementById('btnMin').onclick = function () { var s = document.getElementById('side'); s.classList.toggle('min'); this.textContent = s.classList.contains('min') ? '+' : '–'; };
+</script>
+<script type="module">
+  import('./js/main.js').catch(function (e) {
+    var s = document.getElementById('status'); s.textContent = 'Falha ao carregar módulos: ' + e.message; s.className = 'bad';
+  });
+</script>
+</body>
+</html>
