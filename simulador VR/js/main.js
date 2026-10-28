@@ -15,9 +15,9 @@ const status = (t, bad = false) => { const e = $('status'); if (e) { e.textConte
 const STATIONS = [
   { id: 'E0', name: 'Pegada e arremesso', file: 'e0_pegada.js', phase: 1, pos: [-4, -6], rot: 0, bench: [2.4, 0.8], sub: 'I1–I6' },
   { id: 'E4', name: 'Controles', file: 'e4_controles.js', phase: 1, pos: [4, -6], rot: 0, bench: [3.0, 0.8], sub: 'I7–I13 · I17' },
-  { id: 'E1', name: 'Mecânica', file: 'e1_mecanica.js', phase: 2, pos: [-12, -6], rot: 0, bench: [3.0, 0.8] },
+  { id: 'E1', name: 'Mecânica', file: 'e1_mecanica.js', phase: 2, pos: [-12, -6], rot: 0, bench: [3.0, 0.8], sub: 'Engrenagens · polias · plano · mola' },
   { id: 'E2', name: 'Elétrica', file: 'e2_eletrica.js', phase: 3, pos: [12, -6], rot: 0, bench: [3.0, 0.8] },
-  { id: 'E5', name: 'Mecanismos 3D', file: 'e5_mecanismos.js', phase: 2, pos: [-12, 6], rot: Math.PI, bench: [3.0, 0.8] },
+  { id: 'E5', name: 'Mecanismos 3D', file: 'e5_mecanismos.js', phase: 2, pos: [-12, 6], rot: Math.PI, bench: [3.0, 0.8], sub: 'Biela · came · macaco · porta · arquivo' },
   { id: 'E3', name: 'Vidro', file: 'e3_vidro.js', phase: 5, pos: [-4, 6], rot: Math.PI, bench: [2.4, 0.8] },
   { id: 'E6', name: 'Movimentação de cargas', file: 'e6_cargas.js', phase: 4, pos: [5, 7], rot: Math.PI, bench: null },
   { id: 'E7', name: 'Logística', file: 'e7_logistica.js', phase: 4, pos: [14, 7], rot: Math.PI, bench: [3.0, 0.8] },
@@ -155,7 +155,7 @@ async function start() {
     try {
       status(`Carregando ${st.id}…`);
       st.mod = await import(`./stations/${st.file}`);
-      const board = new kit.LabelBoard({ cols: 4, rows: 6, slotW: 256, slotH: 64 });
+      const board = new kit.LabelBoard({ cols: 4, rows: 10, slotW: 256, slotH: 64 });
       st.inst = st.mod.create({ THREE, kit, app, ix: app.ix, physics, scope: st.scope, board }) || {};
       st.loaded = true;
     } catch (e) {

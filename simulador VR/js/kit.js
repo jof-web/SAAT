@@ -39,7 +39,15 @@ export class Parts {
   cyl(rt, rb, h, color, x, y, z, rx, ry, rz, seg = 16) { return this.add(new THREE.CylinderGeometry(rt, rb, h, seg), color, x, y, z, rx, ry, rz); }
   sphere(r, color, x, y, z, seg = 12) { return this.add(new THREE.SphereGeometry(r, seg, Math.max(6, seg >> 1)), color, x, y, z); }
   torus(R, r, color, x, y, z, rx, ry, rz, rs = 8, ts = 28) { return this.add(new THREE.TorusGeometry(R, r, rs, ts), color, x, y, z, rx, ry, rz); }
+  // perfil 2D (Shape) extrudado ao longo de Z, centrado na espessura
+  extrude(shape, depth, color, x, y, z, rx, ry, rz, curveSegments = 6) {
+    const g = new THREE.ExtrudeGeometry(shape, { depth, bevelEnabled: false, curveSegments });
+    g.translate(0, 0, -depth / 2);
+    return this.add(g, color, x, y, z, rx, ry, rz);
+  }
   build() {
+    // ExtrudeGeometry não é indexada: se houver mistura, converte tudo para não indexado
+    if (this.list.some(g => !g.index) && this.list.some(g => g.index)) this.list = this.list.map(g => { if (!g.index) return g; const n = g.toNonIndexed(); g.dispose(); return n; });
     const g = mergeGeometries(this.list, false);
     for (const s of this.list) s.dispose();
     this.list.length = 0;
@@ -47,6 +55,25 @@ export class Parts {
     return g;
   }
   mesh(mat = mats.vc) { return new THREE.Mesh(this.build(), mat); }
+}
+
+// Engrenagem de dentes retos (perfil didático, não evolvente exato). z dentes, módulo m (m).
+export function gearShape(z, m, hole = 0.01) {
+  const rp = m * z / 2, ra = rp + m, rf = rp - 1.25 * m, p = Math.PI * 2 / z, s = new THREE.Shape();
+  for (let k = 0; k < z; k++) {
+    const a = k * p, pts = [[rf, a - 0.5 * p], [rf, a - 0.27 * p], [ra, a - 0.13 * p], [ra, a + 0.13 * p], [rf, a + 0.27 * p]];
+    pts.forEach(([r, t], i) => { const x = r * Math.cos(t), y = r * Math.sin(t); (k === 0 && i === 0) ? s.moveTo(x, y) : s.lineTo(x, y); });
+  }
+  s.closePath();
+  if (hole > 0) { const h = new THREE.Path(); h.absarc(0, 0, hole, 0, Math.PI * 2, true); s.holes.push(h); }
+  return s;
+}
+// Perfil polar r(φ) (cames). n pontos.
+export function polarShape(rFn, n = 96, hole = 0.01) {
+  const s = new THREE.Shape();
+  for (let i = 0; i <= n; i++) { const t = i / n * Math.PI * 2, r = rFn(t), x = r * Math.cos(t), y = r * Math.sin(t); i ? s.lineTo(x, y) : s.moveTo(x, y); }
+  if (hole > 0) { const h = new THREE.Path(); h.absarc(0, 0, hole, 0, Math.PI * 2, true); s.holes.push(h); }
+  return s;
 }
 
 // ---------- Textos em canvas ----------
@@ -183,9 +210,9 @@ export class LabelBoard {
       const font = (sz) => `${st.weight || 700} ${sz}px ${st.mono ? MONO : FONT}`;
       let size = st.size || Math.round(this.sh * 0.5), t = s.text || ''; const max = this.sw - 16;
       g.font = font(size);
-      // encolhe a fonte até caber (mín. 55%); só corta o texto se ainda não couber
+      // encolhe a fonte até caber (mín. 45%); só corta o texto se ainda não couber
       const w0 = g.measureText(t).width;
-      if (w0 > max) { size = Math.max(Math.round(size * 0.55), Math.floor(size * max / w0)); g.font = font(size); }
+      if (w0 > max) { size = Math.max(Math.round(size * 0.45), Math.floor(size * max / w0)); g.font = font(size); }
       g.fillStyle = st.color || '#e8ebed'; g.textBaseline = 'middle';
       const al = st.align || 'center'; g.textAlign = al;
       const tx = al === 'center' ? x + this.sw / 2 : x + 10;

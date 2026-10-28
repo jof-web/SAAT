@@ -11,7 +11,7 @@ Este projeto fica na pasta `simulador VR/` do repositório `SAAT` (público).
 ## Abrir no Quest
 1. No headset, abra o **Meta Quest Browser** e digite o link (ou envie pelo app Meta Horizon no celular).
 2. Confira a versão no painel lateral (ex.: `v0.1.0`). Se não mudou após um push, espere ~10 min ou recarregue.
-3. Toque **Entrar em VR**. Polegar esquerdo anda (clique nele para correr), direito gira. Botão **Y** abre o menu; palma esquerda para cima abre o menu de pulso. Canhoto: Menu › Config › Canhoto (inverte tudo).
+3. Toque **Entrar em VR**. Polegar esquerdo anda (clique nele para correr), direito gira. Botão **Y** abre o menu; palma esquerda para cima abre o menu de pulso. Canhoto: Menu › Config › Canhoto (inverte tudo). Chão alto/baixo demais: Menu › Config › **Calibrar chão** (encoste um controle no chão até o fim da contagem).
 4. Marque cada item na aba **Checklist**. Ao sair do VR, o painel 2D mostra o relatório: **Copiar** ou **Baixar .txt**.
 
 ## Testar no PC (modo desktop)

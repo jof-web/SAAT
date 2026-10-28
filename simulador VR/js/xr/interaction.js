@@ -165,8 +165,8 @@ export class JointControl extends Interactable {
     this.anchorW = sc.toWorld(o.anchor.clone());
     this.axisW = o.axis.clone().normalize().applyQuaternion(sc.quat);
     // corpo móvel: origem na junta, mesma orientação da base (valor inicial 0)
-    this.body = sc.dynamic(o.obj, { pos: this.anchorW, quat: sc.quat, gravityScale: 0, angDamp: 0.6, linDamp: 0.6 });
-    for (const c of o.colliders) ph.collider(this.body, c.shape, { group: GROUPS.CONTROL, mass: (o.mass || 0.5) / o.colliders.length, pos: c.pos, quat: c.quat });
+    this.body = sc.dynamic(o.obj, { pos: this.anchorW, quat: sc.quat, gravityScale: o.gravityScale ?? 0, angDamp: o.angDamp ?? 0.6, linDamp: o.linDamp ?? 0.6 });
+    this.colliders = o.colliders.map(c => ph.collider(this.body, c.shape, { group: GROUPS.CONTROL, mass: (o.mass || 0.5) / o.colliders.length, pos: c.pos, quat: c.quat, friction: c.friction ?? 0.7 }));
     const R = ph.R, a = o.axis.clone().normalize(), z = { x: 0, y: 0, z: 0 };
     const jd = o.kind === 'revolute'
       ? R.JointData.revolute({ x: o.anchor.x, y: o.anchor.y, z: o.anchor.z }, z, { x: a.x, y: a.y, z: a.z })
@@ -275,7 +275,47 @@ export class Hinge extends JointControl {
 }
 // Gaveta com trilho (I13)
 export class Rail extends JointControl {
-  constructor(ix, o) { super(ix, { ...o, kind: 'prismatic', rest: 'free' }); }
+  constructor(ix, o) { super(ix, { ...o, kind: 'prismatic', rest: o.rest || 'free' }); }
+}
+// Massa em mola vertical (E1.4): segura e puxa; ao soltar, a mola física (k, c) e a gravidade agem
+export class SpringRail extends JointControl {
+  constructor(ix, o) {
+    super(ix, { ...o, kind: 'prismatic', rest: 'spring', gravityScale: 1, linDamp: 0.01, angDamp: 0.5, drive: { k: o.k, c: o.c, maxForce: 400, ...(o.drive || {}) } });
+    this.drive.mode = 'spring';
+  }
+  setMass(m) { const n = this.colliders.length; for (const c of this.colliders) c.setMass(m / n); this.body.wakeUp(); }
+}
+// Porta com maçaneta e trinco (E5.4): girar a maçaneta (pulso) destrava; perto de fechada, trava sozinha
+export class LatchedHinge extends Hinge {
+  constructor(ix, o) {
+    super(ix, o); this.knob = o.knob; this.knobAxisLocal = o.knobAxis || new THREE.Vector3(0, 0, 1);
+    this.unlock = o.unlock ?? 0.5; this.knobMax = o.knobMax ?? 0.9; this.knobAngle = 0; this.latched = true; this.qk = new THREE.Quaternion();
+  }
+  grab(h) { super.grab(h); this.qk.copy(h.quat); }
+  hold(h) {
+    if (h.desktop) this.knobAngle = this.knobMax;               // no desktop não há torção de pulso
+    else {
+      _v2.copy(this.knobAxisLocal).applyQuaternion(this.hitObj.getWorldQuaternion(_q3));
+      _q.copy(this.qk).invert(); _q2.copy(h.quat).multiply(_q);
+      let a = 2 * Math.atan2(_q2.x * _v2.x + _q2.y * _v2.y + _q2.z * _v2.z, _q2.w);
+      if (a > Math.PI) a -= Math.PI * 2; if (a < -Math.PI) a += Math.PI * 2;
+      this.qk.copy(h.quat); this.knobAngle = Math.max(-this.knobMax, Math.min(this.knobMax, this.knobAngle + a));
+    }
+    if (this.latched && Math.abs(this.knobAngle) > this.unlock) { this.latched = false; h.pulse(0.7, 30); }
+    if (this.latched) { this.rawTarget(h); this.base = this.drive.value; this.drive.target = 0; }
+    else super.hold(h);
+  }
+  release(h) { super.release(h); }
+  update(dt) {
+    if (!this.held) {
+      this.knobAngle *= Math.max(0, 1 - dt * 10);               // maçaneta volta por mola
+      if (!this.latched && this.drive.value < 0.03 && Math.abs(this.drive.vel) < 1.5) this.latched = true;
+    }
+    if (this.latched && !this.held) { this.drive.mode = 'drive'; this.drive.target = 0; }
+    else if (!this.held) super.update(dt);
+    if (this.knob) this.knob.rotation.z = -Math.abs(this.knobAngle);
+  }
+  reset() { super.reset(); this.latched = true; this.knobAngle = 0; }
 }
 
 // ---------------- Joystick de máquina (I17): junta esférica ----------------

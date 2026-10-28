@@ -129,7 +129,7 @@ export class JointDrive {
     this.init = o.init ?? 0; this.value = this.init; this.target = this.init; this.vel = 0;
     this.prevTwist = wrap(this.init); this.held = false; this.active = true;
     if (this.joint.setMotorMaxForce) this.joint.setMotorMaxForce(o.maxForce ?? 200);
-    try { this.joint.configureMotorModel(RAPIER.MotorModel.AccelerationBased); } catch (e) { /* versão sem enum */ }
+    this.k = o.k ?? 40; this.c = o.c ?? 0.3; this.forceModel = null; this.setModel(false);
   }
   measure(dt) {
     if (this.kind === 'revolute') {
@@ -145,10 +145,17 @@ export class JointDrive {
       this.vel = this.vel * 0.6 + ((nv - this.value) / dt) * 0.4; this.value = nv;
     }
   }
+  setModel(force) {
+    if (this.forceModel === force) return; this.forceModel = force;
+    try { this.joint.configureMotorModel(force ? RAPIER.MotorModel.ForceBased : RAPIER.MotorModel.AccelerationBased); } catch (e) { }
+  }
   apply(dt) {
     if (!this.active && !this.held) return;
     if (this.body.isSleeping() && this.mode !== 'drive') return;
     this.measure(dt);
+    // mola física (E1.4): motor de posição com rigidez k (N/m) e amortecimento c (N·s/m)
+    if (this.mode === 'spring') { this.setModel(true); this.joint.configureMotorPosition(this.springRest || 0, this.k, this.c); return; }
+    this.setModel(false);
     let v = 0, f = this.fBrake;
     if (this.mode === 'drive') {
       const t = Math.min(this.max, Math.max(this.min, this.target));

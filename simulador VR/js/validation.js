@@ -3,13 +3,13 @@
 import * as THREE from 'three';
 import { Panel, UI } from './kit.js';
 
-export const BUILD_PHASE = 1;
+export const BUILD_PHASE = 2;
 const KEY = 'vrlab:checklist';
 
 // grupo S = sistema (menu, debug, relatório, desktop): itens extras, fora da lista original L/I/E
 export const ITEMS = [
   ['S1', 'Menu de pulso (palma para cima)', 1], ['S2', 'Menu pelo botão Y / tecla M', 1], ['S3', 'FPS e erros dentro do VR', 1],
-  ['S4', 'Relatório 2D (copiar e baixar .txt)', 1], ['S5', 'Modo desktop (mouse + WASD)', 1], ['S6', 'Config: mão dominante (destro/canhoto)', 1],
+  ['S4', 'Relatório 2D (copiar e baixar .txt)', 1], ['S5', 'Modo desktop (mouse + WASD)', 1], ['S6', 'Config: mão dominante (destro/canhoto)', 1], ['S7', 'Config: calibrar chão / zerar altura', 2],
   ['L1', 'Teleporte com arco', 1], ['L2', 'Locomoção contínua', 1], ['L3', 'Snap turn 30°/45°', 1], ['L4', 'Giro suave', 1],
   ['L5', 'Room-scale (andar fisicamente)', 1], ['L6', 'Modo sentado / altura', 1], ['L7', 'Vinheta de conforto', 1], ['L8', 'Teleporte pelo menu', 1], ['L9', 'Correr (clique no polegar de andar)', 1],
   ['I1', 'Pegar direto (grip)', 1], ['I2', 'Pegar à distância (raio + gatilho)', 1], ['I3', 'Arremessar', 1], ['I4', 'Pegar com duas mãos', 1],
@@ -22,7 +22,9 @@ export const ITEMS = [
   ['E4.4', 'Válvula: voltas e %', 1], ['E4.5', 'Manivela: rpm e voltas', 1], ['E4.6', 'Slider: %', 1], ['E4.7', 'Porta: ângulo e trinco', 1],
   ['E4.8', 'Gaveta: cm', 1], ['E4.9', 'Joystick: X/Y e volta ao centro', 1], ['E4.10', 'Controles: botão RESET', 1],
   ['E1.1', 'Engrenagens com manivela e relação', 2], ['E1.2', 'Polias simples e compostas', 2], ['E1.3', 'Plano inclinado', 2], ['E1.4', 'Mola com massa', 2],
-  ['E5.1', 'Biela-manivela', 2], ['E5.2', 'Came e seguidor', 2], ['E5.3', 'Macaco de rosca', 2], ['E5.4', 'Porta e gaveta', 2],
+  ['E1.5', 'Mecânica: botão RESET', 2],
+  ['E5.1', 'Biela-manivela', 2], ['E5.2', 'Came e seguidor', 2], ['E5.3', 'Macaco de rosca', 2], ['E5.4', 'Porta com maçaneta e trinco', 2],
+  ['E5.5', 'Arquivo: gavetas com objeto dentro', 2], ['E5.6', 'Mecanismos: botão RESET', 2],
   ['E2.1', 'Circuito série', 3], ['E2.2', 'Circuito paralelo', 3], ['E2.3', 'Brilho ∝ corrente', 3], ['E2.4', 'Motor gira', 3],
   ['E2.5', 'Curto queima fusível', 3], ['E2.6', 'Multímetro', 3],
   ['E6.1', 'Caixas 5/20/50 kg', 4], ['E6.2', 'Paleteira', 4], ['E6.3', 'Empilhadeira', 4], ['E6.4', 'Ponte rolante', 4],
@@ -78,7 +80,7 @@ export class Menu {
     this.panel = new Panel({ w: 0.64, h: 0.5, px: 1024 });
     this.panel.render = (p) => this.draw(p);
     this.panel.mesh.visible = false; this.mode = null; this.palmT = 0; this.offT = 0;
-    this.tab = 'est'; this.group = 'I'; this.page = 0; this.sel = null; this.refreshT = 0;
+    this.tab = 'est'; this.group = 'I'; this.page = 0; this.sel = null; this.refreshT = 0; this.calib = 0; this.calibMsg = '';
     app.ix.addPanel(this.panel); app.scene.add(this.panel.mesh);
     app.debug.listeners.add(() => { if (this.tab === 'dbg') this.panel.dirty = true; });
     window.addEventListener('keydown', (e) => {
@@ -126,7 +128,16 @@ export class Menu {
       if (M.topDown) this.toggleFloat();
       this.wrist(M, dt);
     }
-    if (this.mode && this.tab === 'dbg') { this.refreshT += dt; if (this.refreshT > 0.5) { this.refreshT = 0; this.panel.dirty = true; } }
+    // contagem da calibração do chão (S7): no fim, usa o controle mais baixo
+    if (this.calib > 0) {
+      const before = Math.ceil(this.calib); this.calib -= dt;
+      if (this.calib <= 0) {
+        this.calib = 0; const v = app.loco.calibrateFloor(app.ix.hands);
+        this.calibMsg = v === null ? 'Nenhum controle conectado.' : `Chão calibrado: ajuste ${(v >= 0 ? '+' : '') + v.toFixed(2)} m.`;
+        app.ix.hands.forEach(h => h.pulse(0.6, 60)); this.panel.dirty = true;
+      } else if (Math.ceil(this.calib) !== before) this.panel.dirty = true;
+    }
+    if (this.mode && (this.tab === 'dbg' || this.tab === 'cfg')) { this.refreshT += dt; if (this.refreshT > 0.5) { this.refreshT = 0; this.panel.dirty = true; } }
     if (this.mode) this.panel.update();
   }
 
@@ -192,7 +203,14 @@ export class Menu {
     p.button('rn+', 910, 286, 90, 64, '+', () => { s.run = Math.min(4, +(s.run + 0.25).toFixed(2)); save(); }, { size: 36 });
     const menuBtn = s.hand === 'left' ? 'B (direita)' : 'Y (esquerda)';
     p.text(`Menu: botão ${menuBtn} ou palma dessa mão para cima.`, 24, 400, { size: 24, color: UI.dim });
-    p.text('Desktop: Shift corre.', 24, 440, { size: 24, color: UI.dim });
+    p.text('Desktop: Shift corre.', 24, 436, { size: 24, color: UI.dim });
+    // S7 altura: calibração pelo chão real (resolve piso virtual alto/baixo demais)
+    p.rect(16, 466, p.W - 32, 2, UI.line);
+    p.text(`Altura · olhos ${lo.eyeHeight().toFixed(2)} m · ajuste ${(s.manual >= 0 ? '+' : '') + s.manual.toFixed(2)} m${s.seated ? ' · sentado' : ''}`, 24, 500, { size: 26, mono: true });
+    if (this.calib > 0) p.button('cal', 24, 530, 560, 80, `Encoste um controle no chão… ${Math.ceil(this.calib)}`, null, { active: true, color: UI.warn, size: 26 });
+    else p.button('cal', 24, 530, 560, 80, 'Calibrar chão (3 s)', () => { this.calib = 3; this.calibMsg = ''; }, { size: 28, disabled: !this.app.xrActive });
+    p.button('h0', 600, 530, 400, 80, 'Zerar altura', () => { lo.zeroHeight(); this.calibMsg = 'Altura zerada.'; }, { size: 28 });
+    p.text(this.calibMsg || (this.app.xrActive ? 'Toque, abaixe-se e encoste o controle no chão até o fim da contagem.' : 'Calibração só no VR.'), 24, 640, { size: 22, color: UI.dim, max: p.W - 48 });
     p.button('def', 24, 680, 400, 72, 'Restaurar padrões', () => { lo.resetSettings(); }, { size: 26 });
     p.text('v' + this.app.version, 1000, 716, { size: 24, color: UI.dim, align: 'right', mono: true });
   }

@@ -71,7 +71,18 @@ export class Locomotion {
     if (on) this.s.seatOffset = xr ? Math.min(1.2, Math.max(0, 1.6 - this.camera.position.y)) : 0;
     this.applyHeight(); this.save();
   }
-  nudgeHeight(d) { this.s.manual = Math.round((this.s.manual + d) * 100) / 100; this.applyHeight(); this.save(); }
+  nudgeHeight(d) { this.s.manual = Math.min(1.5, Math.max(-1, Math.round((this.s.manual + d) * 100) / 100)); this.applyHeight(); this.save(); }
+  zeroHeight() { this.s.manual = 0; this.s.seated = false; this.s.seatOffset = 0; this.applyHeight(); this.save(); }
+  // Calibra o chão: o controle mais baixo (encostado no chão real) passa a ficar a 4 cm do piso virtual
+  calibrateFloor(hands) {
+    let low = null;
+    for (const h of hands) if (h.connected && (!low || h.pos.y < low.pos.y)) low = h;
+    if (!low) return null;
+    const localY = low.pos.y - this.rig.position.y, rigY = 0.04 - localY;
+    this.s.manual = Math.min(1.5, Math.max(-1, Math.round((rigY - (this.s.seated ? this.s.seatOffset : 0)) * 100) / 100));
+    this.applyHeight(); this.save(); return this.s.manual;
+  }
+  eyeHeight() { return this.camera.position.y + this.rig.position.y; }
 
   clampHead() {
     const H = this.head(_p), b = this.bounds, m = 0.3;
