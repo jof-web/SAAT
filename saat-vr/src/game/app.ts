@@ -91,7 +91,7 @@ export async function bootGame() {
   function refreshEpi() {
     if (!sess) return; const inv = sess.inv, items = inv.comigo().filter((u) => (inv.def(u.item).cat || '').startsWith('EPI')).map((u) => ({ id: u.item, nome: inv.nome(u.item), ok: !u.defeito || !u.inspecionado }));
     const area = W.areaAt(P.pos.x, P.pos.z), tar = area === 'patio' ? 'patio' : area === 'bateria' ? 'bateria' : null; const falt = tar && sess.exigeEpi() ? inv.faltando(tar).epi.map((i) => inv.nome(i)) : [];
-    for (const cb of Object.values<any>(W.indoor.cabinets)) for (const [uid, g] of Object.entries<any>(cb.items)) { const u = inv.unit(uid); if (u) g.visible = !(u.comigo || u.descartado); }
+    for (const cb of Object.values<any>(W.indoor.cabinets)) for (const [uid, g] of Object.entries<any>(cb.items)) { const u = inv.unit(uid); if (u && !g.userData.vr) g.visible = !(u.comigo || u.descartado); }
     hud.setEpi(items, falt); { const b = boneco(); if (b) desenharBoneco(bonecoCv.getContext('2d')!, 200, 380, b, sess.cfg.missao || 'Prática livre'); } const sl = carried(); if (tool && !sl.some((s) => s.item === tool)) { tool = null; hands.setTool(null); } hud.setHotbar(sl, tool);
     hands.setGear({ isolante: inv.tem('luva_isolante'), cobertura: inv.tem('luva_cobertura'), pvc: inv.tem('luva_pvc'), fr: inv.tem('vestimenta') }); visor.classList.toggle('hidden', !inv.tem('protetor_facial'));
   }
@@ -117,7 +117,7 @@ export async function bootGame() {
   const xr = new XRLayer({ E, W, P, inter, hud, safety, audio, livre, area: () => W.areaAt(P.pos.x, P.pos.z), faltas: () => faltas, boneco, correndo,
     acc: { restart: () => { if (sess) start(sess.cfg); }, rescue: (a: any) => startRescue(a?.tipo === 'passo' ? 'S2' : 'S1'), report: () => { xr.exit(); setTimeout(() => finalizar(), 400); }, home: () => showHome(false) },
     sess: () => sess, cmd: (c: any) => cmd(c), tool: () => tool, toolName: () => (tool ? (TOOL_NAMES as any)[tool] || tool : 'mãos livres'), setTool, usarFerramenta: () => useTool(), refreshEpi, toast: (m: string, k?: string) => hud.toast(m, k as any),
-    dead: () => safety.dead, ctx: () => (sess ? ctx() : null), readback: () => { const o = sess?.sc?.st.cos.find((x: any) => x.readbackReq && !x.readback); if (!o || !sess) return null; sess.readback(o.id); return `Read-back ${o.id}: "${o.texto.replace(/^COS[^:]*:\s*/, '').slice(0, 90)}"`; },
+    takeDea, deaTaken: () => deaTaken, dead: () => safety.dead, ctx: () => (sess ? ctx() : null), readback: () => { const o = sess?.sc?.st.cos.find((x: any) => x.readbackReq && !x.readback); if (!o || !sess) return null; sess.readback(o.id); return `Read-back ${o.id}: "${o.texto.replace(/^COS[^:]*:\s*/, '').slice(0, 90)}"`; },
     conferirEpi: () => { if (!sess) return '—'; const x = sess.conferirEpi(); refreshEpi(); return x.txt; }, rcpQualidade,
     alturaPerfil: () => { const id = sess?.cfg.treinandoId; return (id && TR.obter(id)?.alturaCm) || null; }, salvarAltura: (cm: number) => { const id = sess?.cfg.treinandoId, t = id ? TR.obter(id) : null; if (t) TR.salvar({ ...t, alturaCm: cm }); },
     gear: () => { const inv = sess?.inv; return { isolante: !!inv?.tem('luva_isolante'), cobertura: !!inv?.tem('luva_cobertura'), pvc: !!inv?.tem('luva_pvc'), fr: !!inv?.tem('vestimenta') }; },

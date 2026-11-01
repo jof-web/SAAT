@@ -4,7 +4,7 @@ import { Group, Mesh, PlaneGeometry, ShaderMaterial, Vector3, Quaternion, Line, 
 import type { Hand } from './input';
 
 const KEY = 'saat:vrloco';
-export const LOCO_DEF = { teleport: false, continuous: true, speed: 1.5, run: 2, hand: 'right' as 'right' | 'left', turn: 'snap30' as 'snap30' | 'snap45' | 'smooth' | 'off', smoothSpeed: 90, vignette: true, seated: false, seatOffset: 0, manual: 0, alturaCm: 170, autoAltura: false, vrq: 'normal' as 'leve' | 'normal' | 'alta' };
+export const LOCO_DEF = { teleport: false, continuous: true, speed: 1.5, run: 2, hand: 'right' as 'right' | 'left', turn: 'snap30' as 'snap30' | 'snap45' | 'smooth' | 'off', smoothSpeed: 90, vignette: true, seated: false, seatOffset: 0, manual: 0, alturaCm: 170, autoAltura: false, ajuda: false, vrq: 'normal' as 'leve' | 'normal' | 'alta' };
 const UP = new Vector3(0, 1, 0), _v = new Vector3(), _p = new Vector3(), _q = new Quaternion(), _vel = new Vector3(), N = 48;
 
 export class Locomotion {

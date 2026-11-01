@@ -10,7 +10,10 @@ export class VRScada {
   panel = new Panel({ w: 0.92, h: 0.62, px: 1280 }); open = false; tab = 'man'; page = 0; sel: { id: string; op: 'open' | 'close' } | null = null; private t = 0; ask: [string, () => void][] | null = null; proc = { page: 0, ask: (ops: [string, () => void][]) => { this.ask = ops; this.panel.dirty = true; } };
   constructor(public H: ScadaHost, scene: Scene) { this.panel.render = (p) => this.draw(p); this.panel.mesh.visible = false; scene.add(this.panel.mesh); }
   show(head: Vector3, fwd: Vector3) { _f.copy(fwd).setY(0).normalize(); const m = this.panel.mesh; m.position.copy(head).addScaledVector(_f, 0.85); m.position.y = head.y - 0.1; m.lookAt(head.x, head.y - 0.05, head.z); m.visible = true; this.open = true; this.sel = null; this.panel.dirty = true; }
-  close() { this.open = false; this.panel.mesh.visible = false; this.panel.clearHover(); }
+  atDesk = false;
+  /** Tela de toque no monitor da mesa: centro no ponto que a cadeira olha, virada para a cadeira. */
+  showAt(look: Vector3, seat: Vector3) { const m = this.panel.mesh; _f.copy(look).sub(seat).setY(0).normalize(); m.position.copy(look).addScaledVector(_f, -0.04); m.position.y = Math.max(look.y, seat.y - 0.12); m.lookAt(seat.x, m.position.y, seat.z); m.scale.setScalar(0.78); m.visible = true; this.open = true; this.atDesk = true; this.sel = null; this.panel.dirty = true; }
+  close() { this.atDesk = false; this.panel.mesh.scale.setScalar(1); this.open = false; this.panel.mesh.visible = false; this.panel.clearHover(); }
   update(dt: number) { if (!this.open) return; this.t += dt; if (this.t > 0.4) { this.t = 0; this.panel.dirty = true; } this.panel.update(); }
   private draw(p: Panel) {
     const s = this.H.sess(); if (!s) return; const sim = s.sim, v = sim.view(), st = v.s;

@@ -57,10 +57,14 @@ function normGeo(g: BufferGeometry) {
   if (g.index) n.setIndex(g.index.clone()); else { const ix = new Uint32Array(cnt); for (let i = 0; i < cnt; i++) ix[i] = i; n.setIndex(new BufferAttribute(ix, 1)); }
   NG.set(g.uuid, n); return n;
 }
-interface BItem { s: Mesh; b: BatchedMesh; id: number; zone: Object3D; basic: boolean; m: Float32Array; vis: boolean; col: number }
+interface BItem { s: Mesh; b: BatchedMesh; id: number; zone: Object3D; basic: boolean; m: Float32Array; vis: boolean; col: number; off?: boolean }
 export class AutoBatch {
-  items: BItem[] = []; batches: BatchedMesh[] = []; private c = new Color(); private M = new Matrix4();
+  static cur: AutoBatch | null = null; items: BItem[] = []; batches: BatchedMesh[] = []; private c = new Color(); private M = new Matrix4(); private byMesh = new Map<Object3D, BItem>();
+  /** Tira do lote as malhas de um objeto que a mão pegou (passa a desenhar sozinho, fora da zona). */
+  detach(root: Object3D) { root.traverse((o) => { const it = this.byMesh.get(o); if (it && !it.off) { it.off = true; it.b.setVisibleAt(it.id, false); it.vis = false; o.layers.set(0); } }); }
+  reattach(root: Object3D) { root.traverse((o) => { const it = this.byMesh.get(o); if (it?.off) { it.off = false; o.layers.set(5); it.m.fill(NaN); it.col = -1; it.vis = false; } }); }
   build(zones: Record<string, Object3D>) {
+    AutoBatch.cur = this;
     for (const zone of Object.values(zones)) {
       const lit: Mesh[] = [], bas: Mesh[] = [];
       zone.traverse((o: any) => {
@@ -74,7 +78,7 @@ export class AutoBatch {
         const mat = basic ? new MeshBasicMaterial({ color: 0xffffff, toneMapped: true }) : new MeshLambertMaterial({ color: 0xffffff });
         const b = new BatchedMesh(list.length, nv, ni, mat); b.name = 'lote:' + zone.name + (basic ? ':luz' : ''); b.userData.noPreset = true; b.frustumCulled = false; (b as any).perObjectFrustumCulled = true;
         const gid = new Map<string, number>(); for (const [k, g] of geos) gid.set(k, b.addGeometry(g));
-        for (const s of list) { const id = b.addInstance(gid.get(s.geometry.uuid)!); this.items.push({ s, b, id, zone, basic, m: new Float32Array(16).fill(NaN), vis: true, col: -1 }); s.userData.batched = true; s.layers.set(5); }
+        for (const s of list) { const id = b.addInstance(gid.get(s.geometry.uuid)!); const it: BItem = { s, b, id, zone, basic, m: new Float32Array(16).fill(NaN), vis: true, col: -1 }; this.items.push(it); this.byMesh.set(s, it); s.userData.batched = true; s.layers.set(5); }
         zone.add(b); this.batches.push(b);
       }
     }
@@ -82,7 +86,7 @@ export class AutoBatch {
   }
   sync() {
     for (const it of this.items) {
-      const s = it.s; let v = s.visible; let p = s.parent; while (v && p && p !== it.zone) { v = p.visible; p = p.parent; }
+      if (it.off) continue; const s = it.s; let v = s.visible; let p = s.parent; while (v && p && p !== it.zone) { v = p.visible; p = p.parent; }
       const m: any = s.material; if (v && m && m.visible === false) v = false;
       if (v !== it.vis) { it.b.setVisibleAt(it.id, v); it.vis = v; } if (!v) continue;
       const e = s.matrixWorld.elements; let ch = false; for (let i = 0; i < 16; i++) if (e[i] !== it.m[i]) { ch = true; break; }

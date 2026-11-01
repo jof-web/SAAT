@@ -1,7 +1,7 @@
 // Camada VR do SAAT: entrada, rig com a câmera, locomoção com colisão, raio em peças e equipamentos (gatilho aciona,
 // cartão de inspeção, supervisório), portas pela mão (grip), consequências (zona, choque, arco) com vibração,
 // legenda de avisos, PiP da manobra, altura da pessoa, menu, depuração e relatório. Só lê o estado e envia comandos.
-import { Group, Raycaster, Vector3, Box3, BoxGeometry, EdgesGeometry, LineSegments, LineBasicMaterial, Matrix4, type Mesh, type Object3D, type PerspectiveCamera } from 'three';
+import { Group, Raycaster, Vector3, BoxGeometry, EdgesGeometry, LineSegments, LineBasicMaterial, Matrix4, type Mesh, type PerspectiveCamera } from 'three';
 import type { Engine } from '../game/engine';
 import type { GameWorld } from '../game/world';
 import type { Player } from '../game/player';
@@ -14,6 +14,7 @@ import { Panel, UI } from './panel';
 import { VRCard } from './card';
 import { VRScada } from './scada';
 import { VRFx, VRAccident, VRHud, VRPip, type AccHost } from './fx';
+import { Physical } from './physical';
 import { desenharBoneco, type Boneco } from '../ui/boneco';
 import { TOOL_NAMES } from '../game/hands';
 
@@ -22,19 +23,17 @@ export interface XRHost {
   livre(): boolean; area(): string; faltas(): number; boneco(): Boneco | null; gear(): { isolante: boolean; cobertura: boolean; pvc: boolean; fr: boolean };
   missao(): { codigo: string; titulo: string; passo: string }; pausar(): boolean; correndo(on: boolean, dt: number): void; onStart(): void; onEnd(): void;
   sess(): any; cmd(c: any): any; tool(): string | null; toolName(): string; setTool(id: string | null): void; usarFerramenta(): void; refreshEpi(): void; toast(m: string, k?: string): void;
+  takeDea(): void; deaTaken(): boolean;
   dead(): boolean; ctx(): any; readback(): string | null; conferirEpi(): string; alturaPerfil(): number | null; salvarAltura(cm: number): void; rcpQualidade(ts: number[]): number;
 }
-const _h = new Vector3(), _d = new Vector3(), _f = new Vector3(), _p = new Vector3(), _box = new Box3(), _m = new Matrix4();
+const _h = new Vector3(), _d = new Vector3(), _f = new Vector3(), _p = new Vector3(), _m = new Matrix4();
 const RANGE: Record<string, number> = { door: 3.5, gate: 3.5, eq: 7, reserva: 7, trafoBody: 7, caido: 9, scada: 3, arm: 3, vitima: 3 };
-type Grab = { h: Hand; pivot: Vector3; a0: number; o0: number; k: number; set: (o: number) => void; last: number; lim: boolean };
-const ang = (p: Vector3, c: Vector3) => Math.atan2(-(p.z - c.z), p.x - c.x);
-const shown = (o: Object3D | null) => { while (o) { if (!o.visible) return false; o = o.parent; } return true; };
 
 export class XRLayer {
   rig = new Group(); input: XRInput; loco: Locomotion; debug = new Debug(); check = new Checklist(); menu: Menu; active = false; supported = false; reason = 'verificando…';
-  card: VRCard; scada: VRScada; fx: VRFx; acc: VRAccident; hud: VRHud; pip: VRPip;
+  card: VRCard; scada: VRScada; fx: VRFx; acc: VRAccident; hud: VRHud; pip: VRPip; phys: Physical; private poked = new Map<Panel, boolean[]>(); private deskIn = false;
   boneco = { on: true }; private bonecoPanel = new Panel({ w: 0.062, h: 0.118, px: 240, transparent: true }); private lastBoneco: Boneco | null = null;
-  private label = new Panel({ w: 0.46, h: 0.09, px: 640 }); private ray = new Raycaster(); private t = 0; private zone = 0; private zoneT = 0; private grab: Grab | null = null;
+  private label = new Panel({ w: 0.46, h: 0.09, px: 640 }); private ray = new Raycaster(); private t = 0; private zone = 0; private zoneT = 0;
   private cand = { t: 9, parts: [] as any[], partHits: [] as Mesh[], byPart: new Map<Mesh, any>(), interHits: [] as Mesh[], byInter: new Map<Mesh, any>() };
   private hl: LineSegments; private alturaT = 0;
   constructor(public H: XRHost, public version: string) {
@@ -49,9 +48,12 @@ export class XRLayer {
       extra: { radio: () => this.radio(), readback: () => H.readback(), conferir: () => H.conferirEpi(), tool: () => H.toolName(), usar: () => H.usarFerramenta(), guardar: () => H.setTool(null),
         altura: () => this.alturaCm(), setAltura: (cm: number) => { this.loco.s.alturaCm = Math.round(Math.min(210, Math.max(120, cm))); this.loco.save(); },
         aplicarAltura: () => { const cm = this.alturaCm(), e = this.loco.applyStature(cm); if (e === null) return 'Altura inválida.'; this.loco.s.autoAltura = true; this.loco.save(); H.salvarAltura(cm); return `Altura ${cm} cm aplicada: olhos a ${e.toFixed(2).replace('.', ',')} m.`; },
-        perfil: () => H.alturaPerfil() } });
+        perfil: () => H.alturaPerfil(), local: () => this.nearLocal(), ctx: () => H.ctx() } });
     this.card = new VRCard({ inter: H.inter, W: H.W, sess: () => H.sess(), refreshEpi: () => H.refreshEpi(), toast: (m, k) => H.toast(m, k), cmd: (c) => H.cmd(c), tool: () => H.tool(), safety: H.safety, audio: H.audio, rcpQualidade: (ts) => H.rcpQualidade(ts), ctx: () => H.ctx() }, E.scene);
     this.scada = new VRScada({ sess: () => H.sess(), cmd: (c) => H.cmd(c), ctx: () => H.ctx() }, E.scene);
+    this.phys = new Physical({ W: H.W, inter: H.inter, scene: E.scene, sess: () => H.sess(), cmd: (c) => H.cmd(c), setTool: (id) => H.setTool(id), tool: () => H.tool(), toast: (m, k) => H.toast(m, k), refreshEpi: () => H.refreshEpi(),
+      audio: H.audio, takeDea: () => H.takeDea(), deaTaken: () => H.deaTaken(), safety: H.safety, rcpQualidade: (ts) => H.rcpQualidade(ts),
+      fallback: (t, ops) => { this.card.show(t, this.head(new Vector3()), this.fwd(new Vector3())); this.card.ask = ops; this.card.panel.dirty = true; } });
     this.fx = new VRFx(E.cam); this.acc = new VRAccident(H.acc, E.scene); this.hud = new VRHud(E.scene); this.pip = new VRPip(R, E.scene);
     H.hud.listeners.push((k: string, t: string, who?: string) => { if (this.active) this.hud.push(k, t, who); });
     // boneco de EPI no pulso (dorso da mão de andar), como um relógio
@@ -79,7 +81,7 @@ export class XRLayer {
   exit() { void this.H.E.renderer.xr.getSession()?.end(); }
   report() { return buildReport(this.version, this.check, this.debug); }
   /** Novo início/reinício de missão: limpa painéis e efeitos. */
-  reset() { this.fx.reset(); this.acc.hide(); this.card.close(); this.scada.close(); this.pip.hide(); this.hud.clear(); this.grab = null; this.zone = 0; }
+  reset() { this.fx.reset(); this.acc.hide(); this.card.close(); this.scada.close(); this.pip.hide(); this.hud.clear(); this.phys?.reset(this.input.hands); this.zone = 0; this.deskIn = false; }
   head(out = _h) { return this.H.E.cam.getWorldPosition(out); }
   fwd(out = _f) { return this.H.E.cam.getWorldDirection(out); }
   /** Corpo real para a segurança: cabeça, mãos (palma e frente do controle) e pés. */
@@ -87,7 +89,7 @@ export class XRLayer {
   setZone(z: number) { this.zone = z; this.fx.zone = z; }
   flash(hex: number, s: number, buzz = 0.6) { this.fx.doFlash(hex, s); for (const h of this.input.hands) h.pulse(buzz, 250); }
   accident(a: any) {
-    this.card.close(); this.scada.close(); this.menu.hide(); this.grab = null; this.fx.doFlash(a.tipo === 'arco' ? 0xfff3d6 : 0xeaf6ff, 0.9);
+    this.card.close(); this.scada.close(); this.menu.hide(); this.fx.doFlash(a.tipo === 'arco' ? 0xfff3d6 : 0xeaf6ff, 0.9);
     const buzz = (n: number) => { for (const h of this.input.hands) h.pulse(1, 300); if (n > 0) setTimeout(() => buzz(n - 1), 330); }; buzz(3);
     setTimeout(() => { this.fx.fadeTgt = 1; }, 900); setTimeout(() => { if (this.active) this.acc.show(a, this.head(new Vector3()), this.fwd(new Vector3())); }, 2300);
   }
@@ -113,8 +115,8 @@ export class XRLayer {
     const h = this.loco.head(_h); H.P.pos.set(h.x, 0, h.z); H.P.yaw = this.loco.headYaw(); H.P.moving = this.loco.moving ? 1 : 0; H.P.crouch = pj ? 1 : 0;
     H.correndo(this.loco.running && this.loco.moving, dt);
     if (this.alturaT > 0) { this.alturaT -= dt; if (this.alturaT <= 0) { const cm = this.alturaCm(), e = this.loco.applyStature(cm); if (e !== null) H.toast(`Altura ${cm} cm aplicada (olhos ${e.toFixed(2).replace('.', ',')} m). Ajuste no menu › Config.`, 'muted'); } }
-    this.grabUpdate(dead); this.rays(dead, dt);
     const head = this.head(new Vector3()), fwd = this.fwd(new Vector3());
+    this.input.animate(dt); this.phys.update(dt, hands, head, fwd, dead); this.desk(head); this.pokePanels(dead); this.rays(dead, dt);
     this.menu.update(dt); this.card.update(dt, head); this.scada.update(dt); this.acc.update(); this.hud.update(dt, head, fwd); this.pip.update(); this.fx.update(dt);
     if (this.card.rcp) { const c = hands.filter((x) => x.connected); this.card.rcpInput(c.length ? c.reduce((s, x) => s + x.pos.y, 0) / c.length : null, false); }
     // formigamento: vibração proporcional à proximidade da parte energizada (zona controlada / tensão de passo)
@@ -126,25 +128,24 @@ export class XRLayer {
     const bm = this.bonecoPanel.mesh, on = this.boneco.on && !!this.lastBoneco && M.connected && !!M.grip;
     if (on && bm.parent !== M.grip) M.grip!.add(bm); bm.visible = on; if (on) this.bonecoPanel.dirty = true;
   }
-  // ---------- portas, portões e armários pela mão (grip) ----------
-  private grabUpdate(dead: boolean) {
-    const hands = this.input.hands;
-    for (const h of hands) { if (h.squeezeDown && !this.grab && !dead) this.tryGrab(h); if (this.grab?.h === h && !h.squeeze) this.grab = null; }
-    const g = this.grab; if (!g) return; let d = ang(g.h.pos, g.pivot) - g.a0; while (d > Math.PI) d -= 2 * Math.PI; while (d < -Math.PI) d += 2 * Math.PI;
-    const o = Math.min(1, Math.max(0, g.o0 + d * g.k)); g.set(o);
-    if (Math.abs(o - g.last) > 0.07) { g.last = o; g.h.pulse(0.12, 12); }
-    if ((o <= 0 || o >= 1) && !g.lim) { g.lim = true; g.h.pulse(0.45, 30); } else if (o > 0.02 && o < 0.98) g.lim = false;
+  /** Mesa de operação: chegou perto, o supervisório aparece no monitor (tela de toque). */
+  private desk(head: Vector3) {
+    const I: any = this.H.W.indoor, ds = I.deskSeat; if (!ds) return; const d = Math.hypot(head.x - ds.pos.x, head.z - ds.pos.z);
+    if (d < 1.1) { if (!this.deskIn) { this.deskIn = true; if (!this.H.dead()) { this.card.close(); this.scada.showAt(ds.look, ds.pos); } } } else if (d > 2.4 && this.deskIn) { this.deskIn = false; if (this.scada.atDesk) this.scada.close(); }
   }
-  private tryGrab(h: Hand) {
-    const W: any = this.H.W, I = W.indoor, Y = W.yard; const C: { obj: Object3D; get: () => number; set: (o: number) => void; k: number }[] = [];
-    for (const dd of I.doors) C.push({ obj: dd.g, get: () => dd.open, set: (o) => { dd.open = dd.tgt = o; }, k: 1 / dd.max });
-    for (const g of Y.gates) for (const l of g.leaves) C.push({ obj: l.children[0], get: () => g.open, set: (o) => { g.open = g.tgt = o; }, k: 1 / ((l.userData.s || 1) * 1.5) });
-    for (const cb of Object.values<any>(Y.cabs)) C.push({ obj: cb.door, get: () => cb.open, set: (o) => { cb.open = cb.tgt = o; }, k: -1 / 1.85 });
-    for (const cb of new Set<any>(Object.values(I.cabinets))) for (const g of cb.doors) { const f = (g.userData.s || 1) * 1.9 * (g.userData.dir ?? (g.position.x > W.divX ? 1 : -1)); C.push({ obj: g, get: () => cb.open, set: (o) => { cb.open = cb.tgt = o; }, k: 1 / f }); }
-    let best: (typeof C)[number] | null = null, bd = Infinity;
-    for (const c of C) { if (!shown(c.obj)) continue; _box.setFromObject(c.obj).expandByScalar(0.1); if (!_box.containsPoint(h.pos)) continue; const d = _box.getCenter(_p).distanceTo(h.pos); if (d < bd) { bd = d; best = c; } }
-    if (!best) return; const pivot = best.obj.getWorldPosition(new Vector3()), o0 = best.get();
-    this.grab = { h, pivot, a0: ang(h.pos, pivot), o0, k: best.k, set: best.set, last: o0, lim: false }; h.pulse(0.35, 30); this.H.audio?.click?.();
+  /** Dedo nos painéis (menu, supervisório, cartão, acidente): encostou = clique; perto = destaque. */
+  private pokePanels(dead: boolean) {
+    const panels = [this.acc.open && this.acc.panel, !dead && this.menu.mode && this.menu.panel, !dead && this.card.open && this.card.panel, !dead && this.scada.open && this.scada.panel].filter(Boolean) as Panel[];
+    this.input.hands.forEach((h, k) => { if (!h.connected) return;
+      for (const P of panels) { const n = _d.set(0, 0, 1).transformDirection(P.mesh.matrixWorld), o = _p.copy(h.finger).addScaledVector(n, 0.05), t = P.rayHit(o, _f.copy(n).negate()); const st = this.poked.get(P) || [false, false]; this.poked.set(P, st);
+        if (!isFinite(t)) { st[k] = false; continue; } const depth = t - 0.05; if (depth < 0.1) h.autoPoint = true; if (depth < 0.06) P.hover(P.hitX, P.hitY);
+        if (h.pointing && depth < 0.012 && !st[k]) { st[k] = true; if (P.click(P.hitX, P.hitY)) h.pulse(0.35, 15); } else if (depth > 0.03) st[k] = false; } });
+  }
+  /** Local da missão mais próximo (procedimentos no tablet do pulso). */
+  private nearLocal() {
+    const W: any = this.H.W, head = this.head(new Vector3()), ctx = this.H.ctx(); if (!ctx?.sc) return null; let best: any = null, bd = 3.2;
+    for (const t of W.inter) { if (!t.hit || W.zones[t.zone]?.visible === false) continue; const loc = this.H.inter.localDe?.(t); if (!loc) continue; const d = t.hit.getWorldPosition(_p).distanceTo(head); if (d >= bd) continue; const r = ctx.sc.acoesPara(loc); if (!r.acoes.length && !r.decisoes.length) continue; bd = d; best = { loc, label: t.label }; }
+    return best;
   }
   // ---------- raio: painéis, peças (≤ 2,5 m) e equipamentos ----------
   private refresh(head: Vector3) {
@@ -161,10 +162,11 @@ export class XRLayer {
       if (!h.connected || !h.line || !h.cursor) continue; let dist = Infinity, panel: Panel | null = null, part: any = null, it: any = null;
       for (const P of panels) { const t = P.rayHit(h.rayO, h.rayD); if (t < dist) { dist = t; panel = P; } }
       if (panel) { panel.rayHit(h.rayO, h.rayD); panel.hover(panel.hitX, panel.hitY); hovered.add(panel); }
-      if (!dead) { this.ray.set(h.rayO, h.rayD);
+      if (!dead && this.loco.s.ajuda) { this.ray.set(h.rayO, h.rayD);
         this.ray.far = 2.5; const rp = this.ray.intersectObjects(this.cand.partHits, false)[0]; if (rp && rp.distance < dist) { dist = rp.distance; panel = null; part = this.cand.byPart.get(rp.object as Mesh); }
         if (!part) { this.ray.far = 9; for (const r of this.ray.intersectObjects(this.cand.interHits, false)) { if (r.distance >= dist) break; const x = this.cand.byInter.get(r.object as Mesh); if (x && r.distance <= (RANGE[x.kind] ?? 3)) { dist = r.distance; panel = null; it = x; break; } } } }
-      h.line.visible = true; h.line.scale.z = isFinite(dist) ? dist : 2; (h.line.material as any).color.setHex(panel ? 0xf2c230 : part ? 0x3ddc6a : it ? 0x6fb3e0 : 0xffffff);
+      const showRay = this.loco.s.ajuda || !!panel; h.line.visible = showRay && !h.holding; if (!h.line.visible) { h.cursor.visible = false; if (h.triggerDown && this.card.rcp) this.card.rcpInput(null, true); continue; }
+      h.line.scale.z = isFinite(dist) ? dist : 2; (h.line.material as any).color.setHex(panel ? 0xf2c230 : part ? 0x3ddc6a : it ? 0x6fb3e0 : 0xffffff);
       h.cursor.visible = isFinite(dist); if (h.cursor.visible) h.cursor.position.copy(h.rayO).addScaledVector(h.rayD, dist);
       if (part && !hlDone) { hlDone = true; this.highlight(part.hit); }
       if ((part || it) && !labelDone && !panels.length) { labelDone = true; this.showLabel(part, it); }
@@ -176,7 +178,7 @@ export class XRLayer {
       }
     }
     for (const P of [this.menu.panel, this.card.panel, this.scada.panel, this.acc.panel]) if (!hovered.has(P)) P.clearHover();
-    if (!labelDone) this.label.mesh.visible = false; if (!hlDone) this.hl.visible = false;
+    if (!labelDone) this.label.mesh.visible = false; if (!hlDone) { const ph = this.phys.highlight; if (ph) this.highlight(ph); else this.hl.visible = false; }
   }
   private highlight(hit: Mesh) { const g: any = hit.geometry, pr = g.parameters || {}; hit.updateWorldMatrix(true, false); _m.makeScale((pr.width || 0.1) * 1.08, (pr.height || 0.1) * 1.08, (pr.depth || 0.1) * 1.08); this.hl.matrix.multiplyMatrices(hit.matrixWorld, _m); this.hl.matrixWorldNeedsUpdate = true; this.hl.visible = true; }
   private firePart(part: any, h: Hand) {

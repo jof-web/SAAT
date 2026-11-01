@@ -20,6 +20,18 @@ Documento de passagem completo: projeto claude.ai › `claude/SAAT-VR-handoff.md
 - **Qualidade**: MSAA 4× no Quest (antialias do contexto), foveação 0,5 e escala 1,0 (Config: Leve 0,85/1,0 · Normal 1,0/0,5 · Alta 1,25/0,25).
 - **Luva nova** (punho fechado: palma arredondada, dedos em 2 falanges, polegar, manguito da luva e manga FR) e **boneco de EPI no pulso** da mão de andar.
 
+## V0.3 (SAAT VR 0.3.0) — mão real
+- **Mão articulada** (`src/xr/input.ts`): aberta em repouso, fechada no grip, indicador esticado quando o dedo sai do gatilho (sensor de toque do controle) ou a ~12 cm de algo apertável; polegar pelo sensor do apoio. Luva com a cor do EPI.
+- **Interação física** (`src/xr/physical.ts`), mesma lógica de peças do PC (`Interaction.actVR`):
+  - dedo aperta botão (afunda 4 mm, vibra) — botões dos cubículos, caixa do vão, relés, trafo, QGCA, emergência; instrumento tocado = leitura registrada;
+  - grip + giro do pulso: chave 43 e seletoras (ATS, OLTC); grip + puxar: porta e tampa do cubículo; grip + baixar/levantar: alavanca de terra 138 kV;
+  - ferramenta na mão: detector, cadeado, aterramento encostam no ponto; manivela encaixa no furo e gira (anti-horário extrai, horário insere, 3 voltas por posição); alavanca de terra 13,8 kV encaixa e puxa;
+  - portas, portões, armários e caixa do vão giram pela mão na dobradiça.
+- **EPI e ferramentas físicos**: pega no armário; segurar perto dos olhos ~1 s = inspeção (o defeito aparece); levar à cabeça (capacete, óculos, protetor, balaclava), à outra mão (luvas) ou ao tronco (vestimenta, botina) = vestido. Ferramenta: soltar perto da cintura = cinto (4 coldres); perto do lugar no armário = devolvida; no ar = cai no chão.
+- **Supervisório de toque** no monitor da mesa (aparece ao chegar perto). Menu de pulso ganhou a aba **Tarefas** (procedimentos do local mais próximo e rádio/COS) e todos os painéis aceitam o dedo.
+- **Resgate pelas mãos**: tocar o ombro (consciência), aproximar o rosto 2,5 s (respiração), mãos no peito comprimindo (RCP com bipe), DEA perto do tórax (análise → gatilho = choque).
+- **Cartão de ajuda** (mirar + gatilho) desligado por padrão; liga em Config. O PiP da manobra continua sempre.
+
 ## Orçamento medido (headless, IWER, dois olhos)
 | Ponto | Draw calls | Triângulos |
 |---|---|---|
@@ -29,4 +41,4 @@ O FPS do headless não vale: medir no Quest (aba Debug e relatório).
 
 ## Testes
 - `npm test` (A1–A13 + goldens + RCP) e `e2e/*.cjs` sem erro de console.
-- `node e2e/xr.cjs` (IWER): entra em VR, anda, corre (falta), colide na cerca, gira 30°, menu Y, porta pelo raio, cartão do armário, porta da caixa pelo grip, chave 43 e ABRIR 52-LT1 pelo raio (PiP aparece), supervisório, zona controlada e choque pela mão (cartão do acidente, reinício), luvas, draw calls, sai.
+- `node e2e/xr.cjs` (IWER): entra em VR, anda, porta pela mão, capacete inspecionado e vestido pela mão, manivela encaixada e girada no AL1, chave 43 girando o pulso, ABRIR com o dedo, corre (falta), colide na cerca, gira 30°, menu Y, porta pelo raio, cartão do armário, porta da caixa pelo grip, chave 43 e ABRIR 52-LT1 pelo raio (PiP aparece), supervisório, zona controlada e choque pela mão (cartão do acidente, reinício), luvas, draw calls, sai.

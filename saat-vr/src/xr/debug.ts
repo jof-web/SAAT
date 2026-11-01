@@ -7,7 +7,7 @@ const load = (k: string, d: any) => { try { const v = JSON.parse(localStorage.ge
 const store = (k: string, v: any) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch { /* */ } };
 
 export class Debug {
-  errors: { t: string; msg: string; n: number }[] = load(K_ERR, []); byArea: Record<string, { f: number; s: number }> = load(K_FPS, {}); showFps: boolean = load(K_ON, true);
+  errors: { t: string; msg: string; n: number }[] = load(K_ERR, []); byArea: Record<string, { f: number; s: number }> = load(K_FPS, {}); showFps: boolean = load(K_ON, false);
   fps = 0; calls = 0; tris = 0; area = '—'; private frames = 0; private acc = 0; private saveT = 0; listeners = new Set<(k?: string) => void>(); overlay: Panel;
   constructor() {
     addEventListener('error', (e) => this.error((e.message || 'erro') + (e.filename ? ` (${e.filename.split('/').pop()}:${e.lineno})` : '')));

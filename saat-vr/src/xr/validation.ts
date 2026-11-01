@@ -2,6 +2,7 @@
 // flutuante (Y/B) e de pulso (palma para cima): Missão, Locomoção, Config, Checklist, Debug.
 import { Vector3, Matrix4, type Group, type PerspectiveCamera, type Scene, type WebGLRenderer } from 'three';
 import { Panel, UI } from './panel';
+import { drawProcs } from './card';
 import type { Hand } from './input';
 import type { Locomotion } from './locomotion';
 import type { Debug } from './debug';
@@ -10,7 +11,7 @@ export const FASE = 4; // V0.2: interação, supervisório, PiP, consequências 
 export const ITEMS = ([
   ['S1', 'Menu pelo botão Y / B', 0], ['S2', 'Menu de pulso (palma para cima)', 0], ['S3', 'FPS e erros dentro do VR', 0], ['S4', 'Relatório 2D (copiar e baixar)', 0], ['S5', 'Desktop intacto', 0], ['S6', 'Mão dominante (destro/canhoto)', 0], ['S7', 'Calibrar chão / zerar altura', 0], ['S8', 'Boneco de EPI no VR', 0],
   ['L1', 'Andar (polegar, direção da cabeça)', 0], ['L2', 'Correr (clique no polegar) gera falta', 0], ['L3', 'Girar snap 30°/45° e suave', 0], ['L4', 'Vinheta de conforto', 0], ['L5', 'Colisão: paredes, cerca, equipamentos e portas fechadas', 0], ['L6', 'Room-scale: entrar na parede escurece', 0], ['L7', 'Teleporte só na prática livre', 0],
-  ['X1', 'Raio + rótulo nos equipamentos', 1], ['X2', 'Portas e portões pelo raio + gatilho', 0], ['X3', 'Cartão ancorado ao equipamento', 1], ['X4', 'Botões dos painéis (poke)', 1], ['X5', 'Chave 43', 2], ['X6', 'Extração com manivela', 2], ['X7', 'Aterramento com alavanca', 2], ['X8', 'LOTO cadeado', 2], ['X9', 'Detector de tensão', 2], ['X10', 'Armário: inspecionar e vestir', 2], ['X11', 'Luvas visíveis nas mãos', 0], ['X12', 'Cinto: pegar e guardar', 2], ['X13', 'Tablet: Tarefa, Rádio, read-back', 1], ['X14', 'Tablet: Mapa, Leituras, APR/PT, Fichas', 5], ['X15', 'Supervisório na mesa', 3], ['X16', 'PiP da manobra', 3], ['X17', 'Choque/arco sem mover a câmera', 4], ['X18', 'Tensão de passo + pés juntos', 4], ['X19', 'RCP pelas mãos', 4], ['X20', 'DEA', 4], ['X21', 'Áudio espacial + voz do COS', 5], ['X22', 'Vibração', 5],
+  ['X1', 'Raio + rótulo nos equipamentos', 1], ['X2', 'Portas e portões pelo raio + gatilho', 0], ['X3', 'Cartão ancorado ao equipamento', 1], ['X4', 'Botões dos painéis (poke)', 1], ['X5', 'Chave 43', 2], ['X6', 'Extração com manivela', 2], ['X7', 'Aterramento com alavanca', 2], ['X8', 'LOTO cadeado', 2], ['X9', 'Detector de tensão', 2], ['X10', 'Armário: inspecionar e vestir', 2], ['X11', 'Luvas visíveis nas mãos', 0], ['X12', 'Cinto: pegar e guardar', 2], ['X13', 'Tablet: Tarefa, Rádio, read-back', 1], ['X14', 'Tablet: Mapa, Leituras, APR/PT, Fichas', 5], ['X15', 'Supervisório na mesa', 3], ['X16', 'PiP da manobra', 3], ['X17', 'Choque/arco sem mover a câmera', 4], ['X18', 'Tensão de passo + pés juntos', 4], ['X19', 'RCP pelas mãos', 4], ['X20', 'DEA', 4], ['X21', 'Áudio espacial + voz do COS', 5], ['X22', 'Vibração', 4], ['X23', 'Mão: aberta, fechada (grip), indicador', 4], ['X24', 'Dedo aperta botão (afunda e vibra)', 4], ['X25', 'Grip: seletora 43, alavanca, porta/tampa', 4], ['X26', 'Manivela encaixada: 3 voltas por posição', 4], ['X27', 'EPI físico: olhar de perto e vestir', 4], ['X28', 'Cinto: guardar e pegar ferramenta', 4], ['X29', 'Supervisório de toque na mesa', 4], ['X30', 'Resgate pelas mãos (ombro, respiração, RCP, DEA)', 4],
   ['M-T0', 'Missão T0 completa no VR', 1], ['M-R1', 'Missão R1 completa no VR', 1], ['M-R2', 'Missão R2 completa no VR', 1], ['M-C1', 'Missão C1 completa no VR', 2], ['M-M1', 'Missão M1 completa no VR', 2], ['M-M2', 'Missão M2 completa no VR', 2], ['M-C2', 'Missão C2 completa no VR', 3], ['M-E1', 'Missão E1 completa no VR', 3], ['M-S1', 'Missão S1 completa no VR', 4], ['M-S2', 'Missão S2 completa no VR', 4],
 ] as [string, string, number][]).map(([id, name, fase]) => ({ id, name, fase, group: id[0] }));
 export const STATUS: Record<string, string> = { ok: '✅', mal: '⚠️', falha: '❌', nt: '—' };
@@ -40,13 +41,13 @@ export interface MenuHost {
   version: string; loco: Locomotion; debug: Debug; check: Checklist; hands: Hand[]; cam: PerspectiveCamera; scene: Scene; renderer: WebGLRenderer;
   missao(): { codigo: string; titulo: string; passo: string; area: string; livre: boolean; faltas: number; epi: string };
   teleport(k: string): void; pausar(): boolean; sair(): void; boneco: { on: boolean }; setBoneco(on: boolean): void;
-  extra: { radio(): void; readback(): string | null; conferir(): string; tool(): string; usar(): void; guardar(): void; altura(): number; setAltura(cm: number): void; aplicarAltura(): string; perfil(): number | null };
+  extra: { radio(): void; readback(): string | null; conferir(): string; tool(): string; usar(): void; guardar(): void; altura(): number; setAltura(cm: number): void; aplicarAltura(): string; perfil(): number | null; local(): { loc: string; label: string } | null; ctx(): any };
 }
-const TABS: [string, string][] = [['mis', 'Missão'], ['loc', 'Locomoção'], ['cfg', 'Config'], ['chk', 'Checklist'], ['dbg', 'Debug']];
+const TABS: [string, string][] = [['mis', 'Missão'], ['proc', 'Tarefas'], ['loc', 'Locomoção'], ['cfg', 'Config'], ['chk', 'Checklist'], ['dbg', 'Debug']];
 const ROWS = 7, _v = new Vector3(), _v2 = new Vector3(), _m = new Matrix4(), _x = new Vector3(), _y = new Vector3(), _z = new Vector3();
 
 export class Menu {
-  panel = new Panel({ w: 0.64, h: 0.5, px: 1024 }); mode: null | 'float' | 'wrist' = null; tab = 'mis'; group = 'S'; page = 0; sel: string | null = null; calib = 0; calibMsg = ''; msg = ''; private palmT = 0; private offT = 0; private refreshT = 0;
+  panel = new Panel({ w: 0.64, h: 0.5, px: 1024 }); mode: null | 'float' | 'wrist' = null; tab = 'mis'; group = 'S'; page = 0; sel: string | null = null; calib = 0; calibMsg = ''; msg = ''; procTab: 'loc' | 'radio' = 'loc'; ask: [string, () => void][] | null = null; procSt = { page: 0, ask: (ops: [string, () => void][]) => { this.ask = ops; this.panel.dirty = true; } }; private palmT = 0; private offT = 0; private refreshT = 0;
   constructor(public A: MenuHost) {
     this.panel.render = (p) => this.draw(p); this.panel.mesh.visible = false; A.scene.add(this.panel.mesh);
     A.debug.listeners.add(() => { if (this.tab === 'dbg') this.panel.dirty = true; });
@@ -73,18 +74,18 @@ export class Menu {
     if (this.mode) { this.refreshT += dt; if (this.refreshT > 0.5) { this.refreshT = 0; if (this.tab !== 'chk') this.panel.dirty = true; } this.panel.update(); }
   }
   private draw(p: Panel) {
-    TABS.forEach(([id, l], i) => p.button('tab' + id, 16 + i * 184, 12, 176, 64, l, () => { this.tab = id; }, { active: this.tab === id, size: 26 }));
+    TABS.forEach(([id, l], i) => p.button('tab' + id, 12 + i * 167, 12, 160, 64, l, () => { this.tab = id; this.ask = null; }, { active: this.tab === id, size: 24 }));
     p.text(this.A.version, p.W - 14, 96, { size: 20, color: UI.dim, align: 'right', mono: true }); p.rect(0, 84, p.W, 2, UI.line);
-    if (this.tab === 'mis') this.drawMissao(p); else if (this.tab === 'loc') this.drawLoco(p); else if (this.tab === 'cfg') this.drawCfg(p); else if (this.tab === 'chk') this.drawCheck(p); else this.drawDebug(p);
+    if (this.tab === 'mis') this.drawMissao(p); else if (this.tab === 'proc') this.drawProc(p); else if (this.tab === 'loc') this.drawLoco(p); else if (this.tab === 'cfg') this.drawCfg(p); else if (this.tab === 'chk') this.drawCheck(p); else this.drawDebug(p);
   }
   private drawMissao(p: Panel) {
     const m = this.A.missao(), X = this.A.extra;
     p.text(m.codigo, 24, 122, { size: 24, color: UI.accent, weight: 700, max: 760 }); p.text(m.titulo, 24, 160, { size: 32, weight: 700, max: 970 });
     p.text(m.passo || '—', 24, 204, { size: 26, color: UI.dim, max: 970 });
     p.text(`Área: ${m.area}   ·   Faltas: ${m.faltas}   ·   ${m.epi}   ·   Na mão: ${X.tool()}`, 24, 246, { size: 23, max: 970, color: m.faltas ? UI.warn : UI.text });
-    p.text('Gatilho: aponte e acione · Grip perto da porta: abra com a mão · X/A segurado: pés juntos', 24, 284, { size: 21, color: UI.dim, max: 970 });
+    p.text('Dedo aperta botão · grip pega, gira e puxa · ferramenta encosta no ponto · X/A segurado: pés juntos', 24, 284, { size: 21, color: UI.dim, max: 970 });
     const B = (id: string, x: number, l: string, f: () => void) => p.button(id, x, 312, 236, 64, l, f, { size: 23 });
-    B('rb', 24, 'Rádio / COS', () => { X.radio(); }); B('ce', 272, 'Conferir EPI', () => { this.msg = X.conferir(); });
+    B('rb', 24, 'Rádio / COS', () => { this.tab = 'proc'; this.procTab = 'radio'; }); B('ce', 272, 'Conferir EPI', () => { this.msg = X.conferir(); });
     B('us', 520, 'Usar ferramenta', () => { X.usar(); }); B('gd', 768, 'Guardar ferramenta', () => { X.guardar(); });
     if (this.msg) p.text(this.msg, 24, 396, { size: 21, color: UI.info, max: 970 });
     if (m.livre) { p.text('Teleporte (prática livre)', 24, 430, { size: 22, color: UI.dim });
@@ -93,6 +94,18 @@ export class Menu {
     p.button('pause', 520, 530, 480, 64, 'Pausar / continuar', () => { this.A.pausar(); }, { size: 24 });
     p.button('exit', 24, 612, 976, 72, 'Sair do VR (resultado e relatório na tela 2D)', () => this.A.sair(), { size: 26, color: UI.bad });
     p.text('APR/PT: preencha no PC antes de entrar. Botão Meta também sai do VR.', 24, 716, { size: 21, color: UI.dim, max: 970 });
+  }
+  /** Tarefas: procedimentos e decisões do local mais próximo ou do rádio (o 'tablet' do pulso). */
+  private drawProc(p: Panel) {
+    const X = this.A.extra, ctx = X.ctx(); if (!ctx?.sc) { p.text('Prática livre: sem procedimentos de missão.', 24, 130, { size: 26, color: UI.dim }); return; }
+    const L = X.local(); if (!L && this.procTab === 'loc') this.procTab = 'radio';
+    p.button('prl', 24, 96, 480, 60, L ? `Aqui: ${L.label}` : 'Aqui: nada perto', () => { this.procTab = 'loc'; this.procSt.page = 0; }, { active: this.procTab === 'loc', size: 22, disabled: !L });
+    p.button('prr', 520, 96, 480, 60, 'Rádio / COS', () => { this.procTab = 'radio'; this.procSt.page = 0; }, { active: this.procTab === 'radio', size: 22 });
+    let y = 172;
+    if (this.ask) { p.text('Confirmar decisão:', 24, y + 16, { size: 24, color: UI.accent }); y += 40; this.ask.forEach(([l, f], i) => p.button('ak' + i, 24, y + i * 72, 976, 62, l, () => { this.ask = null; f(); }, { size: 23, align: 'left' })); p.button('akx', 24, y + this.ask.length * 72, 976, 58, 'Cancelar', () => { this.ask = null; }, { size: 23 }); return; }
+    if (this.procTab === 'radio') { const pend = ctx.sc.st.cos.find((o: any) => o.readbackReq && !o.readback); p.button('rbk', 24, y, 976, 60, pend ? 'Read-back da última ordem do COS' : 'Nenhuma ordem aguardando read-back', () => { this.msg = X.readback() || ''; }, { size: 23, active: !!pend, color: UI.accent, disabled: !pend }); y += 70; }
+    drawProcs(p, 24, y, 976, this.procTab === 'radio' ? 'radio' : L!.loc, this.procSt, ctx, this.procTab === 'radio' ? 6 : 7);
+    if (this.msg) p.text(this.msg, 24, p.H - 26, { size: 21, color: UI.info, max: 970 });
   }
   private drawLoco(p: Panel) {
     const lo = this.A.loco, s = lo.s, sv = () => lo.save(), row = (y: number, l: string) => p.text(l, 24, y + 32, { size: 26, max: 560 });
@@ -112,7 +125,7 @@ export class Menu {
     p.text('Mão dominante (gira e teleporta; a outra anda, corre e abre o menu)', 24, 122, { size: 24, color: UI.dim, max: 970 });
     p.button('hr', 24, 146, 480, 72, 'Destro (mão direita)', () => { s.hand = 'right'; sv(); }, { active: s.hand !== 'left', size: 26 });
     p.button('hl', 520, 146, 480, 72, 'Canhoto (mão esquerda)', () => { s.hand = 'left'; sv(); }, { active: s.hand === 'left', size: 26 });
-    p.text('L2 Correr: clique o polegar de andar. Correr na SE conta FALTA no resultado.', 24, 252, { size: 24, color: UI.warn, max: 970 });
+    p.text('Cartão de ajuda (mirar + gatilho mostra o estado e as peças)', 24, 262, { size: 24, max: 700 }); p.button('aj', 760, 232, 240, 60, s.ajuda ? 'Ligado' : 'Desligado', () => { s.ajuda = !s.ajuda; sv(); }, { active: s.ajuda, color: UI.ok, size: 24 });
     p.text(`Velocidade da corrida (${(s.speed * s.run).toFixed(1).replace('.', ',')} m/s)`, 24, 306, { size: 26 });
     p.button('rn-', 600, 274, 90, 64, '−', () => { s.run = Math.max(1.25, +(s.run - 0.25).toFixed(2)); sv(); }, { size: 36 }); p.text(s.run.toFixed(2).replace('.', ',') + '×', 795, 306, { size: 26, align: 'center', mono: true }); p.button('rn+', 910, 274, 90, 64, '+', () => { s.run = Math.min(3, +(s.run + 0.25).toFixed(2)); sv(); }, { size: 36 });
     p.text(`Menu: botão ${s.hand === 'left' ? 'B (direita)' : 'Y (esquerda)'} ou palma dessa mão para cima.`, 24, 380, { size: 24, color: UI.dim });

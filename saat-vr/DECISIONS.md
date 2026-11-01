@@ -209,3 +209,13 @@ Referências: `docs/ref/planta-geral-v2-final.png`, `docs/ref/fichas-patio-v2.pn
 - **Altura**: manual (cm) por perfil, como pedido; a automática virou alternativa. Olhos = 0,936 × estatura (antropometria média).
 - **Resgate no VR**: RCP contando compressões pelo movimento das mãos (5 cm para baixo e volta) ou pelo gatilho; DEA com análise e CHOQUE.
 - **APR/PT no VR**: preenche no PC antes de entrar (aviso no menu). Tablet completo no VR fica para a V5.
+
+## VR — V0.3 (SAAT VR 0.3.0): mão real
+- **Respostas do usuário:** cartão de ajuda só no menu (desligado por padrão), mas o PiP do equipamento continua sempre; EPI físico; tudo de uma vez; indicador por sensor + automático.
+- **Sem motor de física**: movimentos guiados (dobradiça, giro do pulso em volta da normal do painel, deslocamento vertical, giro em volta do eixo do furo da manivela) e gravidade simples ao soltar. Mais estável e barato no Quest.
+- **Categoria da peça pelo `act`** (sem retrabalho do modelo 3D): seletora/ATS/OLTC = girar; rack = manivela; terra/terraAT = alavanca; porta/tampa = puxar; peça com ferramenta = encostar a ferramenta; resto = dedo. A caixa de cada peça (malha unitária escalada) vira caixa em metros; normal = eixo fino, ou o mais voltado para quem está na frente.
+- **Manivela**: 3 voltas por posição (serviço ↔ teste ↔ extraído); anti-horário (visto de frente) extrai, como no PC. O intertravamento continua valendo (ex.: I-04 bloqueia com disjuntor fechado).
+- **Inspeção de EPI**: segurar perto dos olhos ~1 s. Vestir só leva à parte do corpo; o sistema não deixa vestir pela lista.
+- **Ferramenta solta no ar cai** (treina cuidado); perto da cintura vai para o cinto; perto do lugar no armário volta.
+- **Objetos pegos saem do lote do AutoBatch** (`AutoBatch.detach`) para desenhar na mão fora da zona; voltam no reinício.
+- **FPS no VR desligado por padrão** (liga em Debug).
