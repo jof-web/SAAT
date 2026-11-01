@@ -4,7 +4,7 @@ import { Group, Mesh, PlaneGeometry, ShaderMaterial, Vector3, Quaternion, Line, 
 import type { Hand } from './input';
 
 const KEY = 'saat:vrloco';
-export const LOCO_DEF = { teleport: false, continuous: true, speed: 1.5, run: 2, hand: 'right' as 'right' | 'left', turn: 'snap30' as 'snap30' | 'snap45' | 'smooth' | 'off', smoothSpeed: 90, vignette: true, seated: false, seatOffset: 0, manual: 0 };
+export const LOCO_DEF = { teleport: false, continuous: true, speed: 1.5, run: 2, hand: 'right' as 'right' | 'left', turn: 'snap30' as 'snap30' | 'snap45' | 'smooth' | 'off', smoothSpeed: 90, vignette: true, seated: false, seatOffset: 0, manual: 0, alturaCm: 170, autoAltura: false, vrq: 'normal' as 'leve' | 'normal' | 'alta' };
 const UP = new Vector3(0, 1, 0), _v = new Vector3(), _p = new Vector3(), _q = new Quaternion(), _vel = new Vector3(), N = 48;
 
 export class Locomotion {
@@ -36,6 +36,9 @@ export class Locomotion {
   /** O controle mais baixo (encostado no chão real) passa a ficar a 4 cm do piso virtual. */
   calibrateFloor(hands: Hand[]) { let low: Hand | null = null; for (const h of hands) if (h.connected && (!low || h.pos.y < low.pos.y)) low = h; if (!low) return null;
     const localY = low.pos.y - this.rig.position.y, rigY = 0.04 - localY; this.s.manual = Math.min(1.5, Math.max(-1, Math.round((rigY - (this.s.seated ? this.s.seatOffset : 0)) * 100) / 100)); this.applyHeight(); this.save(); return this.s.manual; }
+  /** Estatura (cm): olhos a 93,6 % da altura. Vale em qualquer postura (em pé ou sentado): corrige pelo rig. */
+  applyStature(cm = this.s.alturaCm) { if (!(cm >= 120 && cm <= 210)) return null; this.s.alturaCm = Math.round(cm); const eye = cm * 0.00936; this.s.seated = false; this.s.seatOffset = 0;
+    this.s.manual = Math.min(1.5, Math.max(-1, Math.round((eye - this.cam.position.y) * 100) / 100)); this.applyHeight(); this.save(); return eye; }
   eyeHeight() { return this.cam.position.y + this.rig.position.y; }
   /** Move a cabeça por (dx,dz) com deslizamento nos eixos. */
   private move(dx: number, dz: number) { const H = this.head(_p); let mx = 0, mz = 0; if (dx && !this.blocked(H.x + dx, H.z, 0.25)) mx = dx; if (dz && !this.blocked(H.x + mx, H.z + dz, 0.25)) mz = dz; this.rig.position.x += mx; this.rig.position.z += mz; return mx || mz; }

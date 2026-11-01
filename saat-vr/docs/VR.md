@@ -10,6 +10,16 @@ Documento de passagem completo: projeto claude.ai › `claude/SAAT-VR-handoff.md
 - `src/xr/debug.ts`, `src/xr/panel.ts` — FPS/draw calls presos à câmera, últimos 10 erros, FPS médio por área; painel canvas do sandbox.
 - `src/game/gfx.ts` — perfil leve (Quest ou `#vrlite`): Lambert espelhando o material PBR, lote único por cor de vértice (blocos de 24 m), `AutoBatch` (peças soltas da zona em `BatchedMesh`, espelhadas a cada quadro), recorte por distância de peças pequenas (layer 5).
 
+## V0.2 (SAAT VR 0.2.0) — interação completa, consequências e PiP
+- **Raio + gatilho em tudo**: peça a até 2,5 m tem prioridade (caixa amarela de destaque; legenda abaixo da visão diz a ação e a ferramenta que sai do cinto); equipamento abre o cartão `src/xr/card.ts` (estado, peças como botões, procedimentos/decisões da missão, leitura com registro, armário com inspecionar/vestir/devolver, resgate com RCP pelas mãos e DEA). Mesa de operação abre o supervisório `src/xr/scada.ts` (manobra com SELECIONAR → EXECUTAR, alarmes/ACK, TAP/AUTO-MANUAL, procedimentos do IHM).
+- **Grip = mão na porta**: portas, portões, armários e a porta da caixa de comando do vão giram pela posição da mão em volta da dobradiça (para em qualquer ângulo; vibra no batente). Botão da caixa de comando só funciona com a porta aberta.
+- **Consequências NR-10 com o corpo real**: cabeça e mãos (controles) contam para Rr/Rc. Rc = tinta vermelha + vibração proporcional + falta; Rr = choque: clarão, vibração forte, escurece e mostra o cartão do acidente (resgate, tentar de novo, relatório, menu). Arco também vibra. X/A segurado = pés juntos (tensão de passo).
+- **PiP em toda manobra** (local ou remota, PC e VR): câmera fixa no equipamento (seccionadora, disjuntor 138 kV com câmara em corte, chave de terra, disjuntor 13,8 kV). PC: canto superior direito (ou CFTV na mesa). VR: painel ao lado, renderizado 1 a cada 3 quadros numa textura 640×360.
+- **Legenda de avisos no VR** (toasts + rádio do COS) que segue o olhar com atraso. Menu › Missão › Rádio/COS: read-back, comunicações e decisões.
+- **Altura manual**: cm no perfil do treinando (cadastro) ou no menu › Config (−5/−1/+1/+5, Aplicar). Olhos = 93,6 % da estatura; aplicada 1,5 s após entrar. Calibrar pelo chão e zerar ficam como alternativa. No PC a altura do perfil define a câmera.
+- **Qualidade**: MSAA 4× no Quest (antialias do contexto), foveação 0,5 e escala 1,0 (Config: Leve 0,85/1,0 · Normal 1,0/0,5 · Alta 1,25/0,25).
+- **Luva nova** (punho fechado: palma arredondada, dedos em 2 falanges, polegar, manguito da luva e manga FR) e **boneco de EPI no pulso** da mão de andar.
+
 ## Orçamento medido (headless, IWER, dois olhos)
 | Ponto | Draw calls | Triângulos |
 |---|---|---|
@@ -19,4 +29,4 @@ O FPS do headless não vale: medir no Quest (aba Debug e relatório).
 
 ## Testes
 - `npm test` (A1–A13 + goldens + RCP) e `e2e/*.cjs` sem erro de console.
-- `node e2e/xr.cjs` (IWER): entra em VR pela tela inicial, anda, corre (falta), colide na cerca, gira 30°, abre o menu Y, abre porta pelo raio, mede draw calls, sai.
+- `node e2e/xr.cjs` (IWER): entra em VR, anda, corre (falta), colide na cerca, gira 30°, menu Y, porta pelo raio, cartão do armário, porta da caixa pelo grip, chave 43 e ABRIR 52-LT1 pelo raio (PiP aparece), supervisório, zona controlada e choque pela mão (cartão do acidente, reinício), luvas, draw calls, sai.

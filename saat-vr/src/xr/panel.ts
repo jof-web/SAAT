@@ -9,13 +9,13 @@ export const UI = { bg: '#14181c', panel: '#1c2228', line: '#313a42', text: '#e8
 interface Btn { id: string; x: number; y: number; w: number; h: number; onClick: (() => void) | null; disabled: boolean }
 export class Panel {
   W: number; H: number; canvas = document.createElement('canvas'); g: CanvasRenderingContext2D; tex: CanvasTexture; mesh: Mesh;
-  w: number; h: number; buttons: Btn[] = []; hoverId: string | null = null; dirty = true; render: ((p: Panel) => void) | null = null; hitX = 0; hitY = 0;
+  w: number; h: number; transparent: boolean; buttons: Btn[] = []; hoverId: string | null = null; dirty = true; render: ((p: Panel) => void) | null = null; hitX = 0; hitY = 0;
   private inv = new Matrix4(); private o = new Vector3(); private d = new Vector3();
   constructor({ w = 0.64, h = 0.5, px = 1024, transparent = false } = {}) {
     this.W = px; this.H = Math.round((px * h) / w); this.canvas.width = this.W; this.canvas.height = this.H; this.g = this.canvas.getContext('2d')!;
     this.tex = new CanvasTexture(this.canvas); this.tex.colorSpace = SRGBColorSpace; this.tex.anisotropy = 4;
     this.mesh = new Mesh(new PlaneGeometry(w, h), new MeshBasicMaterial({ map: this.tex, toneMapped: false, transparent, fog: false }));
-    this.mesh.renderOrder = 10; this.mesh.userData.noPreset = true; this.w = w; this.h = h;
+    this.mesh.renderOrder = 10; this.mesh.userData.noPreset = true; this.w = w; this.h = h; this.transparent = transparent;
   }
   /** Raio contra o plano: distância (m) ou Infinity; guarda o ponto em px. */
   rayHit(origin: Vector3, dir: Vector3) {
@@ -30,7 +30,7 @@ export class Panel {
   clearHover() { if (this.hoverId !== null) { this.hoverId = null; this.dirty = true; } }
   find(x: number, y: number) { for (let i = this.buttons.length - 1; i >= 0; i--) { const b = this.buttons[i]; if (!b.disabled && x >= b.x && x <= b.x + b.w && y >= b.y && y <= b.y + b.h) return b; } return null; }
   click(x: number, y: number) { const b = this.find(x, y); if (b?.onClick) { b.onClick(); this.dirty = true; return true; } return false; }
-  update() { if (!this.dirty || !this.render) return; this.dirty = false; this.buttons.length = 0; this.g.fillStyle = UI.bg; this.g.fillRect(0, 0, this.W, this.H); this.render(this); this.tex.needsUpdate = true; }
+  update() { if (!this.dirty || !this.render) return; this.dirty = false; this.buttons.length = 0; if (this.transparent) this.g.clearRect(0, 0, this.W, this.H); else { this.g.fillStyle = UI.bg; this.g.fillRect(0, 0, this.W, this.H); } this.render(this); this.tex.needsUpdate = true; }
   rect(x: number, y: number, w: number, h: number, c: string) { this.g.fillStyle = c; this.g.fillRect(x, y, w, h); }
   stroke(x: number, y: number, w: number, h: number, c: string, lw = 2) { this.g.strokeStyle = c; this.g.lineWidth = lw; this.g.strokeRect(x + lw / 2, y + lw / 2, w - lw, h - lw); }
   /** Texto com ajuste: encolhe a fonte até 45 % antes de cortar. */

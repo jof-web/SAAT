@@ -10,7 +10,7 @@ import { padlock, type Lamp } from './indoor';
 export const PH = [-3, 0, 3];
 export interface DisD { id: string; blades: Group[]; earth: Group[] | null; termN: Vector3[]; termS: Vector3[]; ang: number; earthAng: number; cx: number; cz: number; terraId?: string; tgt: number; eTgt: number; lock: Group; earthLock: Group | null }
 export interface CbrD { id: string; flagI: Mesh; flagO: Mesh; mola: Mesh; moving: Mesh[]; arcs: Mesh[]; chambers: Mesh[]; termN: Vector3[]; termS: Vector3[]; pos: number; tgt: number; arcT: number; cx: number; cz: number; sf6: Group[]; counter: ReturnType<typeof canvasTex> }
-export interface BayCab { bay: string; lamps: Record<string, Lamp>; sel: Group; lock: Group; door: Group; x: number; z: number }
+export interface BayCab { bay: string; lamps: Record<string, Lamp>; sel: Group; lock: Group; door: Group; x: number; z: number; open: number; tgt: number }
 export interface TrfD { id: string; fans: Group[]; hv: Vector3[]; center: Vector3; vent: number; panel: { oil: Group; wnd: Group; lvl: Group; lcd: ReturnType<typeof canvasTex>; lamps: Record<string, Lamp>; lock: Group }; buch: Mesh; breather: Mesh }
 export interface Yard { dis: Record<string, DisD>; cbr: Record<string, CbrD>; cabs: Record<string, BayCab>; trf: Record<string, TrfD>; gates: GateD[]; zones: { p: Vector3; nodes: string[]; nivel: 'AT' | 'MT' }[]; lights: Mesh[]; bus: { x1: number; x2: number; y: number; zs: number[] } }
 
@@ -131,26 +131,26 @@ export function disjuntor(c: MCtx, cx: number, cz: number, id: string, o: { tc?:
 }
 function bayCabinet(c: MCtx, bay: string, x: number, z: number): BayCab {
   const M = c.M, B = c.b, root = c.root.patio;
-  B.box(0.9, 0.3, 0.75, M.concrete, x, 0.1, z); B.rbox(1.0, 1.8, 0.62, 0.02, M.ral7035, x, 1.15, z); B.box(1.1, 0.04, 0.75, M.ral7035, x, 2.08, z + 0.03);
+  B.box(0.9, 0.3, 0.75, M.concrete, x, 0.1, z); B.rbox(1.0, 1.8, 0.5, 0.02, M.ral7035, x, 1.15, z - 0.06); for (const sx of [-0.49, 0.49]) B.box(0.02, 1.8, 0.13, M.ral7035, x + sx, 1.15, z + 0.245); // corpo raso + laterais: a porta abre e mostra o mímico B.box(1.1, 0.04, 0.75, M.ral7035, x, 2.08, z + 0.03);
   const door = new Group(); door.position.set(x - 0.49, 0, z + 0.315); root.add(door); dbox(0.96, 1.7, 0.02, M.ral7035, 0.48, 1.15, 0, door).castShadow = true; dbox(0.03, 0.14, 0.03, M.black, 0.88, 1.15, 0.02, door);
   // painel interno (mímico com chaves e lâmpadas por equipamento)
   const pr = new Print(0.9, 1.0, 600); pr.rect(0, 0, 0.9, 1.0, '#c9cdc8'); pr.tag('BAY ' + (bay === 'LT1' ? 'LT-01' : bay), 0.45, 0.94, 0.4, 0.07); pr.text('COMANDO LOCAL', 0.45, 0.875, 0.022);
   const rows: [string, string][] = bay === 'LT1' ? [['89-LT1-2', 'SECC. LINHA'], ['52-LT1', 'DISJUNTOR'], ['89-LT1-1', 'SECC. BARRA']] : bay === 'T1A' ? [['89-T1-1', 'SECC. BARRA'], ['52-T1', 'DISJUNTOR'], ['89-T1-2', 'SECC. TRAFO']] : [['89-T2-1', 'SECC. BARRA'], ['52-T2', 'DISJUNTOR'], ['89-T2-2', 'SECC. TRAFO']];
   rows.forEach(([eq, nm], i) => { const y = 0.72 - i * 0.2; pr.text(eq, 0.08, y + 0.05, 0.022, { align: 'left', weight: 700 }); pr.text(nm, 0.08, y + 0.02, 0.016, { align: 'left', color: '#333' }); pr.text('ABRIR', 0.56, y - 0.045, 0.014); pr.text('FECHAR', 0.7, y - 0.045, 0.014); });
   pr.text('43  LOC · REM', 0.75, 0.13, 0.018); pr.text('MOLA', 0.18, 0.1, 0.016);
-  const pm = pr.mesh(); pm.position.set(x, 1.25, z + 0.29); root.add(pm); B.box(0.9, 1.0, 0.01, M.ral7032, x, 1.25, z + 0.28);
+  const pm = pr.mesh(); pm.position.set(x, 1.25, z + 0.252); root.add(pm); B.box(0.9, 1.0, 0.01, M.ral7032, x, 1.25, z + 0.244);
   const lamps: Record<string, Lamp> = {};
-  rows.forEach(([eq], i) => { const y = 1.25 - 0.5 + 0.72 - i * 0.2; lamps[eq + ':c'] = lampAt(c, 0xff3b30, x - 0.45 + 0.4, y + 0.04, z + 0.295); lamps[eq + ':o'] = lampAt(c, 0x2fd36b, x - 0.45 + 0.46, y + 0.04, z + 0.295);
-    for (const [k, bx, col] of [['open', 0.56, 0x1f8a4c], ['close', 0.7, 0xc8102e]] as const) { const m = dcyl(0.018, 0.02, new MeshStandardMaterial({ color: col, roughness: 0.35 }), x - 0.45 + bx, y, z + 0.3, root, 14); m.rotation.x = Math.PI / 2;
-      part(c, 'cab:' + bay, eq + ':' + k, `${k === 'open' ? 'ABRIR' : 'FECHAR'} ${eq} (comando local)`, k === 'open' ? 'bay:open' : 'bay:close', [m], [0.05, 0.05, 0.05], new Vector3(x - 0.45 + bx, y, z + 0.31), { data: { id: eq } }); } });
-  lamps['mola'] = lampAt(c, 0xe0b21e, x - 0.45 + 0.18, 1.25 - 0.5 + 0.14, z + 0.295);
-  const sel = new Group(); sel.position.set(x - 0.45 + 0.75, 1.25 - 0.5 + 0.2, z + 0.3); root.add(sel); dcyl(0.03, 0.02, M.black, 0, 0, 0, sel, 18).rotation.x = Math.PI / 2; dbox(0.012, 0.05, 0.02, M.black, 0, 0, 0.012, sel); dbox(0.004, 0.035, 0.004, M.white, 0, 0.005, 0.023, sel);
-  const lock = padlock(M, x - 0.45 + 0.83, 1.25 - 0.5 + 0.16, z + 0.31, root);
+  rows.forEach(([eq], i) => { const y = 1.25 - 0.5 + 0.72 - i * 0.2; lamps[eq + ':c'] = lampAt(c, 0xff3b30, x - 0.45 + 0.4, y + 0.04, z + 0.257); lamps[eq + ':o'] = lampAt(c, 0x2fd36b, x - 0.45 + 0.46, y + 0.04, z + 0.257);
+    for (const [k, bx, col] of [['open', 0.56, 0x1f8a4c], ['close', 0.7, 0xc8102e]] as const) { const m = dcyl(0.018, 0.02, new MeshStandardMaterial({ color: col, roughness: 0.35 }), x - 0.45 + bx, y, z + 0.262, root, 14); m.rotation.x = Math.PI / 2;
+      part(c, 'cab:' + bay, eq + ':' + k, `${k === 'open' ? 'ABRIR' : 'FECHAR'} ${eq} (comando local)`, k === 'open' ? 'bay:open' : 'bay:close', [m], [0.05, 0.05, 0.05], new Vector3(x - 0.45 + bx, y, z + 0.275), { data: { id: eq } }); } });
+  lamps['mola'] = lampAt(c, 0xe0b21e, x - 0.45 + 0.18, 1.25 - 0.5 + 0.14, z + 0.257);
+  const sel = new Group(); sel.position.set(x - 0.45 + 0.75, 1.25 - 0.5 + 0.2, z + 0.262); root.add(sel); dcyl(0.03, 0.02, M.black, 0, 0, 0, sel, 18).rotation.x = Math.PI / 2; dbox(0.012, 0.05, 0.02, M.black, 0, 0, 0.012, sel); dbox(0.004, 0.035, 0.004, M.white, 0, 0.005, 0.023, sel);
+  const lock = padlock(M, x - 0.45 + 0.83, 1.25 - 0.5 + 0.16, z + 0.272, root);
   colBox(c, x, z, 0.55, 0.4);
   inter(c, { id: 'cab:' + bay, kind: 'bay', label: `Caixa de comando local — bay ${bay === 'LT1' ? 'LT-01' : bay}`, verb: 'Inspecionar', box: [1.1, 1.9, 0.75], at: [x, 1.1, z], eq: bay, view: { pos: new Vector3(x, 1.4, z + 1.25), look: new Vector3(x, 1.22, z + 0.3) } });
-  part(c, 'cab:' + bay, '43', 'Chave local/remoto 43 do bay', 'bay:43', [sel], [0.08, 0.08, 0.05], new Vector3(sel.position.x, sel.position.y, z + 0.32));
-  part(c, 'cab:' + bay, 'loto43', 'Bloqueio (cadeado) da chave 43 do bay', 'loto:43bay', [lock], [0.06, 0.08, 0.06], new Vector3(x - 0.45 + 0.83, 1.25 - 0.5 + 0.16, z + 0.32), { tool: 'kit_bloqueio' });
-  return { bay, lamps, sel, lock, door, x, z };
+  part(c, 'cab:' + bay, '43', 'Chave local/remoto 43 do bay', 'bay:43', [sel], [0.08, 0.08, 0.05], new Vector3(sel.position.x, sel.position.y, z + 0.285));
+  part(c, 'cab:' + bay, 'loto43', 'Bloqueio (cadeado) da chave 43 do bay', 'loto:43bay', [lock], [0.06, 0.08, 0.06], new Vector3(x - 0.45 + 0.83, 1.25 - 0.5 + 0.16, z + 0.285), { tool: 'kit_bloqueio' });
+  return { bay, lamps, sel, lock, door, x, z, open: 0, tgt: 0 };
 }
 function lampAt(c: MCtx, col: number, x: number, y: number, z: number): Lamp { const m = dcyl(0.014, 0.012, glow(col, false), x, y, z, c.root.patio, 14); m.rotation.x = Math.PI / 2; return { m, col }; }
 

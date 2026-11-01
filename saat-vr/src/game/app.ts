@@ -7,11 +7,11 @@ import { Session, type SessionCfg } from '../scenario/session';
 import { Engine, type Quality } from './engine';
 import { GameWorld } from './world';
 import { Player } from './player';
-import { Hands, quadTransform } from './hands';
+import { Hands, quadTransform, TOOL_NAMES } from './hands';
 import { Hud } from './hud';
 import { Audio } from './audio';
 import { Interaction } from './interact';
-import { Safety } from './safety';
+import { Safety, rcpQualidade } from './safety';
 import { Tablet } from './tablet';
 import { plantMap } from './map';
 import { ic } from './icons';
@@ -52,7 +52,7 @@ export async function bootGame() {
   let sess: Session | null = null, tool: string | null = null, deaTaken = false, seated = false, paused = false, onHome = true, minimap = false;
   let trend: Trend[] = [], lastTrendT = -1, agendados: any[] = [], tr: Transport | null = null, conWin: Window | null = null, lastLogSent = 0, diag: any = { postMessage: 'não testado' };
   const rearOpen: Record<string, boolean> = {};
-  const pip = { on: false, until: 0, cam: new PerspectiveCamera(40, 1.6, 0.05, 300), xray: false, caption: '' };
+  const pip = { on: false, until: 0, cam: new PerspectiveCamera(40, 1.6, 0.05, 300), xray: false, caption: '', zone: 'patio' }; let pipMute = false;
 
   // ---------- comandos do treinando ----------
   function cmd(c: Cmd, quiet = false) {
@@ -104,14 +104,22 @@ export async function bootGame() {
     setTimeout(() => { if (!seated || !sess) return; monPanel = scada(ctx()); mon.innerHTML = ''; mon.append(h('div', { class: 'mon-bezel' }, h('div', { class: 'mon-top' }, h('b', {}, 'Estação de operação · SE Vale Verde'), h('span', { class: 'muted' }, 'Esc ou botão para levantar'), h('button', { class: 'hw sm', onclick: stand }, ic('LogOut', 15), ' Levantar')), h('div', { class: 'mon-row' }, monPanel.el, h('aside', { class: 'mon-side' }, h('h5', {}, 'CFTV do pátio'), cftv, h('h5', {}, 'Seus comandos'), opsLog)))); mon.classList.remove('hidden'); monPanel.update(sess.sim.view()); }, 620);
   }
   function stand() { if (!seated) return; seated = false; mon.classList.add('hidden'); monPanel = null; pip.on = false; hud.show(true); P.leaveView(0.4); setTimeout(() => P.lock(), 50); }
-  W.onOp = (o) => { if (!seated) return; pip.on = true; pip.until = performance.now() + (o.kind === 'dis' ? 6500 : 4500); pip.xray = !!o.xray; pip.cam.position.copy(o.cam); pip.cam.lookAt(o.look); pip.caption = o.caption; (cftv.firstElementChild as HTMLElement).textContent = 'CFTV · ' + o.caption; audio.play(o.kind); };
+  // PiP: toda manobra (local ou remota) aparece numa câmera fixa sobre o equipamento — no canto (PC), no CFTV da mesa ou num painel no VR
+  W.onOp = (o) => { if (pipMute || !sess) return; pip.on = true; pip.until = performance.now() + (o.kind === 'dis' ? 6500 : 4500); pip.xray = !!o.xray; pip.zone = (o as any).zone || 'patio'; pip.cam.position.copy(o.cam); pip.cam.lookAt(o.look); pip.caption = o.caption;
+    (cftv.firstElementChild as HTMLElement).textContent = 'CFTV · ' + o.caption; (pipFrame.firstElementChild as HTMLElement).textContent = 'CFTV · ' + o.caption;
+    if (xr.active) { pip.cam.aspect = 16 / 9; pip.cam.updateProjectionMatrix(); xr.showPip(o.caption, pip.until); } audio.play(o.kind); };
 
   // ---------- interação, segurança ----------
   const app: any = { W, P, E, hands, hud, tablet, d, get sess() { return sess; }, get tool() { return tool; }, cmd, ctx, setTool, sit, sfx: audio, audio, livre, openFicha, refreshEpi, rearOpen, get deaTaken() { return deaTaken; }, takeDea,
     restart: () => sess && start(sess.cfg), home: () => showHome(false), startRescue: (k: string) => startRescue(k), finalizar: () => finalizar() };
   const inter = new Interaction(app); const safety = new Safety(app); app.safety = safety;
   // ---------- VR ----------
-  const xr = new XRLayer({ E, W, P, inter, livre, area: () => W.areaAt(P.pos.x, P.pos.z), faltas: () => faltas, boneco, correndo,
+  const xr = new XRLayer({ E, W, P, inter, hud, safety, audio, livre, area: () => W.areaAt(P.pos.x, P.pos.z), faltas: () => faltas, boneco, correndo,
+    acc: { restart: () => { if (sess) start(sess.cfg); }, rescue: (a: any) => startRescue(a?.tipo === 'passo' ? 'S2' : 'S1'), report: () => { xr.exit(); setTimeout(() => finalizar(), 400); }, home: () => showHome(false) },
+    sess: () => sess, cmd: (c: any) => cmd(c), tool: () => tool, toolName: () => (tool ? (TOOL_NAMES as any)[tool] || tool : 'mãos livres'), setTool, usarFerramenta: () => useTool(), refreshEpi, toast: (m: string, k?: string) => hud.toast(m, k as any),
+    dead: () => safety.dead, ctx: () => (sess ? ctx() : null), readback: () => { const o = sess?.sc?.st.cos.find((x: any) => x.readbackReq && !x.readback); if (!o || !sess) return null; sess.readback(o.id); return `Read-back ${o.id}: "${o.texto.replace(/^COS[^:]*:\s*/, '').slice(0, 90)}"`; },
+    conferirEpi: () => { if (!sess) return '—'; const x = sess.conferirEpi(); refreshEpi(); return x.txt; }, rcpQualidade,
+    alturaPerfil: () => { const id = sess?.cfg.treinandoId; return (id && TR.obter(id)?.alturaCm) || null; }, salvarAltura: (cm: number) => { const id = sess?.cfg.treinandoId, t = id ? TR.obter(id) : null; if (t) TR.salvar({ ...t, alturaCm: cm }); },
     gear: () => { const inv = sess?.inv; return { isolante: !!inv?.tem('luva_isolante'), cobertura: !!inv?.tem('luva_cobertura'), pvc: !!inv?.tem('luva_pvc'), fr: !!inv?.tem('vestimenta') }; },
     missao: () => { const sc = sess?.sc; if (!sc) return { codigo: 'PRÁTICA LIVRE', titulo: 'Explore e opere à vontade', passo: '' }; const nx = sess!.nivel?.roteiro ? sc.m.checks.find((c: any) => sc.st.checks[c.id] == null) : null; return { codigo: `${sc.m.id} · ${sess!.nivel?.nome || ''}`, titulo: sc.m.nome, passo: nx ? nx.label : '' }; },
     pausar: () => { if (!sess) return false; sess.paused = !sess.paused; return sess.paused; },
@@ -150,7 +158,7 @@ export async function bootGame() {
   function useTool() {
     if (!sess || !tool) { hud.toast('Mãos livres. Escolha uma ferramenta (1–9).', 'muted'); return; } hands.use();
     if (tool.startsWith('detector')) { const r = cmd({ t: 'vtest', passo: 'provar' }); hands.ledOn(r?.result === 'ok'); setTimeout(() => hands.ledOn(false), 1200); return; }
-    if (tool === 'radio') { toggleTablet('radio'); return; }
+    if (tool === 'radio') { if (xr.active) hud.toast('Rádio: ordens do COS aparecem na legenda; read-back no menu (aba Missão).', 'muted'); else toggleTablet('radio'); return; }
     hud.toast('Use a ferramenta na peça certa: mire o equipamento, E para inspecionar e clique na peça.', 'muted');
   }
   // ---------- pausa ----------
@@ -173,7 +181,7 @@ export async function bootGame() {
 
   // ---------- sessão ----------
   function resetWorld() {
-    for (const dd of W.indoor.doors) { dd.tgt = 0; } W.yard.gates.forEach((g) => (g.tgt = 0)); for (const k of Object.keys(rearOpen)) delete rearOpen[k]; for (const cu of Object.values<any>(W.indoor.cub)) cu.rearT = 0;
+    for (const dd of W.indoor.doors) { dd.tgt = 0; } W.yard.gates.forEach((g) => (g.tgt = 0)); for (const cb of Object.values(W.yard.cabs)) cb.tgt = 0; xr.reset(); for (const k of Object.keys(rearOpen)) delete rearOpen[k]; for (const cu of Object.values<any>(W.indoor.cub)) cu.rearT = 0;
     for (const cb of Object.values(W.indoor.cabinets)) { cb.tgt = cb === W.indoor.cabinets.LOTO ? 1 : 0; for (const g of Object.values(cb.items)) g.visible = true; } deaTaken = false; if (W.indoor.dea) W.indoor.dea.visible = true;
     safety.reset(); W.zonesOn = false; P.fall = 0; P.roll = 0; P.shake = 0; P.enabled = true; P.lookEnabled = true; P.speedMul = 1; hud.fade(false, 200); pip.on = false;
   }
@@ -185,12 +193,14 @@ export async function bootGame() {
     const prevLog = sess.sim.onLog; sess.sim.onLog = (e) => { prevLog?.(e); if (e.kind === 'com' && e.actor !== 'treinando') { const rb = sess?.sc?.st.cos.find((o: any) => o.texto === e.msg && o.readbackReq); hud.say(e.actor, e.msg, rb ? rb.id : undefined); audio.radio(e.msg); } };
     if (sess.sc) sess.sc.onFinish = () => setTimeout(() => finalizar(), 300);
     sess.start(); setTool(null);
-    const m = sess.sc?.m; const sp = W.spawns[['C1', 'C2', 'E1'].includes(cfg.missao || '') ? 'scada' : m?.cena?.caido ? 'portao' : 'casa'] || W.spawns.casa; P.place(sp.x, sp.z, sp.yaw);
-    safety.setupScene(m); W.update(sess.sim.view(), sess.sc?.st.flags || {}); refreshEpi();
+    const m = sess.sc?.m; const sp = W.spawns[['C1', 'C2', 'E1'].includes(cfg.missao || '') ? 'scada' : m?.cena?.caido ? 'portao' : 'casa'] || W.spawns.casa; P.place(sp.x, sp.z, sp.yaw); if (xr.active) xr.loco.placeHead(sp.x, sp.z, sp.yaw);
+    { const tt = cfg.treinandoId ? TR.obter(cfg.treinandoId) : null; P.eye = tt?.alturaCm ? Math.round(tt.alturaCm * 0.936) / 100 : 1.65; }
+    safety.setupScene(m); pipMute = true; W.update(sess.sim.view(), sess.sc?.st.flags || {}); pipMute = false; pip.on = false; refreshEpi();
     audio.start(Object.values(W.yard.trf).map((t: any) => t.center)); audio.unlock();
     if (tr) { lastLogSent = 0; tr.send({ type: 'hello', domain: d, cfg: sess.cfg, mission: sess.sc?.m || null }); }
     // briefing (OS em papel) — clique inicia e prende o mouse
-    if (m) { sess.paused = true; const o = d.os.ordens[m.id];
+    if (m && xr.active) { const o = d.os.ordens[m.id]; hud.toast(`${m.id}: ${m.nome}. ${o?.semAPR ? 'Atendimento de ocorrência: aja com segurança.' : 'EPI nos armários; APR/PT no PC.'}`, 'muted', 7000); }
+    else if (m) { sess.paused = true; const o = d.os.ordens[m.id];
       const b = h('div', { class: 'brief' }, osDoc(d, sess), h('div', { class: 'brief-keys' }, h('b', {}, 'Controles'), h('p', {}, h('kbd', {}, 'W A S D'), ' andar  ', h('kbd', {}, 'Mouse'), ' olhar  ', h('kbd', {}, 'E'), ' interagir  ', h('kbd', {}, 'Tab'), ' tablet  ', h('kbd', {}, '1–9'), ' ferramenta  ', h('kbd', {}, 'F'), ' usar  ', h('kbd', {}, 'Esc'), ' pausa')),
         h('div', { class: 'row' }, h('button', { class: 'hw primary', onclick: () => { closeModal(); sess!.paused = false; P.lock(); audio.unlock(); alarm.unlock(); hud.toast(o?.semAPR ? 'Atendimento de ocorrência: aja com segurança.' : 'Você está na casa de comando. APR no tablet (Tab) e EPI nos armários.', 'muted', 6000); } }, ic('Play', 16), ' Iniciar'), xr.supported ? h('button', { class: 'hw vr', onclick: () => { audio.unlock(); alarm.unlock(); void xr.enter(); } }, ic('Headset', 16), ' Iniciar em VR') : null));
       modal(`${o?.tipo || 'Ordem de serviço'} — ${m.id}`, b, true); }
@@ -266,7 +276,7 @@ export async function bootGame() {
         const ts = Math.floor(sess.sim.s.t / 1000); if (ts !== lastTrendT) { lastTrendT = ts; const v = sess.sim; trend.push({ t: ts, v1: v.der.barras['MT-1'].kV, v2: v.der.barras['MT-2'].kV, m1: v.der.tr.T1.mva, m2: v.der.tr.T2.mva, o1: v.s.tr.T1.oleo, o2: v.s.tr.T2.oleo, vcc: v.s.cc.v }); if (trend.length > 600) trend.shift(); } } }
       slow += dt; bc += dt; autosave += dt; hudT += dt;
       if (slow >= 0.1) { slow = 0; const v = sess.sim.view(); W.update(v, sess.sc?.st.flags || {}); if (monPanel) { monPanel.update(v); const L = sess.sim.log.filter((e: any) => e.kind === 'cmd' && e.actor === 'treinando').slice(-7).reverse(); const sg = L.map((e: any) => e.seq).join(','); if ((opsLog as any)._s !== sg) { (opsLog as any)._s = sg; opsLog.innerHTML = ''; for (const e of L) opsLog.append(h('div', { class: e.result && e.result !== 'ok' ? 'bad' : '' }, h('small', {}, mmss(e.t)), ' ', e.msg)); } } }
-      if (xr.active) xr.update(dt); else { P.update(dt); correndo(!!(P.keys.ShiftLeft || P.keys.ShiftRight) && P.moving > 0.5, dt); } inter.update(); safety.update(dt); if (sess.cfg.missao === 'T0') tutorial();
+      if (xr.active) xr.update(dt); else { P.update(dt); correndo(!!(P.keys.ShiftLeft || P.keys.ShiftRight) && P.moving > 0.5, dt); } if (!xr.active) inter.update(); safety.update(dt); if (sess.cfg.missao === 'T0') tutorial();
       if (hudT >= 0.2) { hudT = 0; updateHUD(); tablet.tick(); inter.tick(); if (minimap) mini.update(W.plantPos(P.pos, P.yaw)); }
       if (bc >= 0.25) { bc = 0; broadcast(); }
       if (autosave >= 10) { autosave = 0; LS.set('autosave', { cfg: sess.cfg, inputs: sess.inputs.slice(-2000) }); }
@@ -276,10 +286,12 @@ export async function bootGame() {
     E.follow(onHome ? new Vector3(27, 0, 38) : P.pos);
     const w = canvas.clientWidth || innerWidth, hgt = canvas.clientHeight || innerHeight;
     if (!xr.active) hands.update(dt, P.moving, P.bob, w / hgt);
+    if (xr.active && pip.on && performance.now() < pip.until) { pip.cam.layers.mask = E.cam.layers.mask; xr.pip.render(E.renderer, E.scene, pip.cam, () => { W.frame(0, P.pos, area, pip.xray); if (pip.zone === 'casa') W.zones.casa.visible = true; }, () => W.frame(0, P.pos, area, false)); }
+    const pipOn = pip.on && performance.now() < pip.until && !xr.active && !onHome; if (pip.on && performance.now() >= pip.until) pip.on = false; pipFrame.classList.toggle('hidden', !pipOn || seated);
     E.render(dt, () => {
-      if (seated && pip.on && performance.now() < pip.until) { const r = cftv.getBoundingClientRect(), R = E.renderer, pr = R.getPixelRatio(); if (r.width > 10) {
-          W.frame(0, P.pos, area, pip.xray); pip.cam.aspect = r.width / r.height; pip.cam.updateProjectionMatrix(); R.setScissorTest(true); const y = hgt - r.bottom; R.setScissor(r.left, y, r.width, r.height); R.setViewport(r.left, y, r.width, r.height); R.render(E.scene, pip.cam); R.setScissorTest(false); R.setViewport(0, 0, w, hgt); W.frame(0, P.pos, area, false); void pr; } }
-      else if (pip.on && performance.now() >= pip.until) pip.on = false;
+      if (pipOn) { const r = (seated ? cftv : pipFrame).getBoundingClientRect(), R = E.renderer; if (r.width > 10) {
+          W.frame(0, P.pos, area, pip.xray); if (pip.zone === 'casa') W.zones.casa.visible = true; pip.cam.layers.mask = E.cam.layers.mask; pip.cam.aspect = r.width / r.height; pip.cam.updateProjectionMatrix();
+          R.setScissorTest(true); const y = hgt - r.bottom; R.setScissor(r.left, y, r.width, r.height); R.setViewport(r.left, y, r.width, r.height); R.render(E.scene, pip.cam); R.setScissorTest(false); R.setViewport(0, 0, w, hgt); W.frame(0, P.pos, area, false); } }
       if (!onHome) hands.render(E.renderer);
     });
     if (tablet.open && !xr.active) tablet.setTransform(quadTransform(tablet.W, tablet.H, hands.screenCorners(w, hgt)));
@@ -288,8 +300,8 @@ export async function bootGame() {
   function tutorial() {
     if (!sess?.sc) return; const f = sess.sc.st.flags, mk = (k: string, msg: string) => { if (f[k] == null) { sess!.marcar(k, msg); audio.click(); hud.toast('Feito: ' + msg, 'ok', 2500); } };
     const arm = W.inter.find((i) => i.id === 'arm:EPI'); if (arm && arm.hit.position.distanceTo(new Vector3(P.pos.x, arm.hit.position.y, P.pos.z)) < 2.4) mk('tut:perto', 'chegou ao armário');
-    if (inter.insp?.kind === 'arm') mk('tut:armario', 'armário aberto'); if (sess.inv.units.some((u) => u.inspecionado)) mk('tut:inspecao', 'item inspecionado'); if (sess.inv.tem('capacete')) mk('tut:capacete', 'capacete vestido');
-    if (tablet.open) mk('tut:tablet', 'tablet aberto'); if (tool) mk('tut:ferramenta', 'ferramenta na mão'); if (inter.lastPart) mk('tut:peca', 'peça acionada'); if (seated) mk('tut:scada', 'sentou na mesa');
+    if (inter.insp?.kind === 'arm' || xr.card.t?.kind === 'arm') mk('tut:armario', 'armário aberto'); if (sess.inv.units.some((u) => u.inspecionado)) mk('tut:inspecao', 'item inspecionado'); if (sess.inv.tem('capacete')) mk('tut:capacete', 'capacete vestido');
+    if (tablet.open || (xr.active && xr.menu.mode)) mk('tut:tablet', 'tablet aberto'); if (tool) mk('tut:ferramenta', 'ferramenta na mão'); if (inter.lastPart) mk('tut:peca', 'peça acionada'); if (seated || xr.scada.open) mk('tut:scada', 'sentou na mesa');
   }
   function updateHUD() {
     if (!sess) return; const v = sess.sim.view(), s = v.s, sc = sess.sc; const al = v.ccOk ? s.alarmes.filter((a: any) => a.ativo) : [];

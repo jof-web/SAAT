@@ -8,7 +8,7 @@ export interface Resultado {
 }
 export interface Treinando {
   id: string; nome: string; matricula: string; funcao: string; empresa: string;
-  nr10Basico: string; nr10Sep: string; obs: string; criado: string; resultados: Resultado[];
+  nr10Basico: string; nr10Sep: string; obs: string; criado: string; resultados: Resultado[]; alturaCm?: number;
 }
 const KEY = 'treinandos';
 export const FUNCOES = ['Operador de subestação', 'Eletricista de manutenção', 'Técnico de eletrotécnica', 'Técnico de segurança', 'Engenheiro', 'Supervisor', 'Estagiário', 'Outro'];

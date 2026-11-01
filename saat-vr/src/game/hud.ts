@@ -11,6 +11,8 @@ export class Hud {
   private subs = h('div', { class: 'h-subs' }); private toasts = h('div', { class: 'h-toasts' }); private zone = h('div', { class: 'h-zone' });
   flashEl = h('div', { class: 'h-flash' }); fadeEl = h('div', { class: 'h-fade' }); private hint = h('div', { class: 'h-hint' });
   private clock = h('b', { class: 'mono' }); private bell = h('span', { class: 'h-bell' });
+  /** Espelho para o VR (o DOM não aparece no óculos). */
+  listeners: ((kind: string, text: string, who?: string) => void)[] = [];
   constructor() {
     this.stat.append(h('span', { class: 'h-clock' }, ic('Clock', 15), this.clock), this.bell);
     this.root.append(this.zone, this.obj, this.stat, this.cross, this.prompt, this.epi, this.bar, this.subs, this.toasts, this.hint, this.flashEl, this.fadeEl);
@@ -35,10 +37,12 @@ export class Hud {
     this.bar.append(row, h('small', {}, sel ? TOOL_NAMES[sel] || sel : 'mãos livres  ·  1–9 escolhe · Q guarda'));
   }
   say(actor: string, text: string, rb?: string) {
+    for (const f of this.listeners) f('say', text.replace(/^COS[^:]*:\s*/, ''), actor === 'cos' ? 'COS' : actor === 'manutencao' ? 'Manutenção' : actor === 'sistema' ? 'Brigada' : actor.toUpperCase());
     const el = h('div', { class: 'h-sub a-' + actor }, h('b', {}, actor === 'cos' ? 'COS' : actor === 'manutencao' ? 'Manutenção' : actor === 'sistema' ? 'Brigada' : actor.toUpperCase()), h('span', {}, text.replace(/^COS[^:]*:\s*/, '')), rb ? h('em', {}, h('kbd', {}, 'R'), ' repetir a ordem (read-back)') : '');
     this.subs.append(el); while (this.subs.children.length > 3) this.subs.firstElementChild!.remove(); setTimeout(() => el.classList.add('out'), rb ? 20000 : 9000); setTimeout(() => el.remove(), rb ? 20600 : 9600);
   }
   toast(msg: string, kind: '' | 'ok' | 'warn' | 'bad' | 'muted' = '', ms = 3800) {
+    for (const f of this.listeners) f(kind || 'info', msg);
     const t = h('div', { class: 'h-toast ' + kind }, msg); this.toasts.append(t); while (this.toasts.children.length > 2) this.toasts.firstElementChild!.remove(); setTimeout(() => t.classList.add('out'), ms); setTimeout(() => t.remove(), ms + 400);
   }
   setHint(txt: string) { this.hint.textContent = txt; this.hint.classList.toggle('hidden', !txt); }

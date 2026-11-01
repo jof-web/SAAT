@@ -14,7 +14,7 @@ export class Debug {
     addEventListener('unhandledrejection', (e: any) => this.error('Promise: ' + (e.reason?.message || String(e.reason))));
     this.overlay = new Panel({ w: 0.12, h: 0.035, px: 320 });
     this.overlay.render = (p) => { p.rect(0, 0, p.W, p.H, '#0a0c0e'); p.text(this.fps.toFixed(0) + ' fps', 14, p.H / 2, { size: 44, color: this.fps >= 70 ? UI.ok : this.fps >= 55 ? UI.warn : UI.bad, weight: 700, mono: true }); p.text(this.calls + ' dc', p.W - 12, p.H / 2, { size: 30, color: UI.dim, align: 'right', mono: true }); };
-    const m = this.overlay.mesh; m.position.set(-0.1, -0.1, -0.4); m.renderOrder = 1001; (m.material as any).depthTest = false; m.visible = false;
+    const m = this.overlay.mesh; m.position.set(-0.17, 0.13, -0.42); m.renderOrder = 1001; (m.material as any).depthTest = false; m.visible = false;
   }
   attach(cam: PerspectiveCamera) { cam.add(this.overlay.mesh); }
   setVisible(xr: boolean) { this.overlay.mesh.visible = xr && this.showFps; }

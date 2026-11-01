@@ -21,7 +21,7 @@ export class GameWorld {
   hazards: HazardPt[] = []; zoneVis: { m: Mesh; nodes: string[] }[] = []; zonesOn = false;
   fire: Group; private fireLight: PointLight; private t = 0; private lastV: any = null; private canT = 0;
   private prev: Record<string, string> = {}; emerg = false;
-  onOp: (o: { kind: string; caption: string; cam: Vector3; look: Vector3; xray?: boolean }) => void = () => {};
+  onOp: (o: { kind: string; caption: string; cam: Vector3; look: Vector3; xray?: boolean; zone?: string }) => void = () => {};
   doorCol = new Map<string, AABB>();
   victim: Group | null = null; fallen: Group | null = null;
   bayBus: Record<string, string> = {};
@@ -180,6 +180,7 @@ export class GameWorld {
     for (const [bay, cu] of Object.entries(I.cub)) {
       if (cu.kind === 'tp' || cu.kind === 'tsa') { cu.lamps.forEach((l) => setLamp(l, cc && !!der.energ[this.bayBus[bay] || (['TSA1', 'TP1'].includes(bay) ? 'MT1' : 'MT2')])); continue; }
       const brk = '52-' + bay, b = s.eq[brk]; if (!b) continue;
+      this.watch('cub:' + brk, `${b.state}|${b.pos}`, () => this.onOp({ kind: 'cub', zone: 'casa', caption: `${brk} · ${b.state === 'closed' ? 'FECHADO' : 'ABERTO'} · carrinho em ${String(b.pos).toUpperCase()}`, cam: new Vector3(cu.x + 1.1, 1.75, cu.zf + 2.3), look: new Vector3(cu.x, 1.15, cu.zf) }));
       const burnt = an.includes('lampada_' + bay), al = s.alarmes.some((a: any) => a.ativo && a.key.includes(brk));
       const on = [b.state === 'closed' && !burnt, b.state === 'open', !!b.mola, al];
       if (!(cu as any).testeAte || performance.now() > (cu as any).testeAte) cu.lamps.forEach((l, i) => setLamp(l, cc && on[i])); else cu.lamps.forEach((l, i) => setLamp(l, cc && !(burnt && i === 0)));
@@ -268,6 +269,7 @@ export class GameWorld {
     for (const t of Object.values(Y.trf)) t.fans.forEach((f) => { if (t.vent >= f.userData.grupo) f.rotation.y += dt * 16; });
     // portas e portão
     for (const dd of I.doors) { dd.open += Math.max(-dt * 1.8, Math.min(dt * 1.8, dd.tgt - dd.open)); dd.g.rotation.y = dd.open * dd.max; if (dd.open < 0.15) this.doorCol.set(dd.id, dd.col); else this.doorCol.delete(dd.id); }
+    for (const cb of Object.values(Y.cabs)) { cb.open += Math.max(-dt * 2.2, Math.min(dt * 2.2, cb.tgt - cb.open)); cb.door.rotation.y = -cb.open * 1.85; }
     for (const g of Y.gates) { g.open += Math.max(-dt * 0.8, Math.min(dt * 0.8, g.tgt - g.open)); g.leaves.forEach((l) => (l.children[0].rotation.y = (l.userData.s > 0 ? -Math.PI / 2 : Math.PI / 2) + l.userData.s * g.open * 1.5)); if (g.open < 0.15) this.doorCol.set('gate:' + g.id, g.col); else this.doorCol.delete('gate:' + g.id); }
     for (const cb of new Set(Object.values(I.cabinets))) { cb.open += Math.max(-dt * 2.5, Math.min(dt * 2.5, cb.tgt - cb.open)); cb.doors.forEach((g) => (g.rotation.y = g.userData.s * cb.open * 1.9 * (g.userData.dir ?? (g.position.x > this.divX ? 1 : -1)))); }
     if (this.fire.visible) { for (const m of this.fire.children as Mesh[]) { if (m.userData.ph != null) { m.scale.y = 0.8 + 0.35 * Math.sin(this.t * 9 + m.userData.ph); m.rotation.y += dt * 2; } else if (m.userData.smoke != null) { m.position.y += dt * 0.9; if (m.position.y > 18) m.position.y = 5.5; } } this.fireLight.intensity = 60 + Math.sin(this.t * 13) * 15; } else this.fireLight.intensity = 0;

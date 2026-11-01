@@ -1,5 +1,6 @@
 // Renderização: tom ACES, céu em gradiente com sol, ambiente PMREM (externo/interno), sombra que segue o jogador,
 // pós-processamento por predefinição (Baixo/Médio/Alto) e ajuste automático pelo FPS.
+import { GFX } from './gfx';
 import {
   WebGLRenderer, Scene, PerspectiveCamera, Color, FogExp2, HemisphereLight, DirectionalLight, Vector3, Mesh, SphereGeometry, ShaderMaterial, BackSide,
   ACESFilmicToneMapping, SRGBColorSpace, PCFSoftShadowMap, PMREMGenerator, Vector2, type Texture,
@@ -33,7 +34,8 @@ export class Engine {
   sky: Mesh;
 
   constructor(public canvas: HTMLCanvasElement) {
-    this.renderer = new WebGLRenderer({ canvas, antialias: false, powerPreference: 'high-performance', stencil: false });
+    this.renderer = new WebGLRenderer({ canvas, antialias: GFX.lite, // Quest: MSAA 4× no framebuffer do XR (barato em GPU de blocos); PC usa SMAA no composer
+       powerPreference: 'high-performance', stencil: false });
     const R = this.renderer; R.outputColorSpace = SRGBColorSpace; R.toneMapping = ACESFilmicToneMapping; R.toneMappingExposure = 0.92;
     R.shadowMap.enabled = true; R.shadowMap.type = PCFSoftShadowMap;
     this.scene.fog = new FogExp2(0xc6d3dc, 0.0028);
@@ -74,7 +76,7 @@ export class Engine {
     if (this.quality === 'baixo') return;
     const c = new EffectComposer(this.renderer); c.addPass(new RenderPass(this.scene, this.cam));
     if (this.quality === 'alto') { this.gtao = new GTAOPass(this.scene, this.cam, 2, 2); (this.gtao as any).blendIntensity = 0.85; c.addPass(this.gtao); }
-    this.bloom = new UnrealBloomPass(new Vector2(256, 256), 0.22, 0.35, 0.92); c.addPass(this.bloom);
+    this.bloom = new UnrealBloomPass(new Vector2(256, 256), 0.18, 0.35, 1.8); // r185: limiar 1,8 (só emissivo de LED/lâmpada); 0,92 lavava o interior c.addPass(this.bloom);
     for (const f of this.extraPasses) void f;
     c.addPass(new OutputPass());
     this.vignette = new ShaderPass(VignetteShader); c.addPass(this.vignette);
@@ -95,8 +97,8 @@ export class Engine {
   }
   setIndoor(v: boolean) {
     if (v === this.indoor) return; this.indoor = v; this.scene.environment = v ? this.envIn : this.envOut;
-    this.scene.traverse((o: any) => { const ms = o.material ? (Array.isArray(o.material) ? o.material : [o.material]) : []; for (const m of ms) if (m.isMeshStandardMaterial) { m.userData.env0 ??= m.envMapIntensity ?? 1; m.envMapIntensity = m.userData.env0 * (v ? 0.35 : 1); } });
-    this.hemi.intensity = v ? 0.26 : 0.75; this.renderer.toneMappingExposure = v ? 0.8 : 0.92;
+    this.scene.traverse((o: any) => { const ms = o.material ? (Array.isArray(o.material) ? o.material : [o.material]) : []; for (const m of ms) if (m.isMeshStandardMaterial) { m.userData.env0 ??= m.envMapIntensity ?? 1; m.envMapIntensity = m.userData.env0 * (v ? 0.26 : 1); } });
+    this.hemi.intensity = v ? 0.24 : 0.75; this.renderer.toneMappingExposure = v ? 0.74 : 0.92;
   }
   setVignette(amount: number, tint = 0x000000, tintAmt = 0) { if (!this.vignette) return; const u = this.vignette.uniforms as any; u.amount.value = amount; u.tint.value.setHex(tint); u.tintAmt.value = tintAmt; }
   /** VR: sem sombra e sem pós-processamento (não renderiza nos dois olhos). */

@@ -197,4 +197,15 @@ Referências: `docs/ref/planta-geral-v2-final.png`, `docs/ref/fichas-patio-v2.pn
 - **Céu**: shader ganhou `tonemapping_fragment`/`colorspace_fragment` (ficava saturado sem o composer).
 - **Pátio v5** (planta geral v2 aprovada): pórtico de linha de concreto com hastes; pórticos laterais (x 3,8 e 49,8 m) seguram a barra 138 kV em cabo (9 m, flecha 1,2 m); cabos para-raios ligam todas as hastes (os 3 transversais ficaram nas fileiras de colunas, z 19,3/33,3/48,1, porque cabo precisa de apoio); pórtico reto de 12 m sobre cada trafo; 2 muros corta-fogo; TR-03 reservado; LT-02 montada e desligada; torre treliçada quadrada simples; cerca com postes a cada 3 m; casa na divisa; 2 portões de 6 m a leste.
 - **Equipe (lista de pedidos):** login mantido (tela de entrada, usuário lembrado); administração com PIN (padrão 1234) com pessoas, ranking (pontos, missões, tempo, faltas, nota) e recorde por missão; níveis 0 Como jogar, 1 Operador, 2 Eletromecânico, 3 Técnico (ids antigos mantidos); prática livre com erros/EPI valendo (opção, ligada por padrão); boneco 2D de EPI no canto (verde = pronto); árvores removidas, entorno reduzido; avental de PVC removido; lava-olhos não existe nesta versão.
-- **Fica para as próximas fases:** APR/início de processo, editor de missões/APR/NRs, falha oculta (componente queimado sem estar na OS), botão de tarefa aleatória, mais tipos de teste, mini tela em toda manobra (PiP), interação completa no VR (V1+).
+- **Fica para as próximas fases:** APR/início de processo, editor de missões/APR/NRs, falha oculta (componente queimado sem estar na OS), botão de tarefa aleatória, mais tipos de teste. (PiP e interação no VR entraram na 0.2.0.)
+
+## VR — V0.2 (SAAT VR 0.2.0)
+- **Imagem lavada no PC (erro meu na 0.1.0):** a r185 mudou o bloom; limiar 0,92 fazia o interior inteiro brilhar. Limiar 1,8, força 0,18, e interior com ambiente/exposição menores. Faltou capturar o interior em médio/alto depois da troca de versão.
+- **Interação no VR = mesma lógica do PC** (`Interaction.actVR`): a peça do mundo é o botão; o cartão flutuante repete as peças em lista para quem não alcança. A ferramenta exigida sai do cinto sozinha se a pessoa tiver; senão, aviso.
+- **Portas pela mão**: grip perto da folha e gira em volta da dobradiça; abrir pelo gatilho continua valendo. Caixa de comando do vão: corpo raso, mímico atrás da porta (antes ficava escondido dentro da caixa — era o "painel vazio").
+- **Acidente com o corpo real**: no VR a mão (controle) entra no cálculo de Rr/Rc. Sem mover a câmera: clarão, escurecimento e cartão. Andar através de equipamento continua bloqueado; enfiar a cabeça (room-scale) escurece.
+- **Vibração**: formigamento proporcional na zona controlada e na tensão de passo; pulso forte no choque e no arco; toque leve em cada peça acionada e no batente da porta.
+- **PiP**: toda manobra dispara (antes só sentado na mesa). No VR custa uma renderização a mais a cada 3 quadros; se faltar FPS no Quest, é o primeiro corte.
+- **Altura**: manual (cm) por perfil, como pedido; a automática virou alternativa. Olhos = 0,936 × estatura (antropometria média).
+- **Resgate no VR**: RCP contando compressões pelo movimento das mãos (5 cm para baixo e volta) ou pelo gatilho; DEA com análise e CHOQUE.
+- **APR/PT no VR**: preenche no PC antes de entrar (aviso no menu). Tablet completo no VR fica para a V5.

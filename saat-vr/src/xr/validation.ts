@@ -6,7 +6,7 @@ import type { Hand } from './input';
 import type { Locomotion } from './locomotion';
 import type { Debug } from './debug';
 
-export const FASE = 0; // V0
+export const FASE = 4; // V0.2: interação, supervisório, PiP, consequências e resgate no VR
 export const ITEMS = ([
   ['S1', 'Menu pelo botão Y / B', 0], ['S2', 'Menu de pulso (palma para cima)', 0], ['S3', 'FPS e erros dentro do VR', 0], ['S4', 'Relatório 2D (copiar e baixar)', 0], ['S5', 'Desktop intacto', 0], ['S6', 'Mão dominante (destro/canhoto)', 0], ['S7', 'Calibrar chão / zerar altura', 0], ['S8', 'Boneco de EPI no VR', 0],
   ['L1', 'Andar (polegar, direção da cabeça)', 0], ['L2', 'Correr (clique no polegar) gera falta', 0], ['L3', 'Girar snap 30°/45° e suave', 0], ['L4', 'Vinheta de conforto', 0], ['L5', 'Colisão: paredes, cerca, equipamentos e portas fechadas', 0], ['L6', 'Room-scale: entrar na parede escurece', 0], ['L7', 'Teleporte só na prática livre', 0],
@@ -40,12 +40,13 @@ export interface MenuHost {
   version: string; loco: Locomotion; debug: Debug; check: Checklist; hands: Hand[]; cam: PerspectiveCamera; scene: Scene; renderer: WebGLRenderer;
   missao(): { codigo: string; titulo: string; passo: string; area: string; livre: boolean; faltas: number; epi: string };
   teleport(k: string): void; pausar(): boolean; sair(): void; boneco: { on: boolean }; setBoneco(on: boolean): void;
+  extra: { radio(): void; readback(): string | null; conferir(): string; tool(): string; usar(): void; guardar(): void; altura(): number; setAltura(cm: number): void; aplicarAltura(): string; perfil(): number | null };
 }
 const TABS: [string, string][] = [['mis', 'Missão'], ['loc', 'Locomoção'], ['cfg', 'Config'], ['chk', 'Checklist'], ['dbg', 'Debug']];
 const ROWS = 7, _v = new Vector3(), _v2 = new Vector3(), _m = new Matrix4(), _x = new Vector3(), _y = new Vector3(), _z = new Vector3();
 
 export class Menu {
-  panel = new Panel({ w: 0.64, h: 0.5, px: 1024 }); mode: null | 'float' | 'wrist' = null; tab = 'mis'; group = 'S'; page = 0; sel: string | null = null; calib = 0; calibMsg = ''; private palmT = 0; private offT = 0; private refreshT = 0;
+  panel = new Panel({ w: 0.64, h: 0.5, px: 1024 }); mode: null | 'float' | 'wrist' = null; tab = 'mis'; group = 'S'; page = 0; sel: string | null = null; calib = 0; calibMsg = ''; msg = ''; private palmT = 0; private offT = 0; private refreshT = 0;
   constructor(public A: MenuHost) {
     this.panel.render = (p) => this.draw(p); this.panel.mesh.visible = false; A.scene.add(this.panel.mesh);
     A.debug.listeners.add(() => { if (this.tab === 'dbg') this.panel.dirty = true; });
@@ -77,17 +78,21 @@ export class Menu {
     if (this.tab === 'mis') this.drawMissao(p); else if (this.tab === 'loc') this.drawLoco(p); else if (this.tab === 'cfg') this.drawCfg(p); else if (this.tab === 'chk') this.drawCheck(p); else this.drawDebug(p);
   }
   private drawMissao(p: Panel) {
-    const m = this.A.missao();
+    const m = this.A.missao(), X = this.A.extra;
     p.text(m.codigo, 24, 122, { size: 24, color: UI.accent, weight: 700, max: 760 }); p.text(m.titulo, 24, 160, { size: 32, weight: 700, max: 970 });
     p.text(m.passo || '—', 24, 204, { size: 26, color: UI.dim, max: 970 });
-    p.text(`Área: ${m.area}   ·   Faltas: ${m.faltas}   ·   ${m.epi}`, 24, 248, { size: 24, max: 970, color: m.faltas ? UI.warn : UI.text });
-    p.text('Portas e portões: aponte o raio e aperte o gatilho. Abrir peças e tablet chegam na V1.', 24, 290, { size: 22, color: UI.dim, max: 970 });
-    if (m.livre) { p.text('Teleporte (prática livre)', 24, 336, { size: 24, color: UI.dim });
-      [['casa', 'Casa'], ['patio', 'Pátio'], ['trafos', 'Trafos'], ['lt01', 'LT-01']].forEach(([k, l], i) => p.button('tp' + k, 24 + i * 248, 360, 236, 64, l, () => this.A.teleport(k), { size: 26 })); }
-    p.button('bon', 24, 452, 480, 72, this.A.boneco.on ? 'Boneco de EPI: ligado' : 'Boneco de EPI: desligado', () => this.A.setBoneco(!this.A.boneco.on), { active: this.A.boneco.on, color: UI.ok, size: 26 });
-    p.button('pause', 520, 452, 480, 72, 'Pausar / continuar', () => { this.A.pausar(); }, { size: 26 });
-    p.button('exit', 24, 540, 976, 72, 'Sair do VR (resultado e relatório na tela 2D)', () => this.A.sair(), { size: 26, color: UI.bad });
-    p.text('Botão Meta também sai do VR.', 24, 650, { size: 22, color: UI.dim });
+    p.text(`Área: ${m.area}   ·   Faltas: ${m.faltas}   ·   ${m.epi}   ·   Na mão: ${X.tool()}`, 24, 246, { size: 23, max: 970, color: m.faltas ? UI.warn : UI.text });
+    p.text('Gatilho: aponte e acione · Grip perto da porta: abra com a mão · X/A segurado: pés juntos', 24, 284, { size: 21, color: UI.dim, max: 970 });
+    const B = (id: string, x: number, l: string, f: () => void) => p.button(id, x, 312, 236, 64, l, f, { size: 23 });
+    B('rb', 24, 'Rádio / COS', () => { X.radio(); }); B('ce', 272, 'Conferir EPI', () => { this.msg = X.conferir(); });
+    B('us', 520, 'Usar ferramenta', () => { X.usar(); }); B('gd', 768, 'Guardar ferramenta', () => { X.guardar(); });
+    if (this.msg) p.text(this.msg, 24, 396, { size: 21, color: UI.info, max: 970 });
+    if (m.livre) { p.text('Teleporte (prática livre)', 24, 430, { size: 22, color: UI.dim });
+      [['casa', 'Casa'], ['patio', 'Pátio'], ['trafos', 'Trafos'], ['lt01', 'LT-01']].forEach(([k, l], i) => p.button('tp' + k, 24 + i * 248, 450, 236, 60, l, () => this.A.teleport(k), { size: 24 })); }
+    p.button('bon', 24, 530, 480, 64, this.A.boneco.on ? 'Boneco de EPI no pulso: ligado' : 'Boneco de EPI no pulso: desligado', () => this.A.setBoneco(!this.A.boneco.on), { active: this.A.boneco.on, color: UI.ok, size: 24 });
+    p.button('pause', 520, 530, 480, 64, 'Pausar / continuar', () => { this.A.pausar(); }, { size: 24 });
+    p.button('exit', 24, 612, 976, 72, 'Sair do VR (resultado e relatório na tela 2D)', () => this.A.sair(), { size: 26, color: UI.bad });
+    p.text('APR/PT: preencha no PC antes de entrar. Botão Meta também sai do VR.', 24, 716, { size: 21, color: UI.dim, max: 970 });
   }
   private drawLoco(p: Panel) {
     const lo = this.A.loco, s = lo.s, sv = () => lo.save(), row = (y: number, l: string) => p.text(l, 24, y + 32, { size: 26, max: 560 });
@@ -111,13 +116,19 @@ export class Menu {
     p.text(`Velocidade da corrida (${(s.speed * s.run).toFixed(1).replace('.', ',')} m/s)`, 24, 306, { size: 26 });
     p.button('rn-', 600, 274, 90, 64, '−', () => { s.run = Math.max(1.25, +(s.run - 0.25).toFixed(2)); sv(); }, { size: 36 }); p.text(s.run.toFixed(2).replace('.', ',') + '×', 795, 306, { size: 26, align: 'center', mono: true }); p.button('rn+', 910, 274, 90, 64, '+', () => { s.run = Math.min(3, +(s.run + 0.25).toFixed(2)); sv(); }, { size: 36 });
     p.text(`Menu: botão ${s.hand === 'left' ? 'B (direita)' : 'Y (esquerda)'} ou palma dessa mão para cima.`, 24, 380, { size: 24, color: UI.dim });
-    p.rect(16, 412, p.W - 32, 2, UI.line);
-    p.text(`Altura · olhos ${lo.eyeHeight().toFixed(2).replace('.', ',')} m · ajuste ${(s.manual >= 0 ? '+' : '') + s.manual.toFixed(2).replace('.', ',')} m${s.seated ? ' · sentado' : ''}`, 24, 446, { size: 26, mono: true, max: 970 });
-    if (this.calib > 0) p.button('cal', 24, 476, 560, 80, `Encoste um controle no chão… ${Math.ceil(this.calib)}`, null, { active: true, color: UI.warn, size: 26 });
-    else p.button('cal', 24, 476, 560, 80, 'Calibrar chão (3 s)', () => { this.calib = 3; this.calibMsg = ''; }, { size: 26 });
-    p.button('h0', 600, 476, 400, 80, 'Zerar altura', () => { lo.zeroHeight(); this.calibMsg = 'Altura zerada.'; }, { size: 26 });
-    p.text(this.calibMsg || 'Toque, abaixe-se e encoste o controle no chão até o fim da contagem.', 24, 588, { size: 22, color: UI.dim, max: 970 });
-    p.button('def', 24, 628, 400, 72, 'Restaurar padrões', () => lo.reset(), { size: 26 });
+    p.rect(16, 404, p.W - 32, 2, UI.line);
+    const X = this.A.extra, cm = X.altura(), pf = X.perfil();
+    p.text(`Altura da pessoa${pf ? ' (do perfil)' : ''}`, 24, 434, { size: 26, weight: 700 }); p.text(`olhos ${lo.eyeHeight().toFixed(2).replace('.', ',')} m`, p.W - 24, 434, { size: 22, color: UI.dim, align: 'right', mono: true });
+    ([['a5-', -5, 24], ['a1-', -1, 128]] as const).forEach(([id, d, x]) => p.button(id, x, 458, 96, 68, (d > 0 ? '+' : '−') + Math.abs(d), () => X.setAltura(cm + d), { size: 26 }));
+    p.text(`${cm} cm`, 330, 492, { size: 34, mono: true, weight: 700, align: 'center' });
+    ([['a1+', 1, 436], ['a5+', 5, 540]] as const).forEach(([id, d, x]) => p.button(id, x, 458, 96, 68, '+' + d, () => X.setAltura(cm + d), { size: 26 }));
+    p.button('ap', 652, 458, 348, 68, 'Aplicar altura', () => { this.calibMsg = X.aplicarAltura(); }, { size: 26, active: true });
+    p.text(this.calibMsg || 'Fique na postura em que vai jogar e aplique. Fica salvo no perfil.', 24, 552, { size: 21, color: UI.dim, max: 970 });
+    if (this.calib > 0) p.button('cal', 24, 576, 470, 60, `Encoste um controle no chão… ${Math.ceil(this.calib)}`, null, { active: true, color: UI.warn, size: 23 });
+    else p.button('cal', 24, 576, 470, 60, 'Alternativa: calibrar pelo chão (3 s)', () => { this.calib = 3; this.calibMsg = ''; }, { size: 23 });
+    p.button('h0', 510, 576, 240, 60, 'Zerar ajuste', () => { lo.zeroHeight(); this.calibMsg = 'Ajuste zerado.'; }, { size: 23 }); p.button('def', 766, 576, 234, 60, 'Padrões', () => lo.reset(), { size: 23 });
+    p.text('Qualidade do VR (vale ao entrar de novo)', 24, 668, { size: 23, color: UI.dim });
+    ([['leve', 'Leve (mais FPS)'], ['normal', 'Normal'], ['alta', 'Alta (mais nítida)']] as const).forEach(([k, l], i) => p.button('q' + k, 24 + i * 328, 690, 318, 64, l, () => { s.vrq = k; sv(); }, { active: s.vrq === k, size: 24 }));
   }
   private drawCheck(p: Panel) {
     const ck = this.A.check; ['S', 'L', 'X', 'M'].forEach((g, i) => p.button('g' + g, 16 + i * 92, 100, 84, 56, g, () => { this.group = g; this.page = 0; this.sel = null; }, { active: this.group === g, size: 30 }));

@@ -17,7 +17,7 @@ export interface GameApp {
 const LOCAL: Record<string, (id: string) => string> = { cub: (id) => id, cubR: (id) => id, cab: (id) => id, trp: (id) => id, trf: (id) => id, sa: () => 'CC', bat: () => 'CC', ppc: () => 'PROT', scada: () => 'IHM', encontro: () => 'patio', emerg: () => 'radio' };
 
 export class Interaction {
-  target: Inter | null = null; insp: Inter | null = null; hover: Part | null = null; hoverItem: string | null = null; lastPart: string | null = null;
+  target: Inter | null = null; insp: Inter | null = null; private vrInsp: Inter | null = null; private vrAsk: ((ops: [string, () => void][]) => void) | null = null; hover: Part | null = null; hoverItem: string | null = null; lastPart: string | null = null;
   private rc = new Raycaster(); private mouse = new Vector2(); private card = h('aside', { class: 'icard hidden' }); private tip = h('div', { class: 'itip hidden' });
   private choice = h('div', { class: 'ichoice hidden' }); private cardUps: (() => void)[] = []; private hl: { m: MeshStandardMaterial; e: number; c: number }[] = [];
   private exitBtn = h('button', { class: 'icard-x', onclick: () => this.exit() }, ic('X', 18));
@@ -65,11 +65,13 @@ export class Interaction {
     const A = this.A; this.insp = t; A.hud.setPrompt(null); A.hud.setCross('off'); A.P.unlock();
     if (t.view) A.P.goView(t.view.pos, t.view.look, 0.5);
     if (t.kind === 'arm') { const cb = A.W.indoor.cabinets[t.eq!]; if (cb) cb.tgt = 1; A.sfx.door?.(true); }
+    if (t.kind === 'bay') { const cb = A.W.yard.cabs[t.eq!]; if (cb) { cb.tgt = 1; A.sfx.door?.(true); } }
     this.buildCard(t); A.hud.setHint('Clique nas peças · E ou Esc para sair');
   }
   exit() {
     const A = this.A, t = this.insp; if (!t) return; this.insp = null; this.unhl(); this.tip.classList.add('hidden'); this.choice.classList.add('hidden'); this.card.classList.add('hidden'); this.cardUps = [];
     if (t.kind === 'arm') { const cb = A.W.indoor.cabinets[t.eq!]; if (cb && t.eq !== 'LOTO') cb.tgt = 0; }
+    if (t.kind === 'bay') { const cb = A.W.yard.cabs[t.eq!]; if (cb) cb.tgt = 0; }
     A.P.leaveView(0.35); A.hud.setHint(''); setTimeout(() => A.P.lock(), 50);
   }
   // ---------- peças ----------
@@ -92,14 +94,15 @@ export class Interaction {
     this.lastPart = p.id; this.act(p, e);
   }
   private isMineLocked(p: Part) { const id = this.lotoId(p); return !!id && this.A.sess.sim.s.eq[id]?.loto?.some((l: any) => l.dono === 'treinando'); }
-  private lotoId(p: Part) { const bay = this.insp?.eq || ''; return p.act === 'loto:52' ? '52-' + bay : p.act === 'loto:43' ? '43-' + bay : p.act === 'loto:43bay' ? this.selOf(bay) : p.data?.id || null; }
+  private lotoId(p: Part) { const bay = (this.insp || this.vrInsp)?.eq || ''; return p.act === 'loto:52' ? '52-' + bay : p.act === 'loto:43' ? '43-' + bay : p.act === 'loto:43bay' ? this.selOf(bay) : p.data?.id || null; }
   private selOf(bay: string) { return this.A.d.topology.substation.voltageLevels[0].bays.find((b: any) => b.id === bay)?.equipment.find((e: any) => e.type === 'SEL')?.id; }
   private ask(e: MouseEvent, ops: [string, () => void][]) {
+    if (this.vrAsk) { this.vrAsk(ops); return; }
     this.choice.innerHTML = ''; for (const [t, f] of ops) this.choice.append(h('button', { class: 'hw', onclick: () => { this.choice.classList.add('hidden'); f(); } }, t));
     this.choice.style.left = e.clientX + 'px'; this.choice.style.top = e.clientY + 'px'; this.choice.classList.remove('hidden');
   }
   private act(p: Part, e: MouseEvent) {
-    const A = this.A, s = A.sess.sim.s, bay = this.insp?.eq || '', brk = '52-' + bay, C = (c: Cmd) => { A.hands.use(); return A.cmd(c); };
+    const A = this.A, s = A.sess.sim.s, bay = (this.insp || this.vrInsp)?.eq || '', brk = '52-' + bay, C = (c: Cmd) => { A.hands.use(); return A.cmd(c); };
     switch (p.act) {
       case 'sel43': { const id = '43-' + bay; C({ t: 'lr', id, to: s.eq[id].lr === 'local' ? 'remoto' : 'local' }); A.sfx.click?.(); break; }
       case 'fechar': C({ t: 'switch', id: brk, op: 'close', via: 'local' }); break;
@@ -142,19 +145,27 @@ export class Interaction {
     }
     setTimeout(() => this.cardUps.forEach((u) => u()), 60);
   }
+  // ---------- VR: mesma lógica, sem modo inspeção da câmera ----------
+  partsOfInter(t: Inter) { return this.partsOf(t); }
+  /** Local da missão (procedimentos/decisões) correspondente ao equipamento. */
+  localDe(t: Inter) { if ((t as any).kind === 'radio') return 'radio'; const pre = t.id.split(':')[0]; return LOCAL[pre]?.(t.eq || '') || (t.kind === 'cub' ? t.eq || null : null); }
+  /** Aciona a peça p do local t (raio + gatilho no VR). Ferramenta exigida sai do cinto se a pessoa tiver. ask = escolha num painel. */
+  actVR(t: Inter, p: Part, ask: (ops: [string, () => void][]) => void) {
+    const A = this.A; if (!A.sess) return false;
+    if (p.tool && A.tool !== p.tool && !(p.tool === 'detector_mt' && A.tool === 'detector_at')) {
+      const has = A.sess.inv.usar(p.tool); if (has) { A.setTool(p.tool); A.hud.toast(`${TOOL_NAMES[p.tool] || p.tool} na mão (cinto).`, 'muted', 2000); }
+      else { A.hud.toast(`Você não tem ${TOOL_NAMES[p.tool] || p.tool}. Busque no armário de ferramentas.`, 'warn'); if (!(p.act.startsWith('loto') && this.isMineLocked(p))) return false; } }
+    this.vrInsp = t; this.vrAsk = ask; this.lastPart = p.id;
+    try { this.act(p, null as any); } finally { this.vrInsp = null; this.vrAsk = null; } return true;
+  }
+  /** Ação direta (portas, emergência, DEA) ou null se o local abre um cartão. */
+  useDirect(t: Inter) { if (!['door', 'gate', 'emerg', 'dea'].includes(t.kind)) return false; this.setTarget(t); this.use(); return true; }
   // ---------- cartão lateral ----------
   private buildCard(t: Inter) {
     const A = this.A, c = this.card; c.innerHTML = ''; c.classList.remove('hidden'); this.cardUps = [];
     const st = h('div', { class: 'ic-st' }); c.append(h('header', {}, h('div', {}, h('small', {}, kindName(t.kind)), h('b', {}, t.label)), this.exitBtn), st);
     const sim = A.sess.sim, eq = t.eq;
-    const lines = (): [string, string, string?][] => { const s = sim.s, der = sim.der; const L: [string, string, string?][] = [];
-      if (t.kind === 'cub' || t.kind === 'cubR') { const b = s.eq['52-' + eq]; if (b) { L.push(['Disjuntor', b.state === 'closed' ? 'FECHADO' : 'ABERTO', b.state === 'closed' ? 'r' : 'g'], ['Posição', String(b.pos).toUpperCase()], ['Chave 43', String(s.eq['43-' + eq]?.lr || '—').toUpperCase()], ['Corrente', `${fmt(der.I['52-' + eq] || 0)} A`]); if (s.eq['89T-' + eq]) L.push(['Terra 89T', s.eq['89T-' + eq].state === 'closed' ? 'FECHADA' : 'aberta', s.eq['89T-' + eq].state === 'closed' ? 'g' : '']); if (b.loto.length) L.push(['Bloqueio', b.loto.map((l: any) => l.dono).join(', '), 'w']); if (t.kind === 'cubR') L.push(['Tampa traseira', A.rearOpen[eq!] ? 'REMOVIDA' : 'instalada', A.rearOpen[eq!] ? 'r' : '']); } }
-      else if (t.kind === 'bay') { const bay = A.d.topology.substation.voltageLevels[0].bays.find((b: any) => b.id === eq); for (const e of bay?.equipment || []) if (e.type === 'CBR' || e.type === 'DIS') { const b = s.eq[e.id]; L.push([e.id, b.moving ? 'em manobra' : b.state === 'closed' ? 'FECHADO' : 'ABERTO', b.state === 'closed' ? 'r' : 'g']); } const sel = this.selOf(eq!); if (sel) L.push(['43 do bay', String(s.eq[sel].lr).toUpperCase()]); }
-      else if (t.kind === 'trafo' || t.kind === 'trafoBody') { const tr = s.tr[eq!], dt = der.tr[eq!]; L.push(['Estado', dt.energ ? 'ENERGIZADO' : 'desenergizado', dt.energ ? 'r' : ''], ['Carga', `${fmt(dt.mva, 2)} MVA (${fmt(dt.pct)} %)`], ['Óleo / enrol.', `${fmt(tr.oleo)} / ${fmt(tr.enrol)} °C`], ['TAP', `${tr.tap > 0 ? '+' : ''}${tr.tap} · ${tr.modo === 'auto' ? 'AUTO' : 'MANUAL'}`], ['Ventilação', `G${tr.vent}${tr.ventMan ? ' (manual)' : ''}`]); }
-      else if (t.kind === 'eq' || t.kind === 'mec' || t.kind === 'secmot' || t.kind === 'terraAT') { const b = s.eq[eq!]; if (b) L.push(['Estado', b.moving ? 'em manobra' : b.state === 'closed' ? 'FECHADO' : 'ABERTO', b.state === 'closed' ? 'r' : 'g'], ['Corrente', `${fmt(der.I[eq!] || 0)} A`]); if (b?.sf6) L.push(['SF6', `estágio ${b.sf6}`, 'r']); if (b?.loto?.length) L.push(['Bloqueio', b.loto.map((l: any) => l.dono).join(', '), 'w']); }
-      else if (t.kind === 'cc') { L.push(['CA (QGCA)', s.ca.ok ? `normal · ${s.ca.ats}` : 'SEM CA', s.ca.ok ? '' : 'r'], ['ATS', s.ca.auto ? 'automático' : 'manual'], ['Barra CC', `${fmt(s.cc.v, 1)} V`, s.cc.v < A.d.params.cc.alarmeV ? 'r' : ''], ['Bateria', `${fmt(Math.max(0, s.cc.soc) * 100)} %`]); if (s.cc.terra) L.push(['Terra CC', 'ATUADO', 'r']); }
-      else if (t.kind === 'prot') { for (const T of ['T1', 'T2']) L.push([`86T-${T}`, s.locks['86T-' + T] ? 'ATUADO' : 'normal', s.locks['86T-' + T] ? 'r' : '']); }
-      return L; };
+    const lines = () => this.linhas(t);
     const draw = () => { st.innerHTML = ''; for (const [k, v, cls] of lines()) st.append(h('div', { class: 'ic-row' }, h('span', {}, k), h('b', { class: cls ? 'c-' + cls : '' }, v))); };
     draw(); this.cardUps.push(draw);
     // procedimentos/decisões da missão neste local
@@ -167,6 +178,15 @@ export class Interaction {
     const tools = h('div', { class: 'ic-foot' }); if (ficha) tools.append(h('button', { class: 'hw sm ghost', onclick: () => A.openFicha(ficha!) }, ic('BookOpen', 15), ' Ficha técnica'));
     tools.append(h('span', { class: 'muted' }, h('kbd', {}, 'E'), ' / ', h('kbd', {}, 'Esc'), ' sair')); c.append(tools);
   }
+  /** Estado do local em linhas [rótulo, valor, cor]. */
+  linhas(t: Inter): [string, string, string?][] { const A = this.A, sim = A.sess.sim, eq = t.eq, s = sim.s, der = sim.der; const L: [string, string, string?][] = [];
+      if (t.kind === 'cub' || t.kind === 'cubR') { const b = s.eq['52-' + eq]; if (b) { L.push(['Disjuntor', b.state === 'closed' ? 'FECHADO' : 'ABERTO', b.state === 'closed' ? 'r' : 'g'], ['Posição', String(b.pos).toUpperCase()], ['Chave 43', String(s.eq['43-' + eq]?.lr || '—').toUpperCase()], ['Corrente', `${fmt(der.I['52-' + eq] || 0)} A`]); if (s.eq['89T-' + eq]) L.push(['Terra 89T', s.eq['89T-' + eq].state === 'closed' ? 'FECHADA' : 'aberta', s.eq['89T-' + eq].state === 'closed' ? 'g' : '']); if (b.loto.length) L.push(['Bloqueio', b.loto.map((l: any) => l.dono).join(', '), 'w']); if (t.kind === 'cubR') L.push(['Tampa traseira', A.rearOpen[eq!] ? 'REMOVIDA' : 'instalada', A.rearOpen[eq!] ? 'r' : '']); } }
+      else if (t.kind === 'bay') { const bay = A.d.topology.substation.voltageLevels[0].bays.find((b: any) => b.id === eq); for (const e of bay?.equipment || []) if (e.type === 'CBR' || e.type === 'DIS') { const b = s.eq[e.id]; L.push([e.id, b.moving ? 'em manobra' : b.state === 'closed' ? 'FECHADO' : 'ABERTO', b.state === 'closed' ? 'r' : 'g']); } const sel = this.selOf(eq!); if (sel) L.push(['43 do bay', String(s.eq[sel].lr).toUpperCase()]); }
+      else if (t.kind === 'trafo' || t.kind === 'trafoBody') { const tr = s.tr[eq!], dt = der.tr[eq!]; L.push(['Estado', dt.energ ? 'ENERGIZADO' : 'desenergizado', dt.energ ? 'r' : ''], ['Carga', `${fmt(dt.mva, 2)} MVA (${fmt(dt.pct)} %)`], ['Óleo / enrol.', `${fmt(tr.oleo)} / ${fmt(tr.enrol)} °C`], ['TAP', `${tr.tap > 0 ? '+' : ''}${tr.tap} · ${tr.modo === 'auto' ? 'AUTO' : 'MANUAL'}`], ['Ventilação', `G${tr.vent}${tr.ventMan ? ' (manual)' : ''}`]); }
+      else if (t.kind === 'eq' || t.kind === 'mec' || t.kind === 'secmot' || t.kind === 'terraAT') { const b = s.eq[eq!]; if (b) L.push(['Estado', b.moving ? 'em manobra' : b.state === 'closed' ? 'FECHADO' : 'ABERTO', b.state === 'closed' ? 'r' : 'g'], ['Corrente', `${fmt(der.I[eq!] || 0)} A`]); if (b?.sf6) L.push(['SF6', `estágio ${b.sf6}`, 'r']); if (b?.loto?.length) L.push(['Bloqueio', b.loto.map((l: any) => l.dono).join(', '), 'w']); }
+      else if (t.kind === 'cc') { L.push(['CA (QGCA)', s.ca.ok ? `normal · ${s.ca.ats}` : 'SEM CA', s.ca.ok ? '' : 'r'], ['ATS', s.ca.auto ? 'automático' : 'manual'], ['Barra CC', `${fmt(s.cc.v, 1)} V`, s.cc.v < A.d.params.cc.alarmeV ? 'r' : ''], ['Bateria', `${fmt(Math.max(0, s.cc.soc) * 100)} %`]); if (s.cc.terra) L.push(['Terra CC', 'ATUADO', 'r']); }
+      else if (t.kind === 'prot') { for (const T of ['T1', 'T2']) L.push([`86T-${T}`, s.locks['86T-' + T] ? 'ATUADO' : 'normal', s.locks['86T-' + T] ? 'r' : '']); }
+      return L; }
   private itemList(box: HTMLElement, local: string) {
     const A = this.A, inv = A.sess.inv; const sig = JSON.stringify(inv.units.map((u: any) => [u.comigo, u.inspecionado, u.descartado])); if ((box as any)._sig === sig) return; (box as any)._sig = sig; box.innerHTML = '';
     const locs = local === 'EPI' ? ['EPI', 'FERR', 'EPIQ'] : [local]; const us = inv.units.filter((u: any) => locs.includes(inv.def(u.item).local) && !u.descartado);
