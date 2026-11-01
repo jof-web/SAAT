@@ -1,0 +1,4907 @@
+{
+  "versao": "2.0.0",
+  "_nota": "Missões do MVP (anexo, seção 7). Condições declarativas; a ordem NR-10 vem do perfil.",
+  "regrasGerais": [
+    {
+      "id": "g_i01",
+      "on": {
+        "result": "bloqueado",
+        "rules": "I-01"
+      },
+      "sev": "maior",
+      "comp": "seguranca",
+      "msg": "Tentativa de operar seccionadora com disjuntor fechado/sob carga (I-01)"
+    },
+    {
+      "id": "g_i02",
+      "on": {
+        "result": "bloqueado",
+        "rules": "I-02"
+      },
+      "sev": "maior",
+      "comp": "seguranca",
+      "msg": "Tentativa de fechar chave de terra sem as condições do I-02"
+    },
+    {
+      "id": "g_i04",
+      "on": {
+        "result": "bloqueado",
+        "rules": "I-04"
+      },
+      "sev": "maior",
+      "comp": "seguranca",
+      "msg": "Tentativa de inserir/extrair ou abrir a porta com o disjuntor fechado/em serviço (I-04)",
+      "unless": {
+        "fato": "eq.$id.trava",
+        "eq": "fechado"
+      },
+      "_nota": "tentativa sobre disjuntor travado fechado é o caminho correto para pedir a liberação de emergência (I-14)"
+    },
+    {
+      "id": "g_i09",
+      "on": {
+        "t": "loto",
+        "op": "remove",
+        "result": "bloqueado"
+      },
+      "sev": "critico",
+      "comp": "seguranca",
+      "msg": "Tentativa de remover cadeado/etiqueta de terceiro (I-09)"
+    },
+    {
+      "id": "g_i10",
+      "on": {
+        "result": "bloqueado",
+        "rules": [
+          "I-03",
+          "I-10"
+        ]
+      },
+      "sev": "maior",
+      "comp": "seguranca",
+      "msg": "Tentativa de fechar sobre trecho aterrado (I-03/I-10)"
+    },
+    {
+      "id": "g_curto",
+      "on": {
+        "consequencia": "curto_franco"
+      },
+      "sev": "critico",
+      "comp": "seguranca",
+      "msg": "Bypass de intertravamento causou curto franco"
+    },
+    {
+      "id": "g_arco",
+      "on": {
+        "consequencia": [
+          "arco_seccionadora",
+          "arco_cubiculo"
+        ]
+      },
+      "sev": "critico",
+      "comp": "seguranca",
+      "msg": "Manobra com bypass causou arco elétrico"
+    },
+    {
+      "id": "g_mec",
+      "on": {
+        "consequencia": "falha_mecanica"
+      },
+      "sev": "critico",
+      "comp": "seguranca",
+      "msg": "Inserção/extração forçada (bypass) com falha mecânica do cubículo"
+    }
+  ],
+  "missoes": [
+    {
+      "id": "T0",
+      "nome": "Primeiros passos no SAAT",
+      "nivel": "B",
+      "mvp": true,
+      "objetivo": "Aprender os controles: andar, olhar, interagir (E), abrir o armário, vestir e inspecionar EPI, usar o tablet (Tab), escolher ferramenta (1–9), inspecionar um cubículo e sentar na mesa do supervisório.",
+      "tempoPrevistoS": 420,
+      "cargasPlanejadas": [],
+      "setup": [],
+      "script": [],
+      "acoes": [],
+      "checks": [
+        {
+          "id": "andar",
+          "label": "Ande até o armário de EPI (W A S D ou setas; mouse para olhar)",
+          "comp": "sequencia",
+          "pts": 10,
+          "cond": {
+            "flag": "tut:perto"
+          },
+          "grupo": "Controles"
+        },
+        {
+          "id": "abrir",
+          "label": "Mire o armário e aperte E para abrir",
+          "comp": "sequencia",
+          "pts": 10,
+          "cond": {
+            "flag": "tut:armario"
+          },
+          "grupo": "Controles"
+        },
+        {
+          "id": "inspecionar",
+          "label": "Inspecione a luva isolante (clique nela → Inspecionar)",
+          "comp": "seguranca",
+          "pts": 10,
+          "cond": {
+            "flag": "tut:inspecao"
+          },
+          "grupo": "Controles"
+        },
+        {
+          "id": "vestir",
+          "label": "Vista o capacete (clique → Vestir)",
+          "comp": "seguranca",
+          "pts": 10,
+          "cond": {
+            "flag": "tut:capacete"
+          },
+          "grupo": "Controles"
+        },
+        {
+          "id": "tablet",
+          "label": "Abra o tablet com Tab e feche de novo",
+          "comp": "comunicacao",
+          "pts": 10,
+          "cond": {
+            "flag": "tut:tablet"
+          },
+          "grupo": "Controles"
+        },
+        {
+          "id": "ferramenta",
+          "label": "Pegue o rádio no armário de EPI e ferramentas e segure-o (tecla 1)",
+          "comp": "sequencia",
+          "pts": 10,
+          "cond": {
+            "flag": "tut:ferramenta"
+          },
+          "grupo": "Controles"
+        },
+        {
+          "id": "cubiculo",
+          "label": "Inspecione um cubículo (E) e clique numa peça",
+          "comp": "diagnostico",
+          "pts": 10,
+          "cond": {
+            "flag": "tut:peca"
+          },
+          "grupo": "Controles"
+        },
+        {
+          "id": "mesa",
+          "label": "Sente-se na mesa de operação (E) — Esc levanta",
+          "comp": "comunicacao",
+          "pts": 10,
+          "cond": {
+            "flag": "tut:scada"
+          },
+          "grupo": "Controles"
+        }
+      ]
+    },
+    {
+      "id": "R1",
+      "nome": "Ronda de inspeção",
+      "nivel": "B",
+      "mvp": true,
+      "tipo": "ronda",
+      "objetivo": "Percorrer a sala de painéis, a sala de comando/CC e o pátio, identificar as anomalias e relatá-las ao COS.",
+      "tempoPrevistoS": 900,
+      "cargasPlanejadas": [],
+      "sorteio": {
+        "n": 5
+      },
+      "anomalias": [
+        {
+          "id": "oleo_T2",
+          "nome": "Nível de óleo baixo em T2",
+          "onde": "Pátio — T2",
+          "inject": {
+            "falha": "F16",
+            "alvo": "T2"
+          }
+        },
+        {
+          "id": "sf6_LT1",
+          "nome": "SF6 em estágio 1 no 52-LT1",
+          "onde": "Pátio — bay LT-01",
+          "inject": {
+            "falha": "F08",
+            "alvo": "52-LT1",
+            "nivel": 1
+          }
+        },
+        {
+          "id": "terra_cc",
+          "nome": "Terra no sistema CC",
+          "onde": "Sala de comando — painel CC",
+          "inject": {
+            "falha": "F11",
+            "alvo": "CC"
+          }
+        },
+        {
+          "id": "lampada_AL3",
+          "nome": "Lâmpada de sinalização queimada no cubículo AL3",
+          "onde": "Sala de painéis — AL3",
+          "inject": {
+            "prim": {
+              "t": "anomalia"
+            },
+            "alvo": "lampada_AL3"
+          }
+        },
+        {
+          "id": "temp_T2M",
+          "nome": "Temperatura alta no painel MT (cubículo T2M)",
+          "onde": "Sala de painéis — T2M",
+          "inject": {
+            "prim": {
+              "t": "anomalia"
+            },
+            "alvo": "temp_T2M"
+          }
+        },
+        {
+          "id": "porta_QDCC",
+          "nome": "Porta do painel de CC aberta",
+          "onde": "Sala de comando — QDCC",
+          "inject": {
+            "prim": {
+              "t": "anomalia"
+            },
+            "alvo": "porta_QDCC"
+          }
+        }
+      ],
+      "distratores": [
+        {
+          "id": "x1",
+          "nome": "Vazamento de óleo em T1"
+        },
+        {
+          "id": "x2",
+          "nome": "Ruído anormal no 52-T2"
+        },
+        {
+          "id": "x3",
+          "nome": "Disjuntor 52-P fechado"
+        },
+        {
+          "id": "x4",
+          "nome": "Retificador RT2 desligado"
+        }
+      ],
+      "acoes": [
+        {
+          "id": "relatorio",
+          "label": "Encerrar a ronda e entregar o relatório ao COS",
+          "local": [
+            "radio",
+            "IHM"
+          ]
+        }
+      ],
+      "checks": [
+        {
+          "id": "relatorio",
+          "label": "Relatório da ronda entregue ao COS",
+          "comp": "comunicacao",
+          "pts": 20,
+          "cond": {
+            "flag": "relatorio"
+          },
+          "grupo": "Relatório"
+        }
+      ],
+      "regras": [
+        {
+          "id": "manobra",
+          "on": {
+            "t": [
+              "switch",
+              "rack",
+              "reset86"
+            ],
+            "result": "ok"
+          },
+          "sev": "maior",
+          "comp": "seguranca",
+          "msg": "Manobra durante a ronda sem ordem do COS"
+        },
+        {
+          "id": "troca",
+          "on": {
+            "t": "reparo",
+            "result": "ok"
+          },
+          "if": {
+            "flag": "relato:lampada_AL3"
+          },
+          "bonus": 2,
+          "msg": "Trocou a lâmpada queimada depois de relatar (boa prática)"
+        }
+      ],
+      "fim": {
+        "flag": "relatorio"
+      }
+    },
+    {
+      "id": "R2",
+      "nome": "Regulação de tensão (OLTC) e leitura de grandezas",
+      "nivel": "B",
+      "mvp": false,
+      "objetivo": "A tensão da MT-1 está abaixo de 0,95 pu na ponta com o OLTC do T1 em manual. Subir o TAP degrau a degrau, sem 'caçar', até a faixa do 90 (13,8 kV ± 1,5 %), anotar as grandezas na folha de leitura e informar o COS.",
+      "tempoPrevistoS": 600,
+      "cargasPlanejadas": [],
+      "setup": [
+        {
+          "cmd": {
+            "t": "oltc",
+            "id": "T1",
+            "modo": "manual"
+          }
+        },
+        {
+          "cmd": {
+            "t": "tap",
+            "id": "T1",
+            "dir": -1
+          }
+        },
+        {
+          "cmd": {
+            "t": "tap",
+            "id": "T1",
+            "dir": -1
+          }
+        },
+        {
+          "cmd": {
+            "t": "tap",
+            "id": "T1",
+            "dir": -1
+          }
+        },
+        {
+          "cmd": {
+            "t": "tap",
+            "id": "T1",
+            "dir": -1
+          }
+        },
+        {
+          "cmd": {
+            "t": "tap",
+            "id": "T1",
+            "dir": -1
+          }
+        }
+      ],
+      "script": [
+        {
+          "id": "ordem",
+          "desc": "COS pede a regulação da MT-1",
+          "at": 2,
+          "do": [
+            {
+              "cos": {
+                "id": "R2-COS",
+                "texto": "COS para SE Vale Verde: tensão da MT-1 abaixo da faixa na ponta. OLTC do T1 está em manual. Regule pelo supervisório, um degrau por vez, sem caçar, e informe as grandezas. Confirme (read-back)."
+              }
+            }
+          ]
+        }
+      ],
+      "leituras": [
+        {
+          "id": "vmt1_ini",
+          "ref": "v:MT-1",
+          "label": "Tensão da MT-1 ANTES de regular",
+          "un": "kV",
+          "tol": 0.1,
+          "cond": {
+            "fato": "barra.MT-1.v",
+            "lt": 0.95
+          },
+          "quando": "antes de mexer no TAP"
+        },
+        {
+          "id": "vmt1_fim",
+          "ref": "v:MT-1",
+          "label": "Tensão da MT-1 DEPOIS de regular",
+          "un": "kV",
+          "tol": 0.1,
+          "cond": {
+            "all": [
+              {
+                "fato": "barra.MT-1.v",
+                "gt": 0.95
+              },
+              {
+                "fato": "barra.MT-1.v",
+                "lt": 1.05
+              }
+            ]
+          },
+          "quando": "com a tensão já na faixa"
+        },
+        {
+          "id": "vmt2",
+          "ref": "v:MT-2",
+          "label": "Tensão da MT-2",
+          "un": "kV",
+          "tol": 0.1
+        },
+        {
+          "id": "tap_t1",
+          "ref": "tap:T1",
+          "label": "Posição de TAP do T1",
+          "un": "degrau",
+          "tol": 0
+        },
+        {
+          "id": "tap_t2",
+          "ref": "tap:T2",
+          "label": "Posição de TAP do T2",
+          "un": "degrau",
+          "tol": 0
+        },
+        {
+          "id": "mva_t1",
+          "ref": "mva:T1",
+          "label": "Carga do T1",
+          "un": "MVA",
+          "tol": 0.3
+        },
+        {
+          "id": "mva_t2",
+          "ref": "mva:T2",
+          "label": "Carga do T2",
+          "un": "MVA",
+          "tol": 0.3
+        },
+        {
+          "id": "i_al1",
+          "ref": "i:52-AL1",
+          "label": "Corrente do AL1",
+          "un": "A",
+          "tol": 6
+        },
+        {
+          "id": "oleo_t1",
+          "ref": "oleo:T1",
+          "label": "Temperatura do óleo do T1",
+          "un": "°C",
+          "tol": 2
+        },
+        {
+          "id": "vcc",
+          "ref": "vcc",
+          "label": "Tensão da barra CC",
+          "un": "V",
+          "tol": 1.5
+        }
+      ],
+      "acoes": [
+        {
+          "id": "informar_cos",
+          "label": "Informar o COS: tensão regulada e grandezas anotadas",
+          "local": [
+            "radio",
+            "IHM"
+          ],
+          "cond": {
+            "check": "regulou"
+          },
+          "falha": "a tensão da MT-1 ainda está fora da faixa"
+        }
+      ],
+      "checks": [
+        {
+          "id": "readback",
+          "label": "Repetir a ordem do COS (read-back)",
+          "comp": "comunicacao",
+          "pts": 10,
+          "cond": {
+            "flag": "readback:R2-COS"
+          },
+          "grupo": "Receber a ordem"
+        },
+        {
+          "id": "leu_ini",
+          "label": "Anotar a tensão da MT-1 antes de regular",
+          "comp": "diagnostico",
+          "pts": 6,
+          "cond": {
+            "flag": "leitura:vmt1_ini"
+          },
+          "grupo": "Leitura"
+        },
+        {
+          "id": "regulou",
+          "label": "Trazer a MT-1 para 0,95–1,05 pu",
+          "comp": "sequencia",
+          "pts": 25,
+          "cond": {
+            "all": [
+              {
+                "fato": "barra.MT-1.v",
+                "gt": 0.95
+              },
+              {
+                "fato": "barra.MT-1.v",
+                "lt": 1.05
+              }
+            ]
+          },
+          "grupo": "Regulação"
+        },
+        {
+          "id": "faixa90",
+          "label": "Deixar dentro da faixa do 90 (13,8 kV ± 1,5 %)",
+          "comp": "sequencia",
+          "pts": 10,
+          "cond": {
+            "all": [
+              {
+                "fato": "barra.MT-1.v",
+                "gt": 0.985
+              },
+              {
+                "fato": "barra.MT-1.v",
+                "lt": 1.015
+              }
+            ]
+          },
+          "grupo": "Regulação"
+        },
+        {
+          "id": "l_vmt1_fim",
+          "label": "Anotar a tensão da MT-1 depois",
+          "comp": "diagnostico",
+          "pts": 3,
+          "cond": {
+            "flag": "leitura:vmt1_fim"
+          },
+          "grupo": "Leitura"
+        },
+        {
+          "id": "l_vmt2",
+          "label": "Anotar a tensão da MT-2",
+          "comp": "diagnostico",
+          "pts": 3,
+          "cond": {
+            "flag": "leitura:vmt2"
+          },
+          "grupo": "Leitura"
+        },
+        {
+          "id": "l_tap",
+          "label": "Anotar o TAP de T1 e T2",
+          "comp": "diagnostico",
+          "pts": 3,
+          "cond": {
+            "all": [
+              {
+                "flag": "leitura:tap_t1"
+              },
+              {
+                "flag": "leitura:tap_t2"
+              }
+            ]
+          },
+          "grupo": "Leitura"
+        },
+        {
+          "id": "l_mva",
+          "label": "Anotar a carga de T1 e T2",
+          "comp": "diagnostico",
+          "pts": 3,
+          "cond": {
+            "all": [
+              {
+                "flag": "leitura:mva_t1"
+              },
+              {
+                "flag": "leitura:mva_t2"
+              }
+            ]
+          },
+          "grupo": "Leitura"
+        },
+        {
+          "id": "l_ial1",
+          "label": "Anotar a corrente do AL1",
+          "comp": "diagnostico",
+          "pts": 3,
+          "cond": {
+            "flag": "leitura:i_al1"
+          },
+          "grupo": "Leitura"
+        },
+        {
+          "id": "l_oleo",
+          "label": "Anotar a temperatura do óleo do T1",
+          "comp": "diagnostico",
+          "pts": 3,
+          "cond": {
+            "flag": "leitura:oleo_t1"
+          },
+          "grupo": "Leitura"
+        },
+        {
+          "id": "l_vcc",
+          "label": "Anotar a tensão CC",
+          "comp": "diagnostico",
+          "pts": 3,
+          "cond": {
+            "flag": "leitura:vcc"
+          },
+          "grupo": "Leitura"
+        },
+        {
+          "id": "informou",
+          "label": "Informar o COS",
+          "comp": "comunicacao",
+          "pts": 15,
+          "cond": {
+            "flag": "informar_cos"
+          },
+          "grupo": "Encerramento"
+        }
+      ],
+      "regras": [
+        {
+          "id": "cacar",
+          "on": {
+            "t": "tap",
+            "id": "T1",
+            "dir": -1,
+            "result": "ok"
+          },
+          "if": {
+            "flag": "subiu"
+          },
+          "sev": "menor",
+          "comp": "sequencia",
+          "msg": "Caçou: baixou o TAP depois de subir"
+        },
+        {
+          "id": "subiu",
+          "on": {
+            "t": "tap",
+            "id": "T1",
+            "dir": 1,
+            "result": "ok"
+          },
+          "set": "subiu"
+        },
+        {
+          "id": "passou",
+          "on": {
+            "t": "tap",
+            "id": "T1",
+            "dir": 1,
+            "result": "ok"
+          },
+          "if": {
+            "fato": "barra.MT-1.v",
+            "gt": 1.0375
+          },
+          "sev": "maior",
+          "comp": "sequencia",
+          "msg": "Subiu o TAP acima de 1,05 pu"
+        },
+        {
+          "id": "manobra",
+          "on": {
+            "t": [
+              "switch",
+              "rack",
+              "reset86"
+            ],
+            "result": "ok"
+          },
+          "sev": "maior",
+          "comp": "seguranca",
+          "msg": "Manobra não pedida pelo COS durante a regulação"
+        },
+        {
+          "id": "tap_t2",
+          "on": {
+            "t": "tap",
+            "id": "T2",
+            "result": "ok"
+          },
+          "sev": "menor",
+          "comp": "sequencia",
+          "msg": "Mexeu no TAP do T2, que já estava na faixa"
+        }
+      ],
+      "fim": {
+        "all": [
+          {
+            "check": "regulou"
+          },
+          {
+            "flag": "informar_cos"
+          }
+        ]
+      },
+      "golden": {
+        "inicio": [
+          {
+            "wait": 3
+          },
+          {
+            "readback": "R2-COS"
+          },
+          {
+            "leitura": "vmt1_ini"
+          },
+          {
+            "cmd": {
+              "t": "tap",
+              "id": "T1",
+              "dir": 1
+            }
+          },
+          {
+            "wait": 2
+          },
+          {
+            "cmd": {
+              "t": "tap",
+              "id": "T1",
+              "dir": 1
+            }
+          },
+          {
+            "wait": 2
+          },
+          {
+            "cmd": {
+              "t": "tap",
+              "id": "T1",
+              "dir": 1
+            }
+          },
+          {
+            "wait": 2
+          },
+          {
+            "cmd": {
+              "t": "tap",
+              "id": "T1",
+              "dir": 1
+            }
+          },
+          {
+            "wait": 2
+          },
+          {
+            "cmd": {
+              "t": "tap",
+              "id": "T1",
+              "dir": 1
+            }
+          },
+          {
+            "wait": 2
+          },
+          {
+            "leitura": "vmt1_fim"
+          },
+          {
+            "leitura": "vmt2"
+          },
+          {
+            "leitura": "tap_t1"
+          },
+          {
+            "leitura": "tap_t2"
+          },
+          {
+            "leitura": "mva_t1"
+          },
+          {
+            "leitura": "mva_t2"
+          },
+          {
+            "leitura": "i_al1"
+          },
+          {
+            "leitura": "oleo_t1"
+          },
+          {
+            "leitura": "vcc"
+          },
+          {
+            "acao": "informar_cos"
+          }
+        ]
+      }
+    },
+    {
+      "id": "C1",
+      "nome": "Falta em AL2 com religamento sem sucesso",
+      "nivel": "B",
+      "mvp": false,
+      "objetivo": "Atender ao desligamento do AL2: ler as indicações do relé, diagnosticar, comunicar o COS, NÃO religar repetidamente sobre falta permanente e registrar.",
+      "tempoPrevistoS": 480,
+      "cargasPlanejadas": [
+        "AL2"
+      ],
+      "script": [
+        {
+          "id": "evento",
+          "desc": "Falta fase-terra permanente em AL2 (F01)",
+          "at": 15,
+          "gatilho": "instrutor",
+          "do": [
+            {
+              "inject": {
+                "falha": "F01",
+                "alvo": "AL2"
+              }
+            },
+            {
+              "set": "evento"
+            }
+          ]
+        },
+        {
+          "id": "cos_resp",
+          "desc": "COS responde ao reporte",
+          "when": {
+            "flag": "comunicar_cos"
+          },
+          "apos": 3,
+          "do": [
+            {
+              "cos": {
+                "id": "C1-COS",
+                "texto": "COS: ciente. Manter 52-AL2 aberto. A equipe de linha vai localizar o defeito e transferir os trechos sãos por chaves externas. Confirme (read-back)."
+              }
+            }
+          ]
+        }
+      ],
+      "decisoes": [
+        {
+          "id": "diag",
+          "titulo": "Registrar o diagnóstico",
+          "local": [
+            "IHM",
+            "radio",
+            "AL2"
+          ],
+          "opcoes": [
+            {
+              "id": "a",
+              "texto": "Falta à terra permanente em AL2: 50N/51N atuou, o 79 religou sem sucesso, trip definitivo e 86-AL2 atuado",
+              "correta": true
+            },
+            {
+              "id": "b",
+              "texto": "Sobrecarga em AL2 (51) por aumento de carga"
+            },
+            {
+              "id": "c",
+              "texto": "Falha do disjuntor 52-AL2 (50BF)"
+            },
+            {
+              "id": "d",
+              "texto": "Falta transitória: o 79 religou com sucesso"
+            }
+          ]
+        },
+        {
+          "id": "religar",
+          "titulo": "O que fazer com o AL2?",
+          "local": [
+            "IHM",
+            "radio",
+            "AL2"
+          ],
+          "opcoes": [
+            {
+              "id": "a",
+              "texto": "Manter 52-AL2 aberto e bloqueado; aguardar a equipe localizar o defeito",
+              "correta": true
+            },
+            {
+              "id": "b",
+              "texto": "Rearmar o 86 e religar já, para devolver a carga"
+            },
+            {
+              "id": "c",
+              "texto": "Religar várias vezes até 'queimar' o defeito"
+            }
+          ]
+        }
+      ],
+      "acoes": [
+        {
+          "id": "ler_rele",
+          "label": "Ler e anotar as indicações do relé do AL2 (LEDs e tela)",
+          "local": [
+            "AL2"
+          ],
+          "cond": {
+            "flag": "evento"
+          },
+          "falha": "sem ocorrência"
+        },
+        {
+          "id": "comunicar_cos",
+          "label": "Comunicar o COS (desligamento do AL2)",
+          "local": [
+            "radio",
+            "IHM"
+          ],
+          "cond": {
+            "flag": "evento"
+          },
+          "falha": "sem ocorrência"
+        },
+        {
+          "id": "registrar",
+          "label": "Registrar a ocorrência",
+          "local": [
+            "radio",
+            "IHM"
+          ],
+          "cond": {
+            "flag": "evento"
+          },
+          "falha": "sem ocorrência"
+        }
+      ],
+      "checks": [
+        {
+          "id": "leu_rele",
+          "label": "Ler as indicações do relé no cubículo AL2",
+          "comp": "diagnostico",
+          "pts": 10,
+          "cond": {
+            "flag": "ler_rele"
+          },
+          "grupo": "Diagnóstico"
+        },
+        {
+          "id": "diag",
+          "label": "Diagnóstico correto (falta permanente, 79 sem sucesso, 86)",
+          "comp": "diagnostico",
+          "pts": 20,
+          "cond": {
+            "flag": "decisao:diag:a"
+          },
+          "grupo": "Diagnóstico"
+        },
+        {
+          "id": "comunicou",
+          "label": "Comunicar o COS",
+          "comp": "comunicacao",
+          "pts": 10,
+          "cond": {
+            "flag": "comunicar_cos"
+          },
+          "grupo": "Comunicação"
+        },
+        {
+          "id": "readback",
+          "label": "Read-back da resposta do COS",
+          "comp": "comunicacao",
+          "pts": 5,
+          "cond": {
+            "flag": "readback:C1-COS"
+          },
+          "grupo": "Comunicação"
+        },
+        {
+          "id": "religar",
+          "label": "Decidir manter o AL2 aberto",
+          "comp": "seguranca",
+          "pts": 25,
+          "cond": {
+            "flag": "decisao:religar:a"
+          },
+          "grupo": "Decisão"
+        },
+        {
+          "id": "manteve",
+          "label": "Não religar sobre falta permanente",
+          "comp": "seguranca",
+          "pts": 15,
+          "cond": {
+            "all": [
+              {
+                "flag": "registrar"
+              },
+              {
+                "fato": "eq.52-AL2.state",
+                "eq": "open"
+              },
+              {
+                "not": {
+                  "flag": "religou1"
+                }
+              }
+            ]
+          },
+          "grupo": "Decisão"
+        },
+        {
+          "id": "demais",
+          "label": "AL1, AL3 e AL4 mantidos em serviço",
+          "comp": "tempo",
+          "pts": 10,
+          "cond": {
+            "all": [
+              {
+                "flag": "registrar"
+              },
+              {
+                "fato": "carga.AL1",
+                "eq": true
+              },
+              {
+                "fato": "carga.AL3",
+                "eq": true
+              },
+              {
+                "fato": "carga.AL4",
+                "eq": true
+              }
+            ]
+          },
+          "grupo": "Continuidade"
+        },
+        {
+          "id": "registrou",
+          "label": "Registrar",
+          "comp": "comunicacao",
+          "pts": 5,
+          "cond": {
+            "flag": "registrar"
+          },
+          "grupo": "Registro"
+        }
+      ],
+      "regras": [
+        {
+          "id": "religou2",
+          "on": {
+            "t": "switch",
+            "id": "52-AL2",
+            "op": "close"
+          },
+          "if": {
+            "all": [
+              {
+                "flag": "evento"
+              },
+              {
+                "flag": "religou1"
+              }
+            ]
+          },
+          "sev": "critico",
+          "comp": "seguranca",
+          "msg": "Religamentos manuais repetidos sobre falta permanente"
+        },
+        {
+          "id": "religou1",
+          "on": {
+            "t": "switch",
+            "id": "52-AL2",
+            "op": "close"
+          },
+          "if": {
+            "flag": "evento"
+          },
+          "set": "religou1",
+          "unico": true,
+          "sev": "maior",
+          "comp": "seguranca",
+          "msg": "Tentou religar o AL2 sem autorização do COS"
+        },
+        {
+          "id": "rearme",
+          "on": {
+            "t": "reset86",
+            "id": "86-AL2",
+            "result": "ok"
+          },
+          "sev": "maior",
+          "comp": "seguranca",
+          "msg": "Rearmou o 86-AL2 sem autorização"
+        },
+        {
+          "id": "diag_errado",
+          "on": {
+            "t": "decisao",
+            "id": "diag",
+            "correta": false
+          },
+          "sev": "maior",
+          "comp": "diagnostico",
+          "msg": "Diagnóstico incorreto registrado"
+        },
+        {
+          "id": "rel_errado",
+          "on": {
+            "t": "decisao",
+            "id": "religar",
+            "correta": false
+          },
+          "sev": "critico",
+          "comp": "seguranca",
+          "msg": "Decidiu religar sobre falta permanente"
+        }
+      ],
+      "fim": {
+        "all": [
+          {
+            "flag": "registrar"
+          },
+          {
+            "flag": "decisao:religar"
+          }
+        ]
+      },
+      "golden": {
+        "inicio": [
+          {
+            "wait": 25
+          },
+          {
+            "acao": "ler_rele"
+          },
+          {
+            "decisao": [
+              "diag",
+              "a"
+            ]
+          },
+          {
+            "acao": "comunicar_cos"
+          },
+          {
+            "wait": 4
+          },
+          {
+            "readback": "C1-COS"
+          },
+          {
+            "decisao": [
+              "religar",
+              "a"
+            ]
+          },
+          {
+            "acao": "registrar"
+          }
+        ]
+      }
+    },
+    {
+      "id": "M1",
+      "nome": "Liberar AL1 para manutenção e devolver",
+      "nivel": "I",
+      "mvp": true,
+      "objetivo": "Liberar o alimentador AL1 para manutenção na terminação do cabo e inspeção do disjuntor (OM-001), na ordem do perfil NR-10 selecionado, e devolvê-lo ao serviço.",
+      "tempoPrevistoS": 1500,
+      "cargasPlanejadas": [
+        "AL1"
+      ],
+      "script": [
+        {
+          "id": "om001",
+          "desc": "COS emite a OM-001",
+          "at": 2,
+          "do": [
+            {
+              "cos": {
+                "id": "OM-001",
+                "texto": "COS para SE Vale Verde: OM-001 — liberar o alimentador AL1 para manutenção na terminação do cabo e inspeção do disjuntor. Bloquear o religamento e desligar pelo supervisório. Confirme (read-back)."
+              }
+            }
+          ]
+        },
+        {
+          "id": "equipe_in",
+          "desc": "Equipe de manutenção aplica cadeado próprio",
+          "when": {
+            "flag": "pt_emitida"
+          },
+          "apos": 3,
+          "do": [
+            {
+              "cmd": {
+                "t": "loto",
+                "op": "apply",
+                "id": "52-AL1"
+              },
+              "ator": "manutencao"
+            },
+            {
+              "msg": "Manutenção: equipe na zona controlada; cadeado da equipe aplicado em 52-AL1.",
+              "ator": "manutencao"
+            }
+          ]
+        },
+        {
+          "id": "equipe_out",
+          "desc": "Equipe conclui o serviço",
+          "when": {
+            "flag": "pt_emitida"
+          },
+          "apos": 45,
+          "do": [
+            {
+              "cmd": {
+                "t": "loto",
+                "op": "remove",
+                "id": "52-AL1"
+              },
+              "ator": "manutencao"
+            },
+            {
+              "msg": "Manutenção: serviço concluído, cadeado da equipe retirado. Aguardando o encerramento da PT.",
+              "ator": "manutencao"
+            },
+            {
+              "set": "servico_concluido"
+            }
+          ]
+        },
+        {
+          "id": "autoriza",
+          "desc": "COS autoriza energizar AL1",
+          "when": {
+            "flag": "solicitar_energizacao"
+          },
+          "apos": 3,
+          "do": [
+            {
+              "cos": {
+                "id": "OM-001-R",
+                "texto": "COS: autorizado energizar AL1 pelo supervisório. Confirme (read-back)."
+              }
+            }
+          ]
+        }
+      ],
+      "acoes": [
+        {
+          "id": "checklist_pre",
+          "label": "Conferir pendências e condições de AL1",
+          "local": [
+            "AL1",
+            "IHM",
+            "radio"
+          ]
+        },
+        {
+          "id": "barreira",
+          "label": "Fechar obturadores e instalar barreira nos contatos fixos da barra",
+          "local": [
+            "AL1"
+          ],
+          "cond": {
+            "fato": "eq.52-AL1.pos",
+            "eq": "extraido"
+          },
+          "falha": "obturadores só com o disjuntor extraído"
+        },
+        {
+          "id": "sinalizacao",
+          "label": "Instalar sinalização \"NÃO OPERAR\" e delimitar a área",
+          "local": [
+            "AL1"
+          ]
+        },
+        {
+          "id": "pt_emitir",
+          "label": "Emitir a permissão de trabalho (PT) e liberar a equipe",
+          "local": [
+            "AL1",
+            "radio"
+          ],
+          "set": "pt_emitida"
+        },
+        {
+          "id": "entrar_zona",
+          "label": "Entrar na zona controlada (compartimento de cabos)",
+          "local": [
+            "AL1"
+          ]
+        },
+        {
+          "id": "pt_encerrar",
+          "label": "Encerrar a PT com a equipe",
+          "local": [
+            "AL1",
+            "radio"
+          ],
+          "cond": {
+            "flag": "servico_concluido"
+          },
+          "falha": "a equipe ainda está trabalhando"
+        },
+        {
+          "id": "ferramentas",
+          "label": "Confirmar retirada de ferramentas, utensílios e equipamentos",
+          "local": [
+            "AL1"
+          ],
+          "cond": {
+            "flag": "pt_encerrar"
+          },
+          "falha": "PT ainda aberta"
+        },
+        {
+          "id": "pessoas",
+          "label": "Confirmar retirada das pessoas da zona controlada",
+          "local": [
+            "AL1"
+          ],
+          "cond": {
+            "flag": "pt_encerrar"
+          },
+          "falha": "PT ainda aberta"
+        },
+        {
+          "id": "barreira_remover",
+          "label": "Retirar barreira e proteções adicionais",
+          "local": [
+            "AL1"
+          ],
+          "cond": {
+            "flag": "barreira"
+          },
+          "falha": "não há barreira instalada"
+        },
+        {
+          "id": "sinalizacao_remover",
+          "label": "Retirar a sinalização",
+          "local": [
+            "AL1"
+          ],
+          "cond": {
+            "flag": "sinalizacao"
+          },
+          "falha": "não há sinalização instalada"
+        },
+        {
+          "id": "checklist_pos",
+          "label": "Conferir: terra aberta, sem alarmes, CC normal, 52-AL1 aberto",
+          "local": [
+            "AL1",
+            "IHM"
+          ],
+          "cond": {
+            "all": [
+              {
+                "fato": "eq.89T-AL1.state",
+                "eq": "open"
+              },
+              {
+                "fato": "eq.52-AL1.state",
+                "eq": "open"
+              },
+              {
+                "fato": "cc.v",
+                "gt": 108
+              },
+              {
+                "fato": "alarmes",
+                "eq": 0
+              }
+            ]
+          },
+          "falha": "alguma condição não está atendida"
+        },
+        {
+          "id": "solicitar_energizacao",
+          "label": "Solicitar ao COS autorização para energizar AL1",
+          "local": [
+            "radio",
+            "IHM"
+          ]
+        },
+        {
+          "id": "conferir_grandezas",
+          "label": "Conferir corrente e tensão de AL1",
+          "local": [
+            "IHM",
+            "AL1"
+          ],
+          "cond": {
+            "fato": "carga.AL1",
+            "eq": true
+          },
+          "falha": "AL1 sem tensão"
+        },
+        {
+          "id": "reportar_fim",
+          "label": "Comunicar o COS e registrar o encerramento",
+          "local": [
+            "radio",
+            "IHM"
+          ]
+        }
+      ],
+      "etapas": {
+        "seccionamento": {
+          "cond": {
+            "all": [
+              {
+                "fato": "eq.52-AL1.state",
+                "eq": "open"
+              },
+              {
+                "fato": "eq.52-AL1.pos",
+                "eq": "extraido"
+              }
+            ]
+          }
+        },
+        "impedimento": {
+          "cond": {
+            "all": [
+              {
+                "fato": "eq.52-AL1.lotoDe",
+                "contem": "treinando"
+              },
+              {
+                "fato": "eq.43-AL1.lotoDe",
+                "contem": "treinando"
+              }
+            ]
+          }
+        },
+        "constatacao": {
+          "on": {
+            "t": "vtest",
+            "passo": "medir",
+            "id": "AL1c",
+            "medida": "ausente"
+          }
+        },
+        "aterramento": {
+          "cond": {
+            "fato": "eq.89T-AL1.state",
+            "eq": "closed"
+          }
+        },
+        "protecao": {
+          "cond": {
+            "flag": "barreira"
+          }
+        },
+        "sinalizacao": {
+          "cond": {
+            "flag": "sinalizacao"
+          }
+        },
+        "r_ferramentas": {
+          "cond": {
+            "flag": "ferramentas"
+          }
+        },
+        "r_pessoas": {
+          "cond": {
+            "flag": "pessoas"
+          }
+        },
+        "r_aterramento": {
+          "cond": {
+            "all": [
+              {
+                "fato": "eq.89T-AL1.state",
+                "eq": "open"
+              },
+              {
+                "flag": "barreira_remover"
+              }
+            ]
+          }
+        },
+        "r_sinalizacao": {
+          "cond": {
+            "flag": "sinalizacao_remover"
+          }
+        },
+        "r_religacao": {
+          "cond": {
+            "all": [
+              {
+                "fato": "eq.52-AL1.loto",
+                "eq": 0
+              },
+              {
+                "fato": "eq.43-AL1.loto",
+                "eq": 0
+              },
+              {
+                "fato": "eq.52-AL1.pos",
+                "eq": "servico"
+              }
+            ]
+          }
+        }
+      },
+      "inicioReenergizacao": {
+        "flag": "servico_concluido"
+      },
+      "checks": [
+        {
+          "id": "readback",
+          "label": "Repetir a ordem OM-001 ao COS (read-back)",
+          "comp": "comunicacao",
+          "pts": 10,
+          "cond": {
+            "flag": "readback:OM-001"
+          },
+          "grupo": "Receber a ordem"
+        },
+        {
+          "id": "checklist_pre",
+          "label": "Conferir pendências e condições de AL1",
+          "comp": "diagnostico",
+          "pts": 10,
+          "cond": {
+            "flag": "checklist_pre"
+          },
+          "grupo": "Preparação"
+        },
+        {
+          "id": "bloq79",
+          "label": "Bloquear o religamento (79) de AL1",
+          "comp": "sequencia",
+          "pts": 10,
+          "cond": {
+            "fato": "rele.REL-AL1.r79",
+            "eq": false
+          },
+          "grupo": "Preparação"
+        },
+        {
+          "id": "abriu",
+          "label": "Abrir 52-AL1 (preferencialmente remoto)",
+          "comp": "sequencia",
+          "pts": 10,
+          "cond": {
+            "fato": "eq.52-AL1.state",
+            "eq": "open"
+          },
+          "grupo": "Seccionamento"
+        },
+        {
+          "id": "extraiu",
+          "label": "Chave em LOCAL e extrair 52-AL1 até EXTRAÍDO",
+          "comp": "seguranca",
+          "pts": 10,
+          "cond": {
+            "fato": "eq.52-AL1.pos",
+            "eq": "extraido"
+          },
+          "grupo": "Seccionamento"
+        },
+        {
+          "id": "loto",
+          "label": "Cadeado + etiqueta na chave L/R (43-AL1) e no disjuntor",
+          "comp": "seguranca",
+          "pts": 15,
+          "cond": {
+            "etapa": "impedimento"
+          },
+          "grupo": "Impedimento"
+        },
+        {
+          "id": "constatou",
+          "label": "Constatar ausência de tensão no cabo, testando o detector antes e depois",
+          "comp": "seguranca",
+          "pts": 15,
+          "cond": {
+            "fato": "vtest.AL1c.completo",
+            "eq": true
+          },
+          "grupo": "Constatação"
+        },
+        {
+          "id": "aterrou",
+          "label": "Fechar a chave de terra 89T-AL1",
+          "comp": "seguranca",
+          "pts": 10,
+          "cond": {
+            "fato": "eq.89T-AL1.state",
+            "eq": "closed"
+          },
+          "grupo": "Aterramento"
+        },
+        {
+          "id": "barreira",
+          "label": "Obturadores fechados e barreira nos contatos fixos",
+          "comp": "seguranca",
+          "pts": 5,
+          "cond": {
+            "flag": "barreira"
+          },
+          "grupo": "Proteção"
+        },
+        {
+          "id": "sinalizacao",
+          "label": "Sinalização NÃO OPERAR e delimitação",
+          "comp": "seguranca",
+          "pts": 5,
+          "cond": {
+            "flag": "sinalizacao"
+          },
+          "grupo": "Sinalização"
+        },
+        {
+          "id": "pt",
+          "label": "Emitir a PT e liberar a equipe",
+          "comp": "comunicacao",
+          "pts": 5,
+          "cond": {
+            "flag": "pt_emitida"
+          },
+          "grupo": "Permissão de trabalho"
+        },
+        {
+          "id": "pt_fim",
+          "label": "Encerrar a PT com a equipe",
+          "comp": "comunicacao",
+          "pts": 5,
+          "cond": {
+            "flag": "pt_encerrar"
+          },
+          "grupo": "Devolução"
+        },
+        {
+          "id": "terra_aberta",
+          "label": "Abrir 89T-AL1 e retirar proteções",
+          "comp": "sequencia",
+          "pts": 5,
+          "cond": {
+            "all": [
+              {
+                "check": "aterrou"
+              },
+              {
+                "fato": "eq.89T-AL1.state",
+                "eq": "open"
+              },
+              {
+                "flag": "barreira_remover"
+              }
+            ]
+          },
+          "grupo": "Devolução"
+        },
+        {
+          "id": "tirou_loto",
+          "label": "Retirar sinalização e o próprio cadeado",
+          "comp": "sequencia",
+          "pts": 5,
+          "cond": {
+            "all": [
+              {
+                "check": "loto"
+              },
+              {
+                "flag": "sinalizacao_remover"
+              },
+              {
+                "fato": "eq.52-AL1.loto",
+                "eq": 0
+              },
+              {
+                "fato": "eq.43-AL1.loto",
+                "eq": 0
+              }
+            ]
+          },
+          "grupo": "Devolução"
+        },
+        {
+          "id": "checklist_pos",
+          "label": "Conferir terra aberta, alarmes, CC e 52-AL1 aberto",
+          "comp": "diagnostico",
+          "pts": 10,
+          "cond": {
+            "flag": "checklist_pos"
+          },
+          "grupo": "Devolução"
+        },
+        {
+          "id": "teste_cmd",
+          "label": "Inserir em TESTE e conferir o comando",
+          "comp": "sequencia",
+          "pts": 5,
+          "cond": {
+            "flag": "teste_comando"
+          },
+          "grupo": "Inserção"
+        },
+        {
+          "id": "inseriu",
+          "label": "Inserir 52-AL1 em SERVIÇO",
+          "comp": "sequencia",
+          "pts": 5,
+          "cond": {
+            "all": [
+              {
+                "check": "extraiu"
+              },
+              {
+                "fato": "eq.52-AL1.pos",
+                "eq": "servico"
+              }
+            ]
+          },
+          "grupo": "Inserção"
+        },
+        {
+          "id": "autorizacao",
+          "label": "Obter autorização do COS (read-back)",
+          "comp": "comunicacao",
+          "pts": 5,
+          "cond": {
+            "flag": "readback:OM-001-R"
+          },
+          "grupo": "Energização"
+        },
+        {
+          "id": "fechou",
+          "label": "Fechar 52-AL1 (remoto) e restabelecer AL1",
+          "comp": "tempo",
+          "pts": 10,
+          "cond": {
+            "all": [
+              {
+                "check": "inseriu"
+              },
+              {
+                "fato": "carga.AL1",
+                "eq": true
+              }
+            ]
+          },
+          "grupo": "Energização"
+        },
+        {
+          "id": "conferiu",
+          "label": "Conferir corrente e tensão",
+          "comp": "diagnostico",
+          "pts": 5,
+          "cond": {
+            "flag": "conferir_grandezas"
+          },
+          "grupo": "Energização"
+        },
+        {
+          "id": "rearme79",
+          "label": "Rearmar o 79",
+          "comp": "sequencia",
+          "pts": 5,
+          "cond": {
+            "all": [
+              {
+                "check": "fechou"
+              },
+              {
+                "fato": "rele.REL-AL1.r79",
+                "eq": true
+              }
+            ]
+          },
+          "grupo": "Energização"
+        },
+        {
+          "id": "reportou",
+          "label": "Comunicar o COS e registrar",
+          "comp": "comunicacao",
+          "pts": 10,
+          "cond": {
+            "flag": "reportar_fim"
+          },
+          "grupo": "Encerramento"
+        }
+      ],
+      "regras": [
+        {
+          "id": "teste_cmd",
+          "on": {
+            "t": "switch",
+            "id": "52-AL1",
+            "op": "close",
+            "result": "ok"
+          },
+          "if": {
+            "fato": "eq.52-AL1.pos",
+            "eq": "teste"
+          },
+          "set": "teste_comando"
+        },
+        {
+          "id": "r79",
+          "on": {
+            "t": "switch",
+            "id": "52-AL1",
+            "op": "open",
+            "result": "ok"
+          },
+          "if": {
+            "all": [
+              {
+                "fato": "rele.REL-AL1.r79",
+                "eq": true
+              },
+              {
+                "not": {
+                  "flag": "servico_concluido"
+                }
+              }
+            ]
+          },
+          "sev": "maior",
+          "comp": "sequencia",
+          "msg": "Abriu 52-AL1 sem bloquear o religamento (79)"
+        },
+        {
+          "id": "rack_remoto",
+          "on": {
+            "t": "rack",
+            "id": "52-AL1",
+            "result": "ok"
+          },
+          "if": {
+            "fato": "eq.43-AL1.lr",
+            "eq": "remoto"
+          },
+          "sev": "maior",
+          "comp": "seguranca",
+          "msg": "Extração/inserção com a chave L/R em REMOTO"
+        },
+        {
+          "id": "rack_porta",
+          "on": {
+            "t": "rack",
+            "id": "52-AL1",
+            "result": "ok"
+          },
+          "if": {
+            "fato": "eq.52-AL1.porta",
+            "eq": true
+          },
+          "sev": "maior",
+          "comp": "seguranca",
+          "msg": "Extração/inserção com a porta do cubículo aberta"
+        },
+        {
+          "id": "det_antes",
+          "on": {
+            "t": "vtest",
+            "passo": "medir",
+            "antes": false,
+            "medida": "ausente"
+          },
+          "sev": "critico",
+          "comp": "seguranca",
+          "msg": "Medição de ausência de tensão sem testar o detector antes"
+        },
+        {
+          "id": "det_depois",
+          "on": {
+            "t": "switch",
+            "id": "89T-AL1",
+            "op": "close",
+            "result": "ok"
+          },
+          "unless": {
+            "fato": "vtest.AL1c.depois",
+            "eq": true
+          },
+          "sev": "critico",
+          "comp": "seguranca",
+          "msg": "Aterramento sem testar o detector após a medição"
+        },
+        {
+          "id": "zona",
+          "on": {
+            "t": "proc",
+            "id": [
+              "entrar_zona",
+              "barreira"
+            ],
+            "result": "ok"
+          },
+          "unless": {
+            "etapa": "seccionamento"
+          },
+          "sev": "critico",
+          "comp": "seguranca",
+          "msg": "Entrou na zona controlada sem concluir o seccionamento"
+        },
+        {
+          "id": "sem_aut",
+          "on": {
+            "t": "switch",
+            "id": "52-AL1",
+            "op": "close",
+            "result": "ok"
+          },
+          "if": {
+            "all": [
+              {
+                "fato": "eq.52-AL1.pos",
+                "eq": "servico"
+              },
+              {
+                "not": {
+                  "flag": "readback:OM-001-R"
+                }
+              }
+            ]
+          },
+          "sev": "maior",
+          "comp": "comunicacao",
+          "msg": "Energizou AL1 sem autorização do COS"
+        }
+      ],
+      "fim": {
+        "all": [
+          {
+            "check": "fechou"
+          },
+          {
+            "flag": "reportar_fim"
+          }
+        ]
+      },
+      "golden": {
+        "inicio": [
+          {
+            "wait": 3
+          },
+          {
+            "readback": "OM-001"
+          },
+          {
+            "acao": "checklist_pre"
+          },
+          {
+            "cmd": {
+              "t": "r79",
+              "rele": "REL-AL1",
+              "on": false,
+              "via": "remote"
+            }
+          }
+        ],
+        "seccionamento": [
+          {
+            "cmd": {
+              "t": "switch",
+              "id": "52-AL1",
+              "op": "open",
+              "via": "remote"
+            }
+          },
+          {
+            "wait": 0.5
+          },
+          {
+            "cmd": {
+              "t": "lr",
+              "id": "43-AL1",
+              "to": "local"
+            }
+          },
+          {
+            "cmd": {
+              "t": "rack",
+              "id": "52-AL1",
+              "to": "teste"
+            }
+          },
+          {
+            "wait": 3.5
+          },
+          {
+            "cmd": {
+              "t": "rack",
+              "id": "52-AL1",
+              "to": "extraido"
+            }
+          },
+          {
+            "wait": 3.5
+          }
+        ],
+        "impedimento": [
+          {
+            "cmd": {
+              "t": "loto",
+              "op": "apply",
+              "id": "52-AL1"
+            }
+          },
+          {
+            "cmd": {
+              "t": "loto",
+              "op": "apply",
+              "id": "43-AL1"
+            }
+          }
+        ],
+        "constatacao": [
+          {
+            "cmd": {
+              "t": "vtest",
+              "passo": "provar"
+            }
+          },
+          {
+            "cmd": {
+              "t": "vtest",
+              "passo": "medir",
+              "id": "AL1c"
+            }
+          },
+          {
+            "cmd": {
+              "t": "vtest",
+              "passo": "provar"
+            }
+          }
+        ],
+        "aterramento": [
+          {
+            "cmd": {
+              "t": "switch",
+              "id": "89T-AL1",
+              "op": "close",
+              "via": "local"
+            }
+          },
+          {
+            "wait": 2
+          }
+        ],
+        "protecao": [
+          {
+            "acao": "barreira"
+          }
+        ],
+        "sinalizacao": [
+          {
+            "acao": "sinalizacao"
+          }
+        ],
+        "meio": [
+          {
+            "acao": "pt_emitir"
+          },
+          {
+            "waitFlag": "servico_concluido"
+          },
+          {
+            "acao": "pt_encerrar"
+          }
+        ],
+        "r_ferramentas": [
+          {
+            "acao": "ferramentas"
+          }
+        ],
+        "r_pessoas": [
+          {
+            "acao": "pessoas"
+          }
+        ],
+        "r_aterramento": [
+          {
+            "cmd": {
+              "t": "switch",
+              "id": "89T-AL1",
+              "op": "open",
+              "via": "local"
+            }
+          },
+          {
+            "wait": 2
+          },
+          {
+            "acao": "barreira_remover"
+          }
+        ],
+        "r_sinalizacao": [
+          {
+            "acao": "sinalizacao_remover"
+          }
+        ],
+        "r_religacao": [
+          {
+            "cmd": {
+              "t": "loto",
+              "op": "remove",
+              "id": "52-AL1"
+            }
+          },
+          {
+            "cmd": {
+              "t": "loto",
+              "op": "remove",
+              "id": "43-AL1"
+            }
+          },
+          {
+            "acao": "checklist_pos"
+          },
+          {
+            "cmd": {
+              "t": "rack",
+              "id": "52-AL1",
+              "to": "teste"
+            }
+          },
+          {
+            "wait": 3.5
+          },
+          {
+            "cmd": {
+              "t": "switch",
+              "id": "52-AL1",
+              "op": "close",
+              "via": "local"
+            }
+          },
+          {
+            "wait": 0.5
+          },
+          {
+            "cmd": {
+              "t": "switch",
+              "id": "52-AL1",
+              "op": "open",
+              "via": "local"
+            }
+          },
+          {
+            "wait": 6
+          },
+          {
+            "cmd": {
+              "t": "rack",
+              "id": "52-AL1",
+              "to": "servico"
+            }
+          },
+          {
+            "wait": 3.5
+          }
+        ],
+        "fim": [
+          {
+            "cmd": {
+              "t": "lr",
+              "id": "43-AL1",
+              "to": "remoto"
+            }
+          },
+          {
+            "acao": "solicitar_energizacao"
+          },
+          {
+            "wait": 4
+          },
+          {
+            "readback": "OM-001-R"
+          },
+          {
+            "cmd": {
+              "t": "switch",
+              "id": "52-AL1",
+              "op": "close",
+              "via": "remote"
+            }
+          },
+          {
+            "wait": 0.5
+          },
+          {
+            "acao": "conferir_grandezas"
+          },
+          {
+            "cmd": {
+              "t": "r79",
+              "rele": "REL-AL1",
+              "on": true,
+              "via": "remote"
+            }
+          },
+          {
+            "acao": "reportar_fim"
+          }
+        ]
+      }
+    },
+    {
+      "id": "M2",
+      "nome": "Retirar T1 de operação sem cortar carga e devolver",
+      "nivel": "A",
+      "mvp": false,
+      "objetivo": "OM-002: transferir a MT-1 para o T2 pelo paralelo 52-P, isolar o T1 pelo AT e pelo MT, liberar para a manutenção na ordem do perfil NR-10 e devolver energizando pelo AT, sem interromper nenhum alimentador.",
+      "tempoPrevistoS": 2400,
+      "cargasPlanejadas": [],
+      "setup": [
+        {
+          "cmd": {
+            "t": "oltc",
+            "id": "T1",
+            "modo": "manual"
+          }
+        },
+        {
+          "cmd": {
+            "t": "tap",
+            "id": "T1",
+            "dir": 1
+          }
+        }
+      ],
+      "script": [
+        {
+          "id": "om002",
+          "desc": "COS emite a OM-002",
+          "at": 2,
+          "do": [
+            {
+              "cos": {
+                "id": "OM-002",
+                "texto": "COS para SE Vale Verde: OM-002 — retirar o T1 de operação sem cortar carga, pelo paralelo 52-P, e liberar o bay do T1 para a manutenção. Ventilação forçada do T2 ligada antes. Confirme (read-back)."
+              }
+            }
+          ]
+        },
+        {
+          "id": "equipe_in",
+          "desc": "Manutenção aplica cadeado próprio no 52-T1",
+          "when": {
+            "flag": "pt_emitida"
+          },
+          "apos": 3,
+          "do": [
+            {
+              "cmd": {
+                "t": "loto",
+                "op": "apply",
+                "id": "52-T1"
+              },
+              "ator": "manutencao"
+            },
+            {
+              "msg": "Manutenção: equipe no bay do T1; cadeado da equipe aplicado em 52-T1.",
+              "ator": "manutencao"
+            }
+          ]
+        },
+        {
+          "id": "equipe_out",
+          "desc": "Manutenção conclui o serviço",
+          "when": {
+            "flag": "pt_emitida"
+          },
+          "apos": 60,
+          "do": [
+            {
+              "cmd": {
+                "t": "loto",
+                "op": "remove",
+                "id": "52-T1"
+              },
+              "ator": "manutencao"
+            },
+            {
+              "msg": "Manutenção: serviço no bay do T1 concluído, cadeado da equipe retirado. Aguardando o encerramento da PT.",
+              "ator": "manutencao"
+            },
+            {
+              "set": "servico_concluido"
+            }
+          ]
+        },
+        {
+          "id": "autoriza",
+          "desc": "COS autoriza devolver o T1",
+          "when": {
+            "flag": "solicitar_energizacao"
+          },
+          "apos": 3,
+          "do": [
+            {
+              "cos": {
+                "id": "OM-002-R",
+                "texto": "COS: autorizado devolver o T1. Energizar pelo AT, paralelar pela MT e abrir o 52-P. Confirme (read-back)."
+              }
+            }
+          ]
+        }
+      ],
+      "acoes": [
+        {
+          "id": "checklist_pre",
+          "label": "Conferir pré-condições: carga total ≤ capacidade do T2 (ONAF) e óleo do T2 abaixo do alarme",
+          "local": [
+            "IHM",
+            "T2",
+            "radio"
+          ],
+          "cond": {
+            "fato": "tr.T2.oleo",
+            "lt": 85
+          },
+          "falha": "óleo do T2 no alarme"
+        },
+        {
+          "id": "protecao_at",
+          "label": "Delimitar a área do bay do T1 e manter distância do barramento 138 kV energizado",
+          "local": [
+            "T1A",
+            "T1"
+          ]
+        },
+        {
+          "id": "sinalizacao",
+          "label": "Instalar sinalização \"NÃO OPERAR\" nos pontos bloqueados",
+          "local": [
+            "T1A",
+            "T1M"
+          ]
+        },
+        {
+          "id": "pt_emitir",
+          "label": "Emitir a permissão de trabalho (PT) e liberar a equipe",
+          "local": [
+            "T1A",
+            "radio"
+          ],
+          "set": "pt_emitida"
+        },
+        {
+          "id": "pt_encerrar",
+          "label": "Encerrar a PT com a equipe",
+          "local": [
+            "T1A",
+            "radio"
+          ],
+          "cond": {
+            "flag": "servico_concluido"
+          },
+          "falha": "a equipe ainda está trabalhando"
+        },
+        {
+          "id": "ferramentas",
+          "label": "Confirmar retirada de ferramentas, utensílios e equipamentos",
+          "local": [
+            "T1A",
+            "T1"
+          ],
+          "cond": {
+            "flag": "pt_encerrar"
+          },
+          "falha": "PT ainda aberta"
+        },
+        {
+          "id": "pessoas",
+          "label": "Confirmar retirada das pessoas da zona controlada",
+          "local": [
+            "T1A",
+            "T1"
+          ],
+          "cond": {
+            "flag": "pt_encerrar"
+          },
+          "falha": "PT ainda aberta"
+        },
+        {
+          "id": "protecao_remover",
+          "label": "Retirar delimitação e proteções adicionais",
+          "local": [
+            "T1A",
+            "T1"
+          ],
+          "cond": {
+            "flag": "protecao_at"
+          },
+          "falha": "não há proteção instalada"
+        },
+        {
+          "id": "sinalizacao_remover",
+          "label": "Retirar a sinalização",
+          "local": [
+            "T1A",
+            "T1M"
+          ],
+          "cond": {
+            "flag": "sinalizacao"
+          },
+          "falha": "não há sinalização instalada"
+        },
+        {
+          "id": "checklist_pos",
+          "label": "Conferir: terras abertas, aterramento temporário retirado, 52-T1 e 52-T1M abertos",
+          "local": [
+            "T1A",
+            "IHM"
+          ],
+          "cond": {
+            "all": [
+              {
+                "fato": "eq.89T-T1.state",
+                "eq": "open"
+              },
+              {
+                "fato": "terra.T1m",
+                "eq": false
+              },
+              {
+                "fato": "eq.52-T1.state",
+                "eq": "open"
+              },
+              {
+                "fato": "eq.52-T1M.state",
+                "eq": "open"
+              }
+            ]
+          },
+          "falha": "alguma condição não está atendida"
+        },
+        {
+          "id": "solicitar_energizacao",
+          "label": "Solicitar ao COS autorização para devolver o T1",
+          "local": [
+            "radio",
+            "IHM"
+          ]
+        },
+        {
+          "id": "conferir_grandezas",
+          "label": "Conferir cargas de T1/T2 e tensões das barras",
+          "local": [
+            "IHM"
+          ],
+          "cond": {
+            "all": [
+              {
+                "fato": "carga.AL1",
+                "eq": true
+              },
+              {
+                "fato": "carga.AL3",
+                "eq": true
+              }
+            ]
+          },
+          "falha": "há alimentador sem tensão"
+        },
+        {
+          "id": "reportar_fim",
+          "label": "Comunicar o COS e registrar o encerramento",
+          "local": [
+            "radio",
+            "IHM"
+          ]
+        }
+      ],
+      "etapas": {
+        "seccionamento": {
+          "cond": {
+            "all": [
+              {
+                "fato": "eq.52-T1.state",
+                "eq": "open"
+              },
+              {
+                "fato": "eq.89-T1-1.state",
+                "eq": "open"
+              },
+              {
+                "fato": "eq.89-T1-2.state",
+                "eq": "open"
+              },
+              {
+                "fato": "eq.52-T1M.pos",
+                "eq": "extraido"
+              }
+            ]
+          }
+        },
+        "impedimento": {
+          "cond": {
+            "all": [
+              {
+                "fato": "eq.89-T1-1.lotoDe",
+                "contem": "treinando"
+              },
+              {
+                "fato": "eq.89-T1-2.lotoDe",
+                "contem": "treinando"
+              },
+              {
+                "fato": "eq.52-T1.lotoDe",
+                "contem": "treinando"
+              },
+              {
+                "fato": "eq.52-T1M.lotoDe",
+                "contem": "treinando"
+              },
+              {
+                "fato": "eq.90-T1.lotoDe",
+                "contem": "treinando"
+              }
+            ]
+          }
+        },
+        "constatacao": {
+          "on": {
+            "t": "vtest",
+            "passo": "medir",
+            "medida": "ausente"
+          },
+          "cond": {
+            "all": [
+              {
+                "fato": "vtest.T1c"
+              },
+              {
+                "fato": "vtest.T1m"
+              }
+            ]
+          }
+        },
+        "aterramento": {
+          "cond": {
+            "all": [
+              {
+                "fato": "eq.89T-T1.state",
+                "eq": "closed"
+              },
+              {
+                "fato": "terra.T1m",
+                "eq": true
+              }
+            ]
+          }
+        },
+        "protecao": {
+          "cond": {
+            "flag": "protecao_at"
+          }
+        },
+        "sinalizacao": {
+          "cond": {
+            "flag": "sinalizacao"
+          }
+        },
+        "r_ferramentas": {
+          "cond": {
+            "flag": "ferramentas"
+          }
+        },
+        "r_pessoas": {
+          "cond": {
+            "flag": "pessoas"
+          }
+        },
+        "r_aterramento": {
+          "cond": {
+            "all": [
+              {
+                "fato": "eq.89T-T1.state",
+                "eq": "open"
+              },
+              {
+                "fato": "terra.T1m",
+                "eq": false
+              },
+              {
+                "flag": "protecao_remover"
+              }
+            ]
+          }
+        },
+        "r_sinalizacao": {
+          "cond": {
+            "flag": "sinalizacao_remover"
+          }
+        },
+        "r_religacao": {
+          "cond": {
+            "all": [
+              {
+                "fato": "eq.89-T1-1.loto",
+                "eq": 0
+              },
+              {
+                "fato": "eq.89-T1-2.loto",
+                "eq": 0
+              },
+              {
+                "fato": "eq.52-T1.loto",
+                "eq": 0
+              },
+              {
+                "fato": "eq.52-T1M.loto",
+                "eq": 0
+              },
+              {
+                "fato": "eq.90-T1.loto",
+                "eq": 0
+              },
+              {
+                "fato": "eq.89-T1-1.state",
+                "eq": "closed"
+              }
+            ]
+          }
+        }
+      },
+      "inicioReenergizacao": {
+        "flag": "servico_concluido"
+      },
+      "checks": [
+        {
+          "id": "readback",
+          "label": "Repetir a OM-002 ao COS (read-back)",
+          "comp": "comunicacao",
+          "pts": 10,
+          "cond": {
+            "flag": "readback:OM-002"
+          },
+          "grupo": "Receber a ordem"
+        },
+        {
+          "id": "checklist_pre",
+          "label": "Conferir pré-condições do T2",
+          "comp": "diagnostico",
+          "pts": 10,
+          "cond": {
+            "flag": "checklist_pre"
+          },
+          "grupo": "Preparação"
+        },
+        {
+          "id": "vent",
+          "label": "Ligar a ventilação forçada do T2",
+          "comp": "seguranca",
+          "pts": 5,
+          "cond": {
+            "fato": "tr.T2.ventMan",
+            "eq": true
+          },
+          "grupo": "Preparação"
+        },
+        {
+          "id": "tap_igual",
+          "label": "Igualar o TAP de T1 e T2 antes do paralelo (I-12)",
+          "comp": "sequencia",
+          "pts": 5,
+          "cond": {
+            "all": [
+              {
+                "fato": "dtap",
+                "eq": 0
+              },
+              {
+                "fato": "eq.52-P.state",
+                "eq": "closed"
+              }
+            ]
+          },
+          "grupo": "Transferência"
+        },
+        {
+          "id": "paralelo",
+          "label": "Fechar 52-P (paralelo momentâneo)",
+          "comp": "sequencia",
+          "pts": 10,
+          "cond": {
+            "all": [
+              {
+                "fato": "eq.52-P.state",
+                "eq": "closed"
+              },
+              {
+                "fato": "eq.52-T1M.state",
+                "eq": "closed"
+              }
+            ]
+          },
+          "grupo": "Transferência"
+        },
+        {
+          "id": "abriu_mt",
+          "label": "Abrir 52-T1M com o T2 assumindo a MT-1",
+          "comp": "sequencia",
+          "pts": 10,
+          "cond": {
+            "all": [
+              {
+                "check": "paralelo"
+              },
+              {
+                "fato": "eq.52-T1M.state",
+                "eq": "open"
+              },
+              {
+                "fato": "carga.AL1",
+                "eq": true
+              },
+              {
+                "fato": "carga.AL2",
+                "eq": true
+              }
+            ]
+          },
+          "grupo": "Transferência"
+        },
+        {
+          "id": "abriu_at",
+          "label": "Abrir 52-T1 (AT)",
+          "comp": "sequencia",
+          "pts": 5,
+          "cond": {
+            "all": [
+              {
+                "check": "abriu_mt"
+              },
+              {
+                "fato": "eq.52-T1.state",
+                "eq": "open"
+              }
+            ]
+          },
+          "grupo": "Seccionamento"
+        },
+        {
+          "id": "loto",
+          "label": "Cadeado + etiqueta em 89-T1-1/2, 52-T1, 52-T1M e OLTC",
+          "comp": "seguranca",
+          "pts": 15,
+          "cond": {
+            "etapa": "impedimento"
+          },
+          "grupo": "Impedimento"
+        },
+        {
+          "id": "constatou",
+          "label": "Constatar ausência de tensão no AT (145 kV) e no MT (15 kV), detector testado antes e depois",
+          "comp": "seguranca",
+          "pts": 15,
+          "cond": {
+            "all": [
+              {
+                "fato": "vtest.T1c.completo",
+                "eq": true
+              },
+              {
+                "fato": "vtest.T1m.completo",
+                "eq": true
+              }
+            ]
+          },
+          "grupo": "Constatação"
+        },
+        {
+          "id": "aterrou",
+          "label": "Fechar 89T-T1 e instalar aterramento temporário no lado MT",
+          "comp": "seguranca",
+          "pts": 10,
+          "cond": {
+            "etapa": "aterramento"
+          },
+          "grupo": "Aterramento"
+        },
+        {
+          "id": "protecao",
+          "label": "Proteção/delimitação na zona controlada",
+          "comp": "seguranca",
+          "pts": 5,
+          "cond": {
+            "flag": "protecao_at"
+          },
+          "grupo": "Proteção"
+        },
+        {
+          "id": "sinalizacao",
+          "label": "Sinalização NÃO OPERAR",
+          "comp": "seguranca",
+          "pts": 5,
+          "cond": {
+            "flag": "sinalizacao"
+          },
+          "grupo": "Sinalização"
+        },
+        {
+          "id": "pt",
+          "label": "Emitir a PT e liberar a equipe",
+          "comp": "comunicacao",
+          "pts": 5,
+          "cond": {
+            "flag": "pt_emitida"
+          },
+          "grupo": "Permissão de trabalho"
+        },
+        {
+          "id": "pt_fim",
+          "label": "Encerrar a PT com a equipe",
+          "comp": "comunicacao",
+          "pts": 5,
+          "cond": {
+            "flag": "pt_encerrar"
+          },
+          "grupo": "Devolução"
+        },
+        {
+          "id": "terra_aberta",
+          "label": "Retirar o aterramento temporário e abrir 89T-T1",
+          "comp": "seguranca",
+          "pts": 5,
+          "cond": {
+            "all": [
+              {
+                "check": "aterrou"
+              },
+              {
+                "etapa": "r_aterramento"
+              }
+            ]
+          },
+          "grupo": "Devolução"
+        },
+        {
+          "id": "tirou_loto",
+          "label": "Retirar a sinalização e os próprios cadeados",
+          "comp": "seguranca",
+          "pts": 5,
+          "cond": {
+            "all": [
+              {
+                "check": "loto"
+              },
+              {
+                "flag": "sinalizacao_remover"
+              },
+              {
+                "fato": "eq.52-T1.loto",
+                "eq": 0
+              },
+              {
+                "fato": "eq.89-T1-1.loto",
+                "eq": 0
+              },
+              {
+                "fato": "eq.90-T1.loto",
+                "eq": 0
+              }
+            ]
+          },
+          "grupo": "Devolução"
+        },
+        {
+          "id": "autorizacao",
+          "label": "Obter autorização do COS (read-back)",
+          "comp": "comunicacao",
+          "pts": 5,
+          "cond": {
+            "flag": "readback:OM-002-R"
+          },
+          "grupo": "Energização"
+        },
+        {
+          "id": "energizou_at",
+          "label": "Energizar o T1 pelo AT (89 lado barra, lado trafo, 52-T1)",
+          "comp": "sequencia",
+          "pts": 10,
+          "cond": {
+            "all": [
+              {
+                "check": "tirou_loto"
+              },
+              {
+                "fato": "eq.52-T1.state",
+                "eq": "closed"
+              },
+              {
+                "fato": "tr.T1.energ",
+                "eq": true
+              }
+            ]
+          },
+          "grupo": "Energização"
+        },
+        {
+          "id": "fechou_mt",
+          "label": "Inserir 52-T1M e fechar em paralelo com o T2",
+          "comp": "sequencia",
+          "pts": 10,
+          "cond": {
+            "all": [
+              {
+                "check": "energizou_at"
+              },
+              {
+                "fato": "eq.52-T1M.state",
+                "eq": "closed"
+              },
+              {
+                "fato": "eq.52-T1M.pos",
+                "eq": "servico"
+              }
+            ]
+          },
+          "grupo": "Energização"
+        },
+        {
+          "id": "normalizou",
+          "label": "Abrir 52-P: cada trafo na sua barra",
+          "comp": "sequencia",
+          "pts": 10,
+          "cond": {
+            "all": [
+              {
+                "check": "fechou_mt"
+              },
+              {
+                "fato": "eq.52-P.state",
+                "eq": "open"
+              },
+              {
+                "fato": "carga.AL1",
+                "eq": true
+              },
+              {
+                "fato": "carga.AL2",
+                "eq": true
+              },
+              {
+                "fato": "carga.AL3",
+                "eq": true
+              },
+              {
+                "fato": "carga.AL4",
+                "eq": true
+              }
+            ]
+          },
+          "grupo": "Energização"
+        },
+        {
+          "id": "conferiu",
+          "label": "Conferir grandezas",
+          "comp": "diagnostico",
+          "pts": 5,
+          "cond": {
+            "flag": "conferir_grandezas"
+          },
+          "grupo": "Energização"
+        },
+        {
+          "id": "sem_corte",
+          "label": "Nenhum alimentador interrompido",
+          "comp": "tempo",
+          "pts": 10,
+          "cond": {
+            "all": [
+              {
+                "check": "normalizou"
+              },
+              {
+                "fato": "carga.AL1",
+                "eq": true
+              },
+              {
+                "fato": "carga.AL2",
+                "eq": true
+              }
+            ]
+          },
+          "grupo": "Continuidade"
+        },
+        {
+          "id": "reportou",
+          "label": "Comunicar o COS e registrar",
+          "comp": "comunicacao",
+          "pts": 10,
+          "cond": {
+            "flag": "reportar_fim"
+          },
+          "grupo": "Encerramento"
+        }
+      ],
+      "regras": [
+        {
+          "id": "p_sem_tap",
+          "on": {
+            "t": "switch",
+            "id": "52-P",
+            "op": "close",
+            "result": "ok"
+          },
+          "if": {
+            "fato": "dtap",
+            "gt": 0
+          },
+          "sev": "maior",
+          "comp": "sequencia",
+          "msg": "Fechou o paralelo sem igualar o TAP (I-12)"
+        },
+        {
+          "id": "t1m_sem_tap",
+          "on": {
+            "t": "switch",
+            "id": "52-T1M",
+            "op": "close",
+            "result": "ok"
+          },
+          "if": {
+            "all": [
+              {
+                "fato": "dtap",
+                "gt": 0
+              },
+              {
+                "fato": "eq.52-P.state",
+                "eq": "closed"
+              }
+            ]
+          },
+          "sev": "maior",
+          "comp": "sequencia",
+          "msg": "Paralelou pela MT sem igualar o TAP (I-12)"
+        },
+        {
+          "id": "ordem_secc",
+          "on": {
+            "t": "switch",
+            "id": "89-T1-1",
+            "op": "open",
+            "result": "ok"
+          },
+          "if": {
+            "fato": "eq.89-T1-2.state",
+            "eq": "closed"
+          },
+          "sev": "menor",
+          "comp": "sequencia",
+          "msg": "Abriu a seccionadora do lado fonte antes da do lado carga [VALIDAR ordem]"
+        },
+        {
+          "id": "ordem_fech",
+          "on": {
+            "t": "switch",
+            "id": "89-T1-2",
+            "op": "close",
+            "result": "ok"
+          },
+          "if": {
+            "fato": "eq.89-T1-1.state",
+            "eq": "open"
+          },
+          "sev": "menor",
+          "comp": "sequencia",
+          "msg": "Fechou a seccionadora do lado trafo antes da do lado barra"
+        },
+        {
+          "id": "energ_mt",
+          "on": {
+            "t": "switch",
+            "id": "52-T1M",
+            "op": "close",
+            "result": "ok"
+          },
+          "if": {
+            "all": [
+              {
+                "fato": "eq.52-T1.state",
+                "eq": "open"
+              },
+              {
+                "fato": "eq.52-T1M.pos",
+                "eq": "servico"
+              }
+            ]
+          },
+          "sev": "maior",
+          "comp": "sequencia",
+          "msg": "Energizou o T1 pelo lado MT (deve ser pelo AT)"
+        },
+        {
+          "id": "rack_remoto",
+          "on": {
+            "t": "rack",
+            "id": "52-T1M",
+            "result": "ok"
+          },
+          "if": {
+            "fato": "eq.43-T1M.lr",
+            "eq": "remoto"
+          },
+          "sev": "maior",
+          "comp": "seguranca",
+          "msg": "Extração/inserção do 52-T1M com a chave L/R em REMOTO"
+        },
+        {
+          "id": "rack_porta",
+          "on": {
+            "t": "rack",
+            "id": "52-T1M",
+            "result": "ok"
+          },
+          "if": {
+            "fato": "eq.52-T1M.porta",
+            "eq": true
+          },
+          "sev": "maior",
+          "comp": "seguranca",
+          "msg": "Extração/inserção com a porta do cubículo aberta"
+        },
+        {
+          "id": "det_antes",
+          "on": {
+            "t": "vtest",
+            "passo": "medir",
+            "antes": false,
+            "medida": "ausente"
+          },
+          "sev": "critico",
+          "comp": "seguranca",
+          "msg": "Medição de ausência de tensão sem testar o detector antes"
+        },
+        {
+          "id": "det_depois_at",
+          "on": {
+            "t": "switch",
+            "id": "89T-T1",
+            "op": "close",
+            "result": "ok"
+          },
+          "unless": {
+            "fato": "vtest.T1c.depois",
+            "eq": true
+          },
+          "sev": "critico",
+          "comp": "seguranca",
+          "msg": "Aterramento AT sem testar o detector após a medição"
+        },
+        {
+          "id": "aterr_sem_const",
+          "on": {
+            "t": "aterr",
+            "node": "T1m",
+            "op": "install",
+            "result": "ok"
+          },
+          "unless": {
+            "fato": "vtest.T1m.completo",
+            "eq": true
+          },
+          "sev": "critico",
+          "comp": "seguranca",
+          "msg": "Aterramento temporário MT sem constatação completa (detector testado antes e depois)"
+        },
+        {
+          "id": "zona",
+          "on": {
+            "t": "proc",
+            "id": [
+              "protecao_at",
+              "pt_emitir"
+            ],
+            "result": "ok"
+          },
+          "unless": {
+            "etapa": "seccionamento"
+          },
+          "sev": "critico",
+          "comp": "seguranca",
+          "msg": "Liberou a área sem concluir o seccionamento"
+        },
+        {
+          "id": "sem_aut",
+          "on": {
+            "t": "switch",
+            "id": "52-T1",
+            "op": "close",
+            "result": "ok"
+          },
+          "if": {
+            "not": {
+              "flag": "readback:OM-002-R"
+            }
+          },
+          "sev": "maior",
+          "comp": "comunicacao",
+          "msg": "Energizou o T1 sem autorização do COS"
+        },
+        {
+          "id": "aterr_energ",
+          "on": {
+            "t": "aterr",
+            "op": "install",
+            "consequencia": "curto_franco"
+          },
+          "sev": "critico",
+          "comp": "seguranca",
+          "msg": "Aterramento temporário instalado em ponto energizado"
+        }
+      ],
+      "fim": {
+        "all": [
+          {
+            "check": "normalizou"
+          },
+          {
+            "flag": "reportar_fim"
+          }
+        ]
+      },
+      "golden": {
+        "inicio": [
+          {
+            "wait": 3
+          },
+          {
+            "readback": "OM-002"
+          },
+          {
+            "acao": "checklist_pre"
+          },
+          {
+            "cmd": {
+              "t": "vent",
+              "id": "T2",
+              "on": true
+            }
+          },
+          {
+            "cmd": {
+              "t": "tap",
+              "id": "T1",
+              "dir": -1
+            }
+          },
+          {
+            "cmd": {
+              "t": "switch",
+              "id": "52-P",
+              "op": "close",
+              "via": "remote"
+            }
+          },
+          {
+            "wait": 0.5
+          },
+          {
+            "cmd": {
+              "t": "switch",
+              "id": "52-T1M",
+              "op": "open",
+              "via": "remote"
+            }
+          },
+          {
+            "wait": 0.5
+          },
+          {
+            "cmd": {
+              "t": "switch",
+              "id": "52-T1",
+              "op": "open",
+              "via": "remote"
+            }
+          },
+          {
+            "wait": 0.5
+          }
+        ],
+        "seccionamento": [
+          {
+            "cmd": {
+              "t": "switch",
+              "id": "89-T1-2",
+              "op": "open",
+              "via": "remote"
+            }
+          },
+          {
+            "wait": 4.5
+          },
+          {
+            "cmd": {
+              "t": "switch",
+              "id": "89-T1-1",
+              "op": "open",
+              "via": "remote"
+            }
+          },
+          {
+            "wait": 4.5
+          },
+          {
+            "cmd": {
+              "t": "lr",
+              "id": "43-T1M",
+              "to": "local"
+            }
+          },
+          {
+            "cmd": {
+              "t": "rack",
+              "id": "52-T1M",
+              "to": "teste"
+            }
+          },
+          {
+            "wait": 3.5
+          },
+          {
+            "cmd": {
+              "t": "rack",
+              "id": "52-T1M",
+              "to": "extraido"
+            }
+          },
+          {
+            "wait": 3.5
+          }
+        ],
+        "impedimento": [
+          {
+            "cmd": {
+              "t": "loto",
+              "op": "apply",
+              "id": "89-T1-1"
+            }
+          },
+          {
+            "cmd": {
+              "t": "loto",
+              "op": "apply",
+              "id": "89-T1-2"
+            }
+          },
+          {
+            "cmd": {
+              "t": "loto",
+              "op": "apply",
+              "id": "52-T1"
+            }
+          },
+          {
+            "cmd": {
+              "t": "loto",
+              "op": "apply",
+              "id": "52-T1M"
+            }
+          },
+          {
+            "cmd": {
+              "t": "loto",
+              "op": "apply",
+              "id": "90-T1"
+            }
+          }
+        ],
+        "constatacao": [
+          {
+            "cmd": {
+              "t": "vtest",
+              "passo": "provar"
+            }
+          },
+          {
+            "cmd": {
+              "t": "vtest",
+              "passo": "medir",
+              "id": "T1c"
+            }
+          },
+          {
+            "cmd": {
+              "t": "vtest",
+              "passo": "provar"
+            }
+          },
+          {
+            "cmd": {
+              "t": "vtest",
+              "passo": "medir",
+              "id": "T1m"
+            }
+          },
+          {
+            "cmd": {
+              "t": "vtest",
+              "passo": "provar"
+            }
+          }
+        ],
+        "aterramento": [
+          {
+            "cmd": {
+              "t": "switch",
+              "id": "89T-T1",
+              "op": "close",
+              "via": "local"
+            }
+          },
+          {
+            "wait": 2
+          },
+          {
+            "cmd": {
+              "t": "aterr",
+              "node": "T1m",
+              "op": "install"
+            }
+          }
+        ],
+        "protecao": [
+          {
+            "acao": "protecao_at"
+          }
+        ],
+        "sinalizacao": [
+          {
+            "acao": "sinalizacao"
+          }
+        ],
+        "meio": [
+          {
+            "acao": "pt_emitir"
+          },
+          {
+            "waitFlag": "servico_concluido"
+          },
+          {
+            "acao": "pt_encerrar"
+          }
+        ],
+        "r_ferramentas": [
+          {
+            "acao": "ferramentas"
+          }
+        ],
+        "r_pessoas": [
+          {
+            "acao": "pessoas"
+          }
+        ],
+        "r_aterramento": [
+          {
+            "cmd": {
+              "t": "aterr",
+              "node": "T1m",
+              "op": "remove"
+            }
+          },
+          {
+            "cmd": {
+              "t": "switch",
+              "id": "89T-T1",
+              "op": "open",
+              "via": "local"
+            }
+          },
+          {
+            "wait": 2
+          },
+          {
+            "acao": "protecao_remover"
+          }
+        ],
+        "r_sinalizacao": [
+          {
+            "acao": "sinalizacao_remover"
+          }
+        ],
+        "r_religacao": [
+          {
+            "cmd": {
+              "t": "loto",
+              "op": "remove",
+              "id": "89-T1-1"
+            }
+          },
+          {
+            "cmd": {
+              "t": "loto",
+              "op": "remove",
+              "id": "89-T1-2"
+            }
+          },
+          {
+            "cmd": {
+              "t": "loto",
+              "op": "remove",
+              "id": "52-T1"
+            }
+          },
+          {
+            "cmd": {
+              "t": "loto",
+              "op": "remove",
+              "id": "52-T1M"
+            }
+          },
+          {
+            "cmd": {
+              "t": "loto",
+              "op": "remove",
+              "id": "90-T1"
+            }
+          },
+          {
+            "acao": "checklist_pos"
+          },
+          {
+            "cmd": {
+              "t": "switch",
+              "id": "89-T1-1",
+              "op": "close",
+              "via": "remote"
+            }
+          },
+          {
+            "wait": 4.5
+          },
+          {
+            "cmd": {
+              "t": "switch",
+              "id": "89-T1-2",
+              "op": "close",
+              "via": "remote"
+            }
+          },
+          {
+            "wait": 4.5
+          }
+        ],
+        "fim": [
+          {
+            "acao": "solicitar_energizacao"
+          },
+          {
+            "wait": 4
+          },
+          {
+            "readback": "OM-002-R"
+          },
+          {
+            "cmd": {
+              "t": "switch",
+              "id": "52-T1",
+              "op": "close",
+              "via": "remote"
+            }
+          },
+          {
+            "wait": 1
+          },
+          {
+            "cmd": {
+              "t": "rack",
+              "id": "52-T1M",
+              "to": "teste"
+            }
+          },
+          {
+            "wait": 3.5
+          },
+          {
+            "cmd": {
+              "t": "rack",
+              "id": "52-T1M",
+              "to": "servico"
+            }
+          },
+          {
+            "wait": 3.5
+          },
+          {
+            "cmd": {
+              "t": "lr",
+              "id": "43-T1M",
+              "to": "remoto"
+            }
+          },
+          {
+            "cmd": {
+              "t": "tap",
+              "id": "T1",
+              "dir": 1
+            },
+            "_nota": "igualar ao T2, que subiu 1 degrau sozinho (OLTC automático) enquanto carregava toda a MT"
+          },
+          {
+            "cmd": {
+              "t": "switch",
+              "id": "52-T1M",
+              "op": "close",
+              "via": "remote"
+            }
+          },
+          {
+            "wait": 0.5
+          },
+          {
+            "cmd": {
+              "t": "switch",
+              "id": "52-P",
+              "op": "open",
+              "via": "remote"
+            }
+          },
+          {
+            "wait": 0.5
+          },
+          {
+            "acao": "conferir_grandezas"
+          },
+          {
+            "cmd": {
+              "t": "oltc",
+              "id": "T1",
+              "modo": "auto"
+            }
+          },
+          {
+            "acao": "reportar_fim"
+          }
+        ]
+      }
+    },
+    {
+      "id": "C2",
+      "nome": "Falha de abertura do 52-AL1 (50BF)",
+      "nivel": "A",
+      "mvp": true,
+      "objetivo": "Diagnosticar a falha de abertura do 52-AL1, isolar AL1 sem reenergizar a falta e recompor a MT-1 com segurança e rapidez.",
+      "tempoPrevistoS": 600,
+      "cargasPlanejadas": [
+        "AL1"
+      ],
+      "script": [
+        {
+          "id": "evento",
+          "desc": "Falta trifásica em AL1 com 52-AL1 travado fechado (F05)",
+          "at": 15,
+          "gatilho": "instrutor",
+          "do": [
+            {
+              "inject": {
+                "falha": "F05",
+                "alvo": "52-AL1"
+              }
+            },
+            {
+              "inject": {
+                "prim": {
+                  "t": "falta",
+                  "tipo": "3f",
+                  "permanente": true
+                },
+                "alvo": "AL1",
+                "falha": "C2"
+              }
+            },
+            {
+              "set": "evento"
+            }
+          ]
+        },
+        {
+          "id": "cos_resp",
+          "desc": "COS responde ao reporte",
+          "when": {
+            "flag": "reportar_cos"
+          },
+          "apos": 3,
+          "do": [
+            {
+              "cos": {
+                "id": "C2-COS",
+                "texto": "COS: ciente da falha do 52-AL1. Isolar AL1, recompor a MT-1 e informar. Confirme (read-back)."
+              }
+            }
+          ]
+        }
+      ],
+      "autoBypass": [
+        {
+          "regra": "I-04",
+          "id": "52-AL1",
+          "if": {
+            "all": [
+              {
+                "fato": "barra.MT-1.energ",
+                "eq": false
+              },
+              {
+                "fato": "eq.52-AL1.trava",
+                "eq": "fechado"
+              }
+            ]
+          },
+          "just": "I-14: liberação de emergência — 52-AL1 travado fechado com a MT-1 desenergizada"
+        }
+      ],
+      "decisoes": [
+        {
+          "id": "diag",
+          "titulo": "Registrar diagnóstico da ocorrência",
+          "local": [
+            "IHM",
+            "radio",
+            "T1M",
+            "AL1"
+          ],
+          "opcoes": [
+            {
+              "id": "a",
+              "texto": "52-AL1 não abriu (fechado e com corrente), o 50BF operou e o 86BF abriu 52-T1M: MT-1 sem tensão",
+              "correta": true
+            },
+            {
+              "id": "b",
+              "texto": "Perda da LT-01: toda a SE sem tensão"
+            },
+            {
+              "id": "c",
+              "texto": "Trip do T1 por 87T: defeito interno no transformador"
+            },
+            {
+              "id": "d",
+              "texto": "Atuação do 51 de AL2 por sobrecarga"
+            }
+          ]
+        }
+      ],
+      "acoes": [
+        {
+          "id": "reportar_cos",
+          "label": "Comunicar o COS (ocorrência na MT-1)",
+          "local": [
+            "radio",
+            "IHM"
+          ],
+          "cond": {
+            "flag": "evento"
+          },
+          "falha": "sem ocorrência"
+        },
+        {
+          "id": "registrar",
+          "label": "Registrar a ocorrência e o encerramento",
+          "local": [
+            "radio",
+            "IHM"
+          ],
+          "cond": {
+            "flag": "evento"
+          },
+          "falha": "sem ocorrência"
+        }
+      ],
+      "checks": [
+        {
+          "id": "diag",
+          "label": "Diagnóstico correto (52-AL1 não abriu, 86BF atuou)",
+          "comp": "diagnostico",
+          "pts": 20,
+          "cond": {
+            "flag": "decisao:diag:a"
+          },
+          "grupo": "Diagnóstico"
+        },
+        {
+          "id": "comunicou",
+          "label": "Comunicar o COS",
+          "comp": "comunicacao",
+          "pts": 10,
+          "cond": {
+            "flag": "reportar_cos"
+          },
+          "grupo": "Comunicação"
+        },
+        {
+          "id": "readback",
+          "label": "Read-back da ordem do COS",
+          "comp": "comunicacao",
+          "pts": 5,
+          "cond": {
+            "flag": "readback:C2-COS"
+          },
+          "grupo": "Comunicação"
+        },
+        {
+          "id": "liberacao",
+          "label": "Liberação de emergência (I-14) e extração do 52-AL1 com a barra morta",
+          "comp": "seguranca",
+          "pts": 20,
+          "cond": {
+            "fato": "eq.52-AL1.pos",
+            "eq": "extraido"
+          },
+          "grupo": "Isolamento"
+        },
+        {
+          "id": "constatou",
+          "label": "Constatar ausência de tensão no cabo de AL1 (detector testado)",
+          "comp": "seguranca",
+          "pts": 10,
+          "cond": {
+            "fato": "vtest.AL1c.completo",
+            "eq": true
+          },
+          "grupo": "Isolamento"
+        },
+        {
+          "id": "aterrou",
+          "label": "Aterrar AL1 (89T-AL1)",
+          "comp": "seguranca",
+          "pts": 10,
+          "cond": {
+            "fato": "eq.89T-AL1.state",
+            "eq": "closed"
+          },
+          "grupo": "Isolamento"
+        },
+        {
+          "id": "recompos",
+          "label": "Recompor a MT-1 (rearme do 86BF + 52-T1M, ou 52-P)",
+          "comp": "sequencia",
+          "pts": 20,
+          "cond": {
+            "all": [
+              {
+                "flag": "evento"
+              },
+              {
+                "fato": "carga.AL2",
+                "eq": true
+              }
+            ]
+          },
+          "grupo": "Recomposição"
+        },
+        {
+          "id": "rapido",
+          "label": "AL2 recomposto em até 5 min",
+          "comp": "tempo",
+          "pts": 20,
+          "cond": {
+            "all": [
+              {
+                "check": "recompos"
+              },
+              {
+                "desde": "evento",
+                "lt": 300
+              }
+            ]
+          },
+          "grupo": "Recomposição"
+        },
+        {
+          "id": "registrou",
+          "label": "Registrar",
+          "comp": "comunicacao",
+          "pts": 5,
+          "cond": {
+            "flag": "registrar"
+          },
+          "grupo": "Registro"
+        }
+      ],
+      "regras": [
+        {
+          "id": "reenergizou",
+          "on": {
+            "t": "switch",
+            "id": [
+              "52-T1M",
+              "52-P"
+            ],
+            "op": "close",
+            "result": "ok"
+          },
+          "if": {
+            "all": [
+              {
+                "fato": "eq.52-AL1.conduz",
+                "eq": true
+              },
+              {
+                "flag": "evento"
+              }
+            ]
+          },
+          "sev": "critico",
+          "comp": "seguranca",
+          "msg": "Fechou a barra MT-1 com 52-AL1 ainda conectado (reenergização sobre a falta)"
+        },
+        {
+          "id": "rearme_cedo",
+          "on": {
+            "t": "reset86",
+            "id": "86BF-MT1",
+            "result": "ok"
+          },
+          "if": {
+            "fato": "eq.52-AL1.conduz",
+            "eq": true
+          },
+          "sev": "maior",
+          "comp": "seguranca",
+          "msg": "Rearmou o 86BF com 52-AL1 ainda ligado à barra"
+        },
+        {
+          "id": "diag_errado",
+          "on": {
+            "t": "decisao",
+            "id": "diag",
+            "correta": false
+          },
+          "sev": "maior",
+          "comp": "diagnostico",
+          "msg": "Diagnóstico incorreto registrado"
+        }
+      ],
+      "fim": {
+        "all": [
+          {
+            "check": "recompos"
+          },
+          {
+            "flag": "registrar"
+          }
+        ]
+      },
+      "golden": {
+        "inicio": [
+          {
+            "wait": 16
+          },
+          {
+            "decisao": [
+              "diag",
+              "a"
+            ]
+          },
+          {
+            "acao": "reportar_cos"
+          },
+          {
+            "wait": 4
+          },
+          {
+            "readback": "C2-COS"
+          },
+          {
+            "cmd": {
+              "t": "lr",
+              "id": "43-AL1",
+              "to": "local"
+            }
+          },
+          {
+            "bypassReq": {
+              "t": "rack",
+              "id": "52-AL1",
+              "to": "teste"
+            }
+          },
+          {
+            "wait": 3.5
+          },
+          {
+            "bypassReq": {
+              "t": "rack",
+              "id": "52-AL1",
+              "to": "extraido"
+            }
+          },
+          {
+            "wait": 3.5
+          },
+          {
+            "cmd": {
+              "t": "vtest",
+              "passo": "provar"
+            }
+          },
+          {
+            "cmd": {
+              "t": "vtest",
+              "passo": "medir",
+              "id": "AL1c"
+            }
+          },
+          {
+            "cmd": {
+              "t": "vtest",
+              "passo": "provar"
+            }
+          },
+          {
+            "cmd": {
+              "t": "switch",
+              "id": "89T-AL1",
+              "op": "close",
+              "via": "local"
+            }
+          },
+          {
+            "wait": 2
+          },
+          {
+            "cmd": {
+              "t": "reset86",
+              "id": "86BF-MT1",
+              "via": "local"
+            }
+          },
+          {
+            "cmd": {
+              "t": "switch",
+              "id": "52-T1M",
+              "op": "close",
+              "via": "remote"
+            }
+          },
+          {
+            "wait": 1
+          },
+          {
+            "acao": "registrar"
+          }
+        ]
+      }
+    },
+    {
+      "id": "E1",
+      "nome": "Incêndio no transformador T1",
+      "nivel": "A",
+      "mvp": true,
+      "objetivo": "Responder a incêndio no T1: confirmar desenergização, acionar a emergência e os bombeiros, comunicar, evacuar e decidir sobre a continuidade priorizando a segurança.",
+      "tempoPrevistoS": 600,
+      "cargasPlanejadas": [
+        "AL1",
+        "AL2"
+      ],
+      "script": [
+        {
+          "id": "fogo",
+          "desc": "Incêndio no T1 (F23): 87T + 63RPS desligam o trafo",
+          "at": 15,
+          "gatilho": "instrutor",
+          "do": [
+            {
+              "inject": {
+                "falha": "F23",
+                "alvo": "T1"
+              }
+            },
+            {
+              "set": "evento"
+            }
+          ]
+        },
+        {
+          "id": "bombeiros",
+          "desc": "Chegada dos bombeiros",
+          "when": {
+            "flag": "ligar_193"
+          },
+          "apos": 60,
+          "do": [
+            {
+              "msg": "Corpo de Bombeiros no local. O combate começa após desenergização confirmada e aterramento pelos responsáveis.",
+              "ator": "sistema"
+            },
+            {
+              "set": "bombeiros"
+            }
+          ]
+        }
+      ],
+      "acoes": [
+        {
+          "id": "confirmar_t1",
+          "label": "Confirmar T1 desenergizado (52-T1 e 52-T1M abertos, 86T atuado)",
+          "local": [
+            "IHM",
+            "PROT",
+            "radio"
+          ],
+          "cond": {
+            "all": [
+              {
+                "fato": "eq.52-T1.state",
+                "eq": "open"
+              },
+              {
+                "fato": "eq.52-T1M.state",
+                "eq": "open"
+              },
+              {
+                "fato": "lock.86T-T1",
+                "eq": true
+              }
+            ]
+          },
+          "falha": "condição não confirmada: verifique posições e 86T"
+        },
+        {
+          "id": "ligar_193",
+          "label": "Acionar o Corpo de Bombeiros (193)",
+          "local": [
+            "radio",
+            "IHM"
+          ],
+          "cond": {
+            "flag": "evento"
+          },
+          "falha": "sem ocorrência"
+        },
+        {
+          "id": "comunicar_cos",
+          "label": "Comunicar o COS e a brigada",
+          "local": [
+            "radio",
+            "IHM"
+          ],
+          "cond": {
+            "flag": "evento"
+          },
+          "falha": "sem ocorrência"
+        },
+        {
+          "id": "evacuar",
+          "label": "Isolar a área e evacuar para o ponto de encontro",
+          "local": [
+            "radio",
+            "patio"
+          ],
+          "cond": {
+            "flag": "evento"
+          },
+          "falha": "sem ocorrência"
+        },
+        {
+          "id": "registrar",
+          "label": "Registrar a ocorrência",
+          "local": [
+            "radio",
+            "IHM"
+          ],
+          "cond": {
+            "flag": "evento"
+          },
+          "falha": "sem ocorrência"
+        }
+      ],
+      "decisoes": [
+        {
+          "id": "combate",
+          "titulo": "Combate ao fogo",
+          "local": [
+            "radio",
+            "patio",
+            "T1"
+          ],
+          "opcoes": [
+            {
+              "id": "a",
+              "texto": "Combater imediatamente com extintor, antes da confirmação de desenergização e aterramento"
+            },
+            {
+              "id": "b",
+              "texto": "Não combater: aguardar brigada/bombeiros; combate só após desenergização confirmada e aterramento pelos responsáveis",
+              "correta": true
+            }
+          ]
+        }
+      ],
+      "checks": [
+        {
+          "id": "confirmou",
+          "label": "Confirmar T1 desenergizado",
+          "comp": "diagnostico",
+          "pts": 20,
+          "cond": {
+            "flag": "confirmar_t1"
+          },
+          "grupo": "Diagnóstico"
+        },
+        {
+          "id": "sirene",
+          "label": "Acionar a emergência (sirene)",
+          "comp": "seguranca",
+          "pts": 20,
+          "cond": {
+            "all": [
+              {
+                "flag": "evento"
+              },
+              {
+                "fato": "emergencia",
+                "eq": true
+              }
+            ]
+          },
+          "grupo": "Emergência"
+        },
+        {
+          "id": "bombeiros",
+          "label": "Acionar o Corpo de Bombeiros (193)",
+          "comp": "comunicacao",
+          "pts": 10,
+          "cond": {
+            "flag": "ligar_193"
+          },
+          "grupo": "Emergência"
+        },
+        {
+          "id": "cos",
+          "label": "Comunicar o COS e a brigada",
+          "comp": "comunicacao",
+          "pts": 10,
+          "cond": {
+            "flag": "comunicar_cos"
+          },
+          "grupo": "Emergência"
+        },
+        {
+          "id": "evacuou",
+          "label": "Isolar e evacuar para o ponto de encontro",
+          "comp": "seguranca",
+          "pts": 20,
+          "cond": {
+            "flag": "evacuar"
+          },
+          "grupo": "Emergência"
+        },
+        {
+          "id": "nao_combate",
+          "label": "Não combater fogo antes da desenergização confirmada e aterramento",
+          "comp": "seguranca",
+          "pts": 20,
+          "cond": {
+            "flag": "decisao:combate:b"
+          },
+          "grupo": "Decisão"
+        },
+        {
+          "id": "continuidade",
+          "label": "Recompor a MT-1 via 52-P (T2 assume, 83 %)",
+          "comp": "tempo",
+          "pts": 20,
+          "cond": {
+            "all": [
+              {
+                "flag": "evento"
+              },
+              {
+                "fato": "carga.AL2",
+                "eq": true
+              },
+              {
+                "fato": "eq.52-P.state",
+                "eq": "closed"
+              }
+            ]
+          },
+          "grupo": "Continuidade"
+        },
+        {
+          "id": "registrou",
+          "label": "Registrar",
+          "comp": "comunicacao",
+          "pts": 5,
+          "cond": {
+            "flag": "registrar"
+          },
+          "grupo": "Registro"
+        }
+      ],
+      "regras": [
+        {
+          "id": "religou_t1",
+          "on": {
+            "t": "switch",
+            "id": [
+              "52-T1",
+              "52-T1M"
+            ],
+            "op": "close",
+            "result": "ok"
+          },
+          "if": {
+            "flag": "evento"
+          },
+          "sev": "critico",
+          "comp": "seguranca",
+          "msg": "Tentou reenergizar o T1 em chamas"
+        },
+        {
+          "id": "rearme_86t",
+          "on": {
+            "t": "reset86",
+            "id": "86T-T1",
+            "result": "ok"
+          },
+          "if": {
+            "flag": "evento"
+          },
+          "sev": "critico",
+          "comp": "seguranca",
+          "msg": "Rearmou o 86T com o T1 em chamas"
+        },
+        {
+          "id": "combate",
+          "on": {
+            "t": "decisao",
+            "id": "combate",
+            "op": "a"
+          },
+          "sev": "critico",
+          "comp": "seguranca",
+          "msg": "Decidiu combater o fogo antes da desenergização confirmada e do aterramento"
+        },
+        {
+          "id": "paralelo_antes",
+          "on": {
+            "t": "switch",
+            "id": "52-P",
+            "op": "close",
+            "result": "ok"
+          },
+          "unless": {
+            "fato": "emergencia",
+            "eq": true
+          },
+          "sev": "maior",
+          "comp": "seguranca",
+          "msg": "Priorizou a continuidade antes de acionar a emergência"
+        }
+      ],
+      "fim": {
+        "all": [
+          {
+            "flag": "evacuar"
+          },
+          {
+            "flag": "registrar"
+          }
+        ]
+      },
+      "golden": {
+        "inicio": [
+          {
+            "wait": 16
+          },
+          {
+            "acao": "confirmar_t1"
+          },
+          {
+            "cmd": {
+              "t": "emergencia",
+              "on": true
+            }
+          },
+          {
+            "acao": "ligar_193"
+          },
+          {
+            "acao": "comunicar_cos"
+          },
+          {
+            "decisao": [
+              "combate",
+              "b"
+            ]
+          },
+          {
+            "cmd": {
+              "t": "switch",
+              "id": "52-P",
+              "op": "close",
+              "via": "remote"
+            }
+          },
+          {
+            "wait": 1
+          },
+          {
+            "acao": "evacuar"
+          },
+          {
+            "acao": "registrar"
+          }
+        ]
+      }
+    },
+    {
+      "id": "S1",
+      "nome": "Resgate: choque elétrico no cubículo AL3",
+      "nivel": "E",
+      "mvp": true,
+      "objetivo": "Um colega removeu a tampa traseira do cubículo AL3 e tocou o cabo energizado. Ele está caído atrás do cubículo. NÃO toque nele antes de isolar a fonte: abra o 52-AL3 (de preferência pelo supervisório), constate a ausência de tensão, acione a emergência e o socorro, avalie a vítima, faça RCP e use o DEA.",
+      "tempoPrevistoS": 480,
+      "cargasPlanejadas": [
+        "AL3"
+      ],
+      "cena": {
+        "vitima": {
+          "cubiculo": "AL3",
+          "lado": "tras"
+        },
+        "tampa": "AL3",
+        "fonte": "AL3c"
+      },
+      "setup": [
+        {
+          "set": "evento"
+        }
+      ],
+      "script": [
+        {
+          "id": "samu",
+          "desc": "Chegada do SAMU",
+          "when": {
+            "flag": "ligar_192"
+          },
+          "apos": 300,
+          "do": [
+            {
+              "msg": "SAMU no local. A equipe assume o atendimento da vítima.",
+              "ator": "sistema"
+            },
+            {
+              "set": "samu"
+            }
+          ]
+        },
+        {
+          "id": "cos_resp",
+          "desc": "COS responde",
+          "when": {
+            "flag": "comunicar_cos"
+          },
+          "apos": 5,
+          "do": [
+            {
+              "cos": {
+                "id": "S1-COS",
+                "texto": "COS: ciente do acidente. AL3 fica desligado e bloqueado até liberação da segurança do trabalho. Confirme (read-back)."
+              }
+            }
+          ]
+        }
+      ],
+      "acoes": [
+        {
+          "id": "ligar_192",
+          "label": "Acionar o socorro (SAMU 192 / Bombeiros 193): local, nº de vítimas, choque elétrico",
+          "local": [
+            "radio",
+            "IHM"
+          ],
+          "cond": {
+            "flag": "evento"
+          },
+          "falha": "—"
+        },
+        {
+          "id": "comunicar_cos",
+          "label": "Comunicar o COS: acidente com vítima no AL3",
+          "local": [
+            "radio",
+            "IHM"
+          ],
+          "cond": {
+            "flag": "evento"
+          },
+          "falha": "—"
+        },
+        {
+          "id": "registrar",
+          "label": "Registrar a ocorrência",
+          "local": [
+            "radio",
+            "IHM"
+          ],
+          "cond": {
+            "flag": "evento"
+          },
+          "falha": "—"
+        }
+      ],
+      "checks": [
+        {
+          "id": "isolou",
+          "label": "Isolar a fonte: cabo do AL3 sem tensão (52-AL3 aberto)",
+          "comp": "seguranca",
+          "pts": 20,
+          "cond": {
+            "fato": "no.AL3c",
+            "eq": false
+          },
+          "grupo": "Isolar"
+        },
+        {
+          "id": "constatou",
+          "label": "Constatar ausência de tensão no cabo do AL3 (detector testado)",
+          "comp": "seguranca",
+          "pts": 10,
+          "cond": {
+            "fato": "vtest.AL3c"
+          },
+          "grupo": "Isolar"
+        },
+        {
+          "id": "seguro",
+          "label": "Chegar à vítima só depois de isolar (sem tocar energizado)",
+          "comp": "seguranca",
+          "pts": 15,
+          "cond": {
+            "all": [
+              {
+                "flag": "resgate:alcancou"
+              },
+              {
+                "not": {
+                  "flag": "acidente"
+                }
+              }
+            ]
+          },
+          "grupo": "Isolar"
+        },
+        {
+          "id": "sirene",
+          "label": "Acionar a emergência (sirene)",
+          "comp": "comunicacao",
+          "pts": 5,
+          "cond": {
+            "fato": "emergencia",
+            "eq": true
+          },
+          "grupo": "Socorro"
+        },
+        {
+          "id": "socorro",
+          "label": "Acionar o socorro (192/193)",
+          "comp": "comunicacao",
+          "pts": 10,
+          "cond": {
+            "flag": "ligar_192"
+          },
+          "grupo": "Socorro"
+        },
+        {
+          "id": "consciencia",
+          "label": "Verificar consciência (chamar e tocar os ombros)",
+          "comp": "diagnostico",
+          "pts": 5,
+          "cond": {
+            "flag": "resgate:consciencia"
+          },
+          "grupo": "Vítima"
+        },
+        {
+          "id": "respiracao",
+          "label": "Verificar respiração (até 10 s)",
+          "comp": "diagnostico",
+          "pts": 5,
+          "cond": {
+            "flag": "resgate:respiracao"
+          },
+          "grupo": "Vítima"
+        },
+        {
+          "id": "rcp",
+          "label": "RCP de qualidade (100–120/min)",
+          "comp": "seguranca",
+          "pts": 15,
+          "cond": {
+            "flag": "resgate:rcp_ok"
+          },
+          "grupo": "Vítima"
+        },
+        {
+          "id": "dea",
+          "label": "Usar o DEA (pás, análise, choque se indicado)",
+          "comp": "seguranca",
+          "pts": 10,
+          "cond": {
+            "flag": "resgate:dea"
+          },
+          "grupo": "Vítima"
+        },
+        {
+          "id": "cos",
+          "label": "Comunicar o COS",
+          "comp": "comunicacao",
+          "pts": 5,
+          "cond": {
+            "flag": "comunicar_cos"
+          },
+          "grupo": "Registro"
+        }
+      ],
+      "regras": [
+        {
+          "id": "religou_al3",
+          "on": {
+            "t": "switch",
+            "id": "52-AL3",
+            "op": "close",
+            "result": "ok"
+          },
+          "if": {
+            "flag": "evento"
+          },
+          "sev": "critico",
+          "comp": "seguranca",
+          "msg": "Religou o AL3 com a vítima no local"
+        }
+      ]
+    },
+    {
+      "id": "S2",
+      "nome": "Condutor rompido no pátio: tensão de passo",
+      "nivel": "E",
+      "mvp": true,
+      "objetivo": "Um condutor da LT-01 rompeu e caiu na brita junto ao pórtico; um colega caiu perto dele. A falta é de alta impedância e a linha continua energizada pelo terminal remoto. Mantenha distância (10 m), isole a área, peça ao COS o desligamento da LT-01, confirme por read-back, constate a ausência de tensão, aterre (89T-LT1) e só então socorra a vítima.",
+      "tempoPrevistoS": 600,
+      "cargasPlanejadas": [],
+      "cena": {
+        "caido": {
+          "fase": 1
+        },
+        "vitima": {
+          "perto": "caido",
+          "dist": 4.5
+        },
+        "fonte": "LINE"
+      },
+      "setup": [
+        {
+          "set": "evento"
+        }
+      ],
+      "script": [
+        {
+          "id": "cos_desl",
+          "desc": "COS desliga a LT-01 no terminal remoto",
+          "when": {
+            "flag": "pedir_desligamento"
+          },
+          "apos": 30,
+          "do": [
+            {
+              "inject": {
+                "falha": "F20",
+                "alvo": "LT-01"
+              }
+            },
+            {
+              "cos": {
+                "id": "S2-COS",
+                "texto": "COS: LT-01 desligada no terminal remoto e bloqueada. Pode constatar e aterrar. Confirme (read-back)."
+              }
+            }
+          ]
+        },
+        {
+          "id": "samu",
+          "desc": "Chegada do SAMU",
+          "when": {
+            "flag": "ligar_192"
+          },
+          "apos": 300,
+          "do": [
+            {
+              "msg": "SAMU no local. A equipe assume o atendimento da vítima.",
+              "ator": "sistema"
+            },
+            {
+              "set": "samu"
+            }
+          ]
+        }
+      ],
+      "acoes": [
+        {
+          "id": "pedir_desligamento",
+          "label": "Pedir ao COS o desligamento da LT-01 (condutor caído, vítima no local)",
+          "local": [
+            "radio",
+            "IHM"
+          ],
+          "cond": {
+            "flag": "evento"
+          },
+          "falha": "—"
+        },
+        {
+          "id": "isolar_area",
+          "label": "Isolar a área (raio de 10 m) com fita e cones",
+          "local": [
+            "radio",
+            "patio"
+          ],
+          "cond": {
+            "flag": "evento"
+          },
+          "falha": "—"
+        },
+        {
+          "id": "ligar_192",
+          "label": "Acionar o socorro (SAMU 192 / Bombeiros 193)",
+          "local": [
+            "radio",
+            "IHM"
+          ],
+          "cond": {
+            "flag": "evento"
+          },
+          "falha": "—"
+        },
+        {
+          "id": "registrar",
+          "label": "Registrar a ocorrência",
+          "local": [
+            "radio",
+            "IHM"
+          ],
+          "cond": {
+            "flag": "evento"
+          },
+          "falha": "—"
+        }
+      ],
+      "checks": [
+        {
+          "id": "distancia",
+          "label": "Não entrar na área de tensão de passo com a linha energizada",
+          "comp": "seguranca",
+          "pts": 20,
+          "cond": {
+            "all": [
+              {
+                "flag": "resgate:alcancou"
+              },
+              {
+                "not": {
+                  "flag": "acidente"
+                }
+              }
+            ]
+          },
+          "grupo": "Distância"
+        },
+        {
+          "id": "pediu",
+          "label": "Pedir o desligamento da LT-01 ao COS",
+          "comp": "comunicacao",
+          "pts": 10,
+          "cond": {
+            "flag": "pedir_desligamento"
+          },
+          "grupo": "Comunicação"
+        },
+        {
+          "id": "readback",
+          "label": "Read-back da confirmação do COS",
+          "comp": "comunicacao",
+          "pts": 5,
+          "cond": {
+            "flag": "readback:S2-COS"
+          },
+          "grupo": "Comunicação"
+        },
+        {
+          "id": "isolou",
+          "label": "Isolar a área",
+          "comp": "seguranca",
+          "pts": 10,
+          "cond": {
+            "flag": "isolar_area"
+          },
+          "grupo": "Distância"
+        },
+        {
+          "id": "constatou",
+          "label": "Constatar ausência de tensão na LT-01 (detector 145 kV)",
+          "comp": "seguranca",
+          "pts": 15,
+          "cond": {
+            "fato": "vtest.LINE"
+          },
+          "grupo": "Desenergizar"
+        },
+        {
+          "id": "aterrou",
+          "label": "Aterrar a LT-01 (89T-LT1 fechada)",
+          "comp": "seguranca",
+          "pts": 15,
+          "cond": {
+            "fato": "eq.89T-LT1.state",
+            "eq": "closed"
+          },
+          "grupo": "Desenergizar"
+        },
+        {
+          "id": "socorro",
+          "label": "Acionar o socorro",
+          "comp": "comunicacao",
+          "pts": 5,
+          "cond": {
+            "flag": "ligar_192"
+          },
+          "grupo": "Vítima"
+        },
+        {
+          "id": "consciencia",
+          "label": "Verificar consciência e respiração",
+          "comp": "diagnostico",
+          "pts": 5,
+          "cond": {
+            "all": [
+              {
+                "flag": "resgate:consciencia"
+              },
+              {
+                "flag": "resgate:respiracao"
+              }
+            ]
+          },
+          "grupo": "Vítima"
+        },
+        {
+          "id": "rcp",
+          "label": "RCP de qualidade (100–120/min)",
+          "comp": "seguranca",
+          "pts": 15,
+          "cond": {
+            "flag": "resgate:rcp_ok"
+          },
+          "grupo": "Vítima"
+        }
+      ],
+      "regras": []
+    }
+  ]
+}

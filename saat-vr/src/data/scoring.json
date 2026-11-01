@@ -1,0 +1,24 @@
+{
+  "versao": "1.0.0",
+  "pesos": { "seguranca": 40, "sequencia": 25, "diagnostico": 15, "comunicacao": 10, "tempo": 10 },
+  "nomes": { "seguranca": "Segurança", "sequencia": "Sequência e procedimento", "diagnostico": "Diagnóstico", "comunicacao": "Comunicação", "tempo": "Tempo e continuidade" },
+  "penalidades": { "maior": 15, "menor": 5, "_decisao": "pontos percentuais descontados da competência; valores não constam no anexo" },
+  "dicas": { "N1": 2, "N2": 5, "N3": 10, "_decisao": "pontos percentuais descontados da nota final; valores não constam no anexo" },
+  "bonus": { "remoto": 2, "boaPratica": 2, "_decisao": "bônus por manobra remota e constatação adicional" },
+  "aprovacao": 70,
+  "tempoMenorFator": 1.5,
+  "permissoes": {
+    "missao": {
+      "treinando": ["manobrar", "loto", "pt", "solicitar_bypass"],
+      "instrutor": ["manobrar", "loto", "pt", "injetar_falha", "ajustar_protecao", "bypass"],
+      "supervisor": ["bypass", "ajustar_protecao"],
+      "cos": ["manobrar"], "manutencao": ["loto", "pt"], "protecao": ["manobrar"], "sistema": ["manobrar", "loto", "pt", "injetar_falha"]
+    },
+    "sandbox": {
+      "treinando": ["manobrar", "loto", "pt", "ajustar_protecao", "bypass", "editar_unifilar", "injetar_falha"],
+      "instrutor": ["manobrar", "loto", "pt", "injetar_falha", "ajustar_protecao", "bypass", "editar_unifilar"],
+      "supervisor": ["bypass", "ajustar_protecao"],
+      "cos": ["manobrar"], "manutencao": ["loto", "pt"], "protecao": ["manobrar"], "sistema": ["manobrar", "loto", "pt", "injetar_falha"]
+    }
+  }
+}

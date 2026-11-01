@@ -1,0 +1,935 @@
+{
+ "versao": "2.0.0",
+ "_nota": "Layout físico do SAAT a partir da 'Planta de referência — pátio e casa de comando' (Rev 1, 26/10/2026, SEM ESCALA, não aprovada). Coordenadas em pixels do desenho (página renderizada 1188 px de largura). Conversão para metros: (px − origem) × mPorPx. Para recalibrar, troque mPorPx por (distância real conhecida ÷ distância em px). Tudo aqui é [VALIDAR].",
+ "escala": {
+  "mPorPx": 0.0789,
+  "origem": [
+   85,
+   75
+  ],
+  "_criterio": "espaçamento entre fases de 3,0 m em 138 kV (TCC UFPE, SE Antas do Norte) = 38 px entre os círculos de fase dos conjuntos B1–B9. Resulta em cerca de 55,6 × 76,5 m."
+ },
+ "cerca": {
+  "rect": [
+   85,
+   75,
+   790,
+   1045
+  ],
+  "alturaM": 2.5,
+  "passoPostesPx": 72,
+  "passoM": 3.0,
+  "portoes": [
+   {
+    "id": "A",
+    "lado": "L",
+    "zM": [
+     22.0,
+     28.0
+    ]
+   },
+   {
+    "id": "B",
+    "lado": "L",
+    "zM": [
+     54.5,
+     60.5
+    ]
+   }
+  ],
+  "casaNaDivisa": true,
+  "_nota": "v5: cerca de tela com postes de concreto a cada 3 m, braço 45° e 3 fios farpados; a parede sul da casa faz parte da divisa; 2 portões de 6 m a leste."
+ },
+ "portico": {
+  "x": [
+   185,
+   690
+  ],
+  "y": 145,
+  "colunas": [
+   185,
+   437,
+   690
+  ],
+  "alturaVigaM": 11.0,
+  "alturaAncoragemM": 12.5,
+  "_nota": "Pórtico de linha de concreto (colunas vazadas 14 m com haste para-raios); viga 11-12,5 m.",
+  "alturaColunaM": 14.0,
+  "tipo": "concreto"
+ },
+ "lt": {
+  "id": "LT-01",
+  "ancoragemX": [
+   278,
+   316,
+   354
+  ],
+  "torreNorteM": 32,
+  "pararaios": {
+   "y": 168
+  },
+  "tpc": {
+   "y": 186
+  }
+ },
+ "barramento": {
+  "id": "BAT",
+  "y": 410.9,
+  "x": [
+   133.2,
+   716.2
+  ],
+  "alturaM": 9.0,
+  "faseDzM": 3.0,
+  "tp": {
+   "x": 190
+  },
+  "_adaptacao": "v5: barra 138 kV em cabo com flecha, ancorada nos pórticos laterais.",
+  "flechaM": 1.2,
+  "tipo": "cabo"
+ },
+ "bays": [
+  {
+   "id": "B1",
+   "px": [
+    316,
+    212
+   ],
+   "eq": "89-LT1-2",
+   "tipo": "seccionadora",
+   "terra": "89T-LT1",
+   "terraLado": "N",
+   "bay": "LT1"
+  },
+  {
+   "id": "B3",
+   "px": [
+    316,
+    293
+   ],
+   "eq": "52-LT1",
+   "tipo": "disjuntor",
+   "tc": "TC-LT1",
+   "bay": "LT1",
+   "cabine": true
+  },
+  {
+   "id": "B5",
+   "px": [
+    316,
+    375
+   ],
+   "eq": "89-LT1-1",
+   "tipo": "seccionadora",
+   "bay": "LT1"
+  },
+  {
+   "id": "B2",
+   "px": [
+    531,
+    212
+   ],
+   "eq": null,
+   "rotulo": "89-LT2-2",
+   "tipo": "seccionadora",
+   "reserva": true,
+   "lt2": true
+  },
+  {
+   "id": "B4",
+   "px": [
+    531,
+    293
+   ],
+   "eq": null,
+   "rotulo": "52-LT2",
+   "tipo": "disjuntor",
+   "reserva": true,
+   "lt2": true
+  },
+  {
+   "id": "B6",
+   "px": [
+    531,
+    375
+   ],
+   "eq": null,
+   "rotulo": "89-LT2-1",
+   "tipo": "seccionadora",
+   "reserva": true,
+   "lt2": true
+  },
+  {
+   "id": "B7",
+   "px": [
+    439,
+    497
+   ],
+   "eq": "89-T1-1",
+   "tipo": "seccionadora",
+   "bay": "T1A"
+  },
+  {
+   "id": "B9",
+   "px": [
+    439,
+    597
+   ],
+   "eq": "52-T1",
+   "tipo": "disjuntor",
+   "tc": "TC-T1A",
+   "bay": "T1A",
+   "cabine": true
+  },
+  {
+   "id": "B8",
+   "px": [
+    214,
+    597
+   ],
+   "eq": "52-T2",
+   "tipo": "disjuntor",
+   "tc": "TC-T2A",
+   "bay": "T2A",
+   "cabine": true
+  },
+  {
+   "id": "A1",
+   "px": [
+    214,
+    497
+   ],
+   "eq": "89-T2-1",
+   "tipo": "seccionadora",
+   "bay": "T2A",
+   "adaptacao": true
+  },
+  {
+   "id": "A2",
+   "px": [
+    439,
+    643
+   ],
+   "eq": "89-T1-2",
+   "tipo": "seccionadora",
+   "terra": "89T-T1",
+   "terraLado": "S",
+   "bay": "T1A",
+   "adaptacao": true
+  },
+  {
+   "id": "A3",
+   "px": [
+    214,
+    643
+   ],
+   "eq": "89-T2-2",
+   "tipo": "seccionadora",
+   "terra": "89T-T2",
+   "terraLado": "S",
+   "bay": "T2A",
+   "adaptacao": true
+  }
+ ],
+ "_bays": "B1–B9: marcas da planta. A1–A3: seccionadoras do anexo sem marca na planta (adaptação). B2/B4/B6 viraram vão reserva (equipamento montado, sem linha, sem efeito elétrico) porque o usuário confirmou 1 linha só. Para reatribuir, troque 'eq' aqui.",
+ "trafos": [
+  {
+   "id": "T1",
+   "tag": "TR-01",
+   "px": [
+    431,
+    712
+   ]
+  },
+  {
+   "id": "T2",
+   "tag": "TR-02",
+   "px": [
+    209,
+    712
+   ]
+  }
+ ],
+ "trincheiras": [
+  {
+   "x": 112,
+   "y": [
+    290,
+    670
+   ],
+   "caixas": [
+    290,
+    485,
+    670
+   ],
+   "_nota": "Elemento lateral (inferido) = canaleta de cabos de controle"
+  },
+  {
+   "x": 740,
+   "y": [
+    290,
+    670
+   ],
+   "caixas": [
+    290,
+    485,
+    670
+   ]
+  },
+  {
+   "x": 177,
+   "y": [
+    745,
+    888
+   ],
+   "_nota": "cabos MT do TR-02 até a casa (seta da planta)"
+  },
+  {
+   "x": 399,
+   "y": [
+    745,
+    888
+   ],
+   "_nota": "cabos MT do TR-01 até a casa (seta da planta)"
+  }
+ ],
+ "casa": {
+  "rect": [
+   203.3,
+   888.0,
+   579.7,
+   1009.7
+  ],
+  "alturaM": 4.5,
+  "divisoriaX": 243.8,
+  "portas": [
+   {
+    "id": "portao",
+    "lado": "L",
+    "externa": true
+   },
+   {
+    "id": "norte",
+    "lado": "N",
+    "externa": true
+   },
+   {
+    "id": "sul",
+    "lado": "S",
+    "externa": true
+   }
+  ],
+  "EQ1": {
+   "rect": [
+    327.5,
+    912.1,
+    458.0,
+    936.2
+   ],
+   "nome": "PDMT 13,8 kV (10 cubículos)",
+   "ordem": [
+    "TSA2",
+    "T2M",
+    "AL4",
+    "AL3",
+    "RISER",
+    "P",
+    "TSA1",
+    "T1M",
+    "AL2",
+    "AL1"
+   ],
+   "larguraM": 0.8,
+   "profM": 1.6,
+   "alturaM": 2.3,
+   "frente": "S"
+  },
+  "EQ2": {
+   "rect": [
+    314.2,
+    1000.8,
+    350.9,
+    1008.4
+   ],
+   "nome": "PSPC + armário de vidro",
+   "paineis": [
+    "PSPC"
+   ]
+  },
+  "EQ3": {
+   "rect": [
+    243.8,
+    964.0,
+    302.8,
+    1008.4
+   ],
+   "nome": "RET-1/RET-2, QDCC, QDCA, QSA",
+   "paineis": [
+    "RT1",
+    "RT2",
+    "QDCC",
+    "QDCA",
+    "QSA"
+   ],
+   "_correcao": "Retificadores ficam aqui, fora da sala de baterias (gases da bateria). Corrige a proposta anterior."
+  },
+  "BAT": {
+   "rect": [
+    204.6,
+    927.3,
+    243.8,
+    1008.4
+   ],
+   "nome": "Banco de baterias BB1 125 Vcc (60 elementos)"
+  },
+  "armarios": [
+   {
+    "id": "EPI",
+    "nome": "Armário de EPI e ferramentas"
+   },
+   {
+    "id": "LOTO",
+    "nome": "Quadro de bloqueio (cadeados e etiquetas)"
+   }
+  ],
+  "layout": {
+   "_nota": "Interior conforme planta do usuário (31/10/2026) + fotos. u = distância (m) da parede do portão (leste) para oeste; v = distância da parede do pátio (norte) para o sul. Comprimento interno total 29,5 m [VALIDAR escala]. O builder converte: x = xE - u, z = zN + v.",
+   "xE": 38.933,
+   "zN": 64.246,
+   "L": 29.5,
+   "W": 9.4,
+   "H": 4.5,
+   "t": 0.2,
+   "pilaresS": [
+    0.25,
+    7.4,
+    12.95,
+    14.75,
+    20.1
+   ],
+   "pilaresN": [
+    0.25,
+    7.6,
+    14.0,
+    20.1
+   ],
+   "pilaresL": [
+    5.25
+   ],
+   "vigas": [
+    7.5,
+    14.0,
+    20.1
+   ],
+   "portao": {
+    "v": [
+     5.6,
+     9.1
+    ],
+    "h": 3.9
+   },
+   "portaS": {
+    "u": [
+     13.2,
+     14.5
+    ],
+    "h": 3.5
+   },
+   "portaN": {
+    "u": [
+     22.1,
+     23.3
+    ],
+    "h": 3.5
+   },
+   "janelasS": [
+    [
+     1.35,
+     3.0
+    ],
+    [
+     5.4,
+     7.1
+    ],
+    [
+     15.75,
+     17.4
+    ],
+    [
+     22.55,
+     23.55
+    ]
+   ],
+   "bat": {
+    "u": [
+     26.4,
+     29.5
+    ],
+    "v": [
+     3.0,
+     9.4
+    ],
+    "porta": [
+     3.3,
+     4.3
+    ],
+    "janelaO": [
+     7.0,
+     8.4
+    ]
+   },
+   "anexos": [
+    {
+     "id": "ANX1",
+     "nome": "Sala dos transformadores de serviço auxiliar (TSA-1 / TSA-2)",
+     "u": [
+      23.5,
+      26.5
+     ],
+     "porta": [
+      23.75,
+      26.25
+     ]
+    },
+    {
+     "id": "ANX2",
+     "nome": "Almoxarifado",
+     "u": [
+      26.5,
+      29.5
+     ],
+     "porta": [
+      26.8,
+      29.2
+     ]
+    }
+   ],
+   "anexoV": 3.0,
+   "pdmt": {
+    "u0": 9.5,
+    "vTras": 1.8,
+    "prof": 1.9,
+    "alt": 2.3,
+    "larg": {
+     "TSA2": 1.3
+    },
+    "largPadrao": 1.0,
+    "ordem": [
+     "TSA2",
+     "T2M",
+     "AL4",
+     "AL3",
+     "RISER",
+     "P",
+     "TSA1",
+     "T1M",
+     "AL2",
+     "AL1"
+    ],
+    "tags": {
+     "AL1": [
+      "1Q1",
+      "52-6",
+      "CUBÍCULO 1",
+      "SAÍDA 01",
+      "VAI P/ MPTF-2"
+     ],
+     "AL2": [
+      "2Q1",
+      "52-7",
+      "CUBÍCULO 2",
+      "SAÍDA 02",
+      "VAI P/ PCCB"
+     ],
+     "T1M": [
+      "3Q1",
+      "52-3",
+      "CUBÍCULO 3",
+      "ENTRADA TR-01",
+      "VEM DO TRAFO 01"
+     ],
+     "TSA1": [
+      "4Q1",
+      "89-5",
+      "CUBÍCULO 4",
+      "TSA-1",
+      "VAI P/ TSA-1"
+     ],
+     "P": [
+      "5Q1",
+      "52-5",
+      "CUBÍCULO 5",
+      "INTERLIGAÇÃO",
+      "INTERLIGAÇÃO DE BARRAS"
+     ],
+     "RISER": [
+      "6",
+      "CUB. 6",
+      "CUBÍCULO 6",
+      "TRANSIÇÃO",
+      "TRANSIÇÃO DE BARRA"
+     ],
+     "AL3": [
+      "7Q1",
+      "528",
+      "CUBÍCULO 7",
+      "SAÍDA 03",
+      "AMPLIAÇÃO FUTURA"
+     ],
+     "AL4": [
+      "8Q1",
+      "529",
+      "CUBÍCULO 8",
+      "SAÍDA 04",
+      "VAI P/ CARGA 04"
+     ],
+     "T2M": [
+      "9Q1",
+      "52-4",
+      "CUBÍCULO 9",
+      "ENTRADA TR-02",
+      "VEM DO TRAFO 02"
+     ],
+     "TSA2": [
+      "10Q1",
+      "89-6",
+      "CUBÍCULO 10",
+      "TSA-2",
+      "VAI P/ TSA-2"
+     ]
+    }
+   },
+   "pspc": {
+    "u": [
+     18.85,
+     20.85
+    ],
+    "armVidro": [
+     17.95,
+     18.75
+    ]
+   },
+   "ret": {
+    "RT2": [
+     21.75,
+     22.6
+    ],
+    "RT1": [
+     23.2,
+     24.05
+    ]
+   },
+   "parede": {
+    "QDCC": [
+     7.8,
+     8.6
+    ],
+    "QDCA": [
+     6.9,
+     7.7
+    ],
+    "QSA": [
+     5.9,
+     6.7
+    ],
+    "prat": [
+     5.0,
+     5.5
+    ]
+   },
+   "quadro": [
+    23.9,
+    24.9
+   ],
+   "extintorCarreta": [
+    22.8,
+    2.3
+   ],
+   "extintorPiso": [
+    11.8,
+    12.8
+   ],
+   "mesa": [
+    0.6,
+    2.2
+   ],
+   "armEPI": [
+    2.35,
+    3.55
+   ],
+   "vara": [
+    4.9,
+    7.3
+   ],
+   "estacao": [
+    [
+     6.9,
+     1.1
+    ],
+    [
+     6.2,
+     1.5
+    ]
+   ],
+   "carrinho": [
+    8.1,
+    0.9
+   ],
+   "canaleta": {
+    "u": [
+     1.7,
+     9.5
+    ],
+    "faixa": [
+     1.65,
+     4.35
+    ],
+    "chapa": [
+     2.55,
+     3.4
+    ]
+   },
+   "faixaAmarela": {
+    "v": 5.6,
+    "u": [
+     7.47,
+     21.5
+    ]
+   },
+   "faixaVermelhaFrente": 0.8,
+   "loto": [
+    2.0,
+    3.3
+   ],
+   "dea": 4.1,
+   "emerg": 4.8,
+   "luminarias": {
+    "u": [
+     2.8,
+     9.2,
+     15.9,
+     22.4
+    ],
+    "v": [
+     6.2,
+     2.8
+    ]
+   }
+  }
+ },
+ "pontoEncontro": {
+  "px": [
+   228,
+   1085
+  ]
+ },
+ "iluminacao": [
+  [
+   95,
+   85
+  ],
+  [
+   437,
+   85
+  ],
+  [
+   780,
+   85
+  ],
+  [
+   95,
+   560
+  ],
+  [
+   780,
+   560
+  ],
+  [
+   95,
+   870
+  ],
+  [
+   780,
+   870
+  ]
+ ],
+ "spawns": {
+  "casa": {
+   "px": [
+    545.5,
+    981.8
+   ],
+   "olhar": "W"
+  },
+  "scada": {
+   "px": [
+    560.7,
+    910.8
+   ],
+   "olhar": "N"
+  },
+  "portao": {
+   "px": [
+    401.9,
+    1061.1
+   ],
+   "olhar": "N"
+  },
+  "patio": {
+   "px": [
+    318,
+    820
+   ],
+   "olhar": "N"
+  },
+  "lt01": {
+   "px": [
+    237,
+    405
+   ],
+   "olhar": "NE"
+  },
+  "trafos": {
+   "px": [
+    320,
+    760
+   ],
+   "olhar": "N"
+  },
+  "cubiculos": {
+   "px": [
+    394.7,
+    967.8
+   ],
+   "olhar": "N"
+  },
+  "sa": {
+   "px": [
+    280.6,
+    965.3
+   ],
+   "olhar": "S"
+  },
+  "bat": {
+   "px": [
+    226.1,
+    942.5
+   ],
+   "olhar": "S"
+  }
+ },
+ "dimensoes": [
+  {
+   "item": "Espaçamento entre fases 138 kV",
+   "valor": "3,0 m",
+   "fonte": "TCC UFPE (SE Antas do Norte 138 kV)",
+   "status": "FONTE"
+  },
+  {
+   "item": "Cadeia de isoladores 138 kV",
+   "valor": "1,5 m",
+   "fonte": "TCC UFPE",
+   "status": "FONTE"
+  },
+  {
+   "item": "Altura da base dos equipamentos AT (suporte)",
+   "valor": "2,6 m",
+   "fonte": "típico de mercado",
+   "status": "VALIDAR"
+  },
+  {
+   "item": "Altura do barramento rígido 138 kV",
+   "valor": "6,2 m",
+   "fonte": "típico de mercado",
+   "status": "VALIDAR"
+  },
+  {
+   "item": "Altura da viga do pórtico",
+   "valor": "11 m",
+   "fonte": "típico de mercado",
+   "status": "VALIDAR"
+  },
+  {
+   "item": "Cubículo metal-clad 15 kV (L × A × P)",
+   "valor": "0,80 × 2,30 × 1,60 m",
+   "fonte": "faixa típica de fabricantes",
+   "status": "VALIDAR"
+  },
+  {
+   "item": "Tanque do trafo 25 MVA (L × P × A)",
+   "valor": "4,6 × 2,8 × 3,3 m",
+   "fonte": "estimativa",
+   "status": "VALIDAR"
+  },
+  {
+   "item": "Cerca",
+   "valor": "2,5 m de altura, postes a cada ~5,7 m",
+   "fonte": "planta (espaçamento) + típico",
+   "status": "VALIDAR"
+  }
+ ],
+ "lt2": {
+  "id": "LT-02",
+  "ancoragemX": [
+   493.5,
+   531.5,
+   569.5
+  ],
+  "desligada": true,
+  "_nota": "LT-02 montada e desligada (fora do modelo elétrico)."
+ },
+ "torre": {
+  "xM": 26.8,
+  "zM": -30.0,
+  "alturaM": 30.5,
+  "_nota": "Torre treliçada quadrada simples, circuito duplo."
+ },
+ "porticosLaterais": {
+  "xM": [
+   3.8,
+   49.8
+  ],
+  "zM": [
+   19.3,
+   33.3,
+   48.1
+  ],
+  "alturaM": 14.0,
+  "vigaM": 9.0
+ },
+ "porticosTrafo": {
+  "zM": 48.1,
+  "alturaM": 12.0,
+  "vigaM": 10.0,
+  "colunasM": [
+   [
+    3.8,
+    15.9
+   ],
+   [
+    21.3,
+    33.6
+   ],
+   [
+    38.0,
+    49.8
+   ]
+  ]
+ },
+ "trafoReserva": {
+  "tag": "TR-03",
+  "xM": 43.5
+ },
+ "murosCortaFogo": [
+  {
+   "xM": 18.6,
+   "compM": 5.5,
+   "alturaM": 5.5
+  },
+  {
+   "xM": 35.4,
+   "compM": 5.5,
+   "alturaM": 5.5
+  }
+ ]
+}

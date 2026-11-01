@@ -1,0 +1,890 @@
+{
+ "versao": "1.0.0",
+ "_nota": "Hierarquia IEC 61850-6: Substation > VoltageLevel > Bay > ConductingEquipment. Derivado do anexo (seções 1 e 2); unifilar-se-treino.svg não estava disponível.",
+ "substation": {
+  "id": "SE-TREINO",
+  "nome": "Vale Verde",
+  "voltageLevels": [
+   {
+    "id": "AT",
+    "kV": 138,
+    "bays": [
+     {
+      "id": "LT1",
+      "nome": "Entrada de linha LT-01",
+      "equipment": [
+       {
+        "id": "LT-01",
+        "type": "SRC",
+        "node": "LINE"
+       },
+       {
+        "id": "43-LT1",
+        "type": "SEL",
+        "kind": "43",
+        "normalState": "remoto"
+       },
+       {
+        "id": "89T-LT1",
+        "type": "DIS",
+        "kind": "earthing",
+        "nodes": [
+         "LINE",
+         "GND"
+        ],
+        "normalState": "open",
+        "commandModes": [
+         "local"
+        ],
+        "isolators": [
+         "89-LT1-2"
+        ]
+       },
+       {
+        "id": "89-LT1-2",
+        "type": "DIS",
+        "kind": "line",
+        "nodes": [
+         "LINE",
+         "L1"
+        ],
+        "normalState": "closed",
+        "commandModes": [
+         "local",
+         "remote"
+        ],
+        "lr": "43-LT1",
+        "assoc": [
+         "52-LT1"
+        ],
+        "motorizada": true
+       },
+       {
+        "id": "52-LT1",
+        "type": "CBR",
+        "kind": "SF6",
+        "nodes": [
+         "L1",
+         "L2"
+        ],
+        "normalState": "closed",
+        "commandModes": [
+         "local",
+         "remote"
+        ],
+        "lr": "43-LT1",
+        "ratings": {
+         "kV": 145,
+         "classe": "at"
+        },
+        "sensors": [
+         "sf6",
+         "mola"
+        ]
+       },
+       {
+        "id": "TC-LT1",
+        "type": "CTR",
+        "em": "52-LT1"
+       },
+       {
+        "id": "89-LT1-1",
+        "type": "DIS",
+        "kind": "line",
+        "nodes": [
+         "L2",
+         "BAT"
+        ],
+        "normalState": "closed",
+        "commandModes": [
+         "local",
+         "remote"
+        ],
+        "lr": "43-LT1",
+        "assoc": [
+         "52-LT1"
+        ],
+        "motorizada": true
+       }
+      ]
+     },
+     {
+      "id": "T1A",
+      "nome": "Bay AT do T1",
+      "equipment": [
+       {
+        "id": "43-T1A",
+        "type": "SEL",
+        "kind": "43",
+        "normalState": "remoto"
+       },
+       {
+        "id": "89-T1-1",
+        "type": "DIS",
+        "kind": "line",
+        "nodes": [
+         "BAT",
+         "T1a"
+        ],
+        "normalState": "closed",
+        "commandModes": [
+         "local",
+         "remote"
+        ],
+        "lr": "43-T1A",
+        "assoc": [
+         "52-T1"
+        ],
+        "motorizada": true
+       },
+       {
+        "id": "52-T1",
+        "type": "CBR",
+        "kind": "SF6",
+        "nodes": [
+         "T1a",
+         "T1b"
+        ],
+        "normalState": "closed",
+        "commandModes": [
+         "local",
+         "remote"
+        ],
+        "lr": "43-T1A",
+        "ratings": {
+         "kV": 145,
+         "classe": "at"
+        },
+        "sensors": [
+         "sf6",
+         "mola"
+        ]
+       },
+       {
+        "id": "TC-T1A",
+        "type": "CTR",
+        "em": "52-T1"
+       },
+       {
+        "id": "89-T1-2",
+        "type": "DIS",
+        "kind": "line",
+        "nodes": [
+         "T1b",
+         "T1c"
+        ],
+        "normalState": "closed",
+        "commandModes": [
+         "local",
+         "remote"
+        ],
+        "lr": "43-T1A",
+        "assoc": [
+         "52-T1"
+        ],
+        "motorizada": true
+       },
+       {
+        "id": "89T-T1",
+        "type": "DIS",
+        "kind": "earthing",
+        "nodes": [
+         "T1c",
+         "GND"
+        ],
+        "normalState": "open",
+        "commandModes": [
+         "local"
+        ],
+        "isolators": [
+         "89-T1-2",
+         "52-T1M"
+        ]
+       },
+       {
+        "id": "T1",
+        "type": "PTR",
+        "nodes": [
+         "T1c",
+         "T1m"
+        ],
+        "normalState": "servico",
+        "sensors": [
+         "63",
+         "63RPS",
+         "49",
+         "26",
+         "71",
+         "90",
+         "ventilacao"
+        ]
+       }
+      ]
+     },
+     {
+      "id": "T2A",
+      "nome": "Bay AT do T2",
+      "equipment": [
+       {
+        "id": "43-T2A",
+        "type": "SEL",
+        "kind": "43",
+        "normalState": "remoto"
+       },
+       {
+        "id": "89-T2-1",
+        "type": "DIS",
+        "kind": "line",
+        "nodes": [
+         "BAT",
+         "T2a"
+        ],
+        "normalState": "closed",
+        "commandModes": [
+         "local",
+         "remote"
+        ],
+        "lr": "43-T2A",
+        "assoc": [
+         "52-T2"
+        ],
+        "motorizada": true
+       },
+       {
+        "id": "52-T2",
+        "type": "CBR",
+        "kind": "SF6",
+        "nodes": [
+         "T2a",
+         "T2b"
+        ],
+        "normalState": "closed",
+        "commandModes": [
+         "local",
+         "remote"
+        ],
+        "lr": "43-T2A",
+        "ratings": {
+         "kV": 145,
+         "classe": "at"
+        },
+        "sensors": [
+         "sf6",
+         "mola"
+        ]
+       },
+       {
+        "id": "TC-T2A",
+        "type": "CTR",
+        "em": "52-T2"
+       },
+       {
+        "id": "89-T2-2",
+        "type": "DIS",
+        "kind": "line",
+        "nodes": [
+         "T2b",
+         "T2c"
+        ],
+        "normalState": "closed",
+        "commandModes": [
+         "local",
+         "remote"
+        ],
+        "lr": "43-T2A",
+        "assoc": [
+         "52-T2"
+        ],
+        "motorizada": true
+       },
+       {
+        "id": "89T-T2",
+        "type": "DIS",
+        "kind": "earthing",
+        "nodes": [
+         "T2c",
+         "GND"
+        ],
+        "normalState": "open",
+        "commandModes": [
+         "local"
+        ],
+        "isolators": [
+         "89-T2-2",
+         "52-T2M"
+        ]
+       },
+       {
+        "id": "T2",
+        "type": "PTR",
+        "nodes": [
+         "T2c",
+         "T2m"
+        ],
+        "normalState": "servico",
+        "sensors": [
+         "63",
+         "63RPS",
+         "49",
+         "26",
+         "71",
+         "90",
+         "ventilacao"
+        ]
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "id": "MT",
+    "kV": 13.8,
+    "bays": [
+     {
+      "id": "T1M",
+      "nome": "Entrada MT do T1",
+      "barra": "MT-1",
+      "equipment": [
+       {
+        "id": "43-T1M",
+        "type": "SEL",
+        "kind": "43",
+        "normalState": "remoto"
+       },
+       {
+        "id": "52-T1M",
+        "type": "CBR",
+        "kind": "vacuo",
+        "extraivel": true,
+        "nodes": [
+         "T1m",
+         "MT1"
+        ],
+        "normalState": "closed",
+        "normalPosition": "servico",
+        "commandModes": [
+         "local",
+         "remote"
+        ],
+        "lr": "43-T1M",
+        "ratings": {
+         "kV": 15,
+         "classe": "mt"
+        },
+        "sensors": [
+         "mola"
+        ]
+       },
+       {
+        "id": "TC-T1B",
+        "type": "CTR",
+        "em": "52-T1M",
+        "lado": "trafo"
+       },
+       {
+        "id": "TC-T1C",
+        "type": "CTR",
+        "em": "52-T1M",
+        "lado": "barra"
+       },
+       {
+        "id": "TP-B1",
+        "type": "VTR",
+        "node": "MT1",
+        "funcoes": [
+         "27",
+         "59",
+         "81",
+         "25"
+        ]
+       }
+      ]
+     },
+     {
+      "id": "T2M",
+      "nome": "Entrada MT do T2",
+      "barra": "MT-2",
+      "equipment": [
+       {
+        "id": "43-T2M",
+        "type": "SEL",
+        "kind": "43",
+        "normalState": "remoto"
+       },
+       {
+        "id": "52-T2M",
+        "type": "CBR",
+        "kind": "vacuo",
+        "extraivel": true,
+        "nodes": [
+         "T2m",
+         "MT2"
+        ],
+        "normalState": "closed",
+        "normalPosition": "servico",
+        "commandModes": [
+         "local",
+         "remote"
+        ],
+        "lr": "43-T2M",
+        "ratings": {
+         "kV": 15,
+         "classe": "mt"
+        },
+        "sensors": [
+         "mola"
+        ]
+       },
+       {
+        "id": "TC-T2B",
+        "type": "CTR",
+        "em": "52-T2M",
+        "lado": "trafo"
+       },
+       {
+        "id": "TC-T2C",
+        "type": "CTR",
+        "em": "52-T2M",
+        "lado": "barra"
+       },
+       {
+        "id": "TP-B2",
+        "type": "VTR",
+        "node": "MT2",
+        "funcoes": [
+         "27",
+         "59",
+         "81",
+         "25"
+        ]
+       }
+      ]
+     },
+     {
+      "id": "P",
+      "nome": "Paralelo MT",
+      "equipment": [
+       {
+        "id": "43-P",
+        "type": "SEL",
+        "kind": "43",
+        "normalState": "remoto"
+       },
+       {
+        "id": "52-P",
+        "type": "CBR",
+        "kind": "vacuo",
+        "extraivel": true,
+        "nodes": [
+         "MT1",
+         "MT2"
+        ],
+        "normalState": "open",
+        "normalPosition": "servico",
+        "commandModes": [
+         "local",
+         "remote"
+        ],
+        "lr": "43-P",
+        "ratings": {
+         "kV": 15,
+         "classe": "mt"
+        },
+        "sensors": [
+         "mola"
+        ]
+       }
+      ]
+     },
+     {
+      "id": "AL1",
+      "nome": "Alimentador AL1",
+      "barra": "MT-1",
+      "equipment": [
+       {
+        "id": "43-AL1",
+        "type": "SEL",
+        "kind": "43",
+        "normalState": "remoto"
+       },
+       {
+        "id": "52-AL1",
+        "type": "CBR",
+        "kind": "vacuo",
+        "extraivel": true,
+        "nodes": [
+         "MT1",
+         "AL1c"
+        ],
+        "normalState": "closed",
+        "normalPosition": "servico",
+        "commandModes": [
+         "local",
+         "remote"
+        ],
+        "lr": "43-AL1",
+        "ratings": {
+         "kV": 15,
+         "classe": "mt"
+        },
+        "sensors": [
+         "mola"
+        ]
+       },
+       {
+        "id": "TC-AL1",
+        "type": "CTR",
+        "em": "52-AL1"
+       },
+       {
+        "id": "89T-AL1",
+        "type": "DIS",
+        "kind": "earthing",
+        "nodes": [
+         "AL1c",
+         "GND"
+        ],
+        "normalState": "open",
+        "commandModes": [
+         "local"
+        ],
+        "isolators": [
+         "52-AL1"
+        ]
+       },
+       {
+        "id": "CARGA-AL1",
+        "type": "LOAD",
+        "node": "AL1c",
+        "ref": "AL1"
+       }
+      ]
+     },
+     {
+      "id": "AL2",
+      "nome": "Alimentador AL2",
+      "barra": "MT-1",
+      "equipment": [
+       {
+        "id": "43-AL2",
+        "type": "SEL",
+        "kind": "43",
+        "normalState": "remoto"
+       },
+       {
+        "id": "52-AL2",
+        "type": "CBR",
+        "kind": "vacuo",
+        "extraivel": true,
+        "nodes": [
+         "MT1",
+         "AL2c"
+        ],
+        "normalState": "closed",
+        "normalPosition": "servico",
+        "commandModes": [
+         "local",
+         "remote"
+        ],
+        "lr": "43-AL2",
+        "ratings": {
+         "kV": 15,
+         "classe": "mt"
+        },
+        "sensors": [
+         "mola"
+        ]
+       },
+       {
+        "id": "TC-AL2",
+        "type": "CTR",
+        "em": "52-AL2"
+       },
+       {
+        "id": "89T-AL2",
+        "type": "DIS",
+        "kind": "earthing",
+        "nodes": [
+         "AL2c",
+         "GND"
+        ],
+        "normalState": "open",
+        "commandModes": [
+         "local"
+        ],
+        "isolators": [
+         "52-AL2"
+        ]
+       },
+       {
+        "id": "CARGA-AL2",
+        "type": "LOAD",
+        "node": "AL2c",
+        "ref": "AL2"
+       }
+      ]
+     },
+     {
+      "id": "AL3",
+      "nome": "Alimentador AL3",
+      "barra": "MT-2",
+      "equipment": [
+       {
+        "id": "43-AL3",
+        "type": "SEL",
+        "kind": "43",
+        "normalState": "remoto"
+       },
+       {
+        "id": "52-AL3",
+        "type": "CBR",
+        "kind": "vacuo",
+        "extraivel": true,
+        "nodes": [
+         "MT2",
+         "AL3c"
+        ],
+        "normalState": "closed",
+        "normalPosition": "servico",
+        "commandModes": [
+         "local",
+         "remote"
+        ],
+        "lr": "43-AL3",
+        "ratings": {
+         "kV": 15,
+         "classe": "mt"
+        },
+        "sensors": [
+         "mola"
+        ]
+       },
+       {
+        "id": "TC-AL3",
+        "type": "CTR",
+        "em": "52-AL3"
+       },
+       {
+        "id": "89T-AL3",
+        "type": "DIS",
+        "kind": "earthing",
+        "nodes": [
+         "AL3c",
+         "GND"
+        ],
+        "normalState": "open",
+        "commandModes": [
+         "local"
+        ],
+        "isolators": [
+         "52-AL3"
+        ]
+       },
+       {
+        "id": "CARGA-AL3",
+        "type": "LOAD",
+        "node": "AL3c",
+        "ref": "AL3"
+       }
+      ]
+     },
+     {
+      "id": "AL4",
+      "nome": "Alimentador AL4",
+      "barra": "MT-2",
+      "equipment": [
+       {
+        "id": "43-AL4",
+        "type": "SEL",
+        "kind": "43",
+        "normalState": "remoto"
+       },
+       {
+        "id": "52-AL4",
+        "type": "CBR",
+        "kind": "vacuo",
+        "extraivel": true,
+        "nodes": [
+         "MT2",
+         "AL4c"
+        ],
+        "normalState": "closed",
+        "normalPosition": "servico",
+        "commandModes": [
+         "local",
+         "remote"
+        ],
+        "lr": "43-AL4",
+        "ratings": {
+         "kV": 15,
+         "classe": "mt"
+        },
+        "sensors": [
+         "mola"
+        ]
+       },
+       {
+        "id": "TC-AL4",
+        "type": "CTR",
+        "em": "52-AL4"
+       },
+       {
+        "id": "89T-AL4",
+        "type": "DIS",
+        "kind": "earthing",
+        "nodes": [
+         "AL4c",
+         "GND"
+        ],
+        "normalState": "open",
+        "commandModes": [
+         "local"
+        ],
+        "isolators": [
+         "52-AL4"
+        ]
+       },
+       {
+        "id": "CARGA-AL4",
+        "type": "LOAD",
+        "node": "AL4c",
+        "ref": "AL4"
+       }
+      ]
+     },
+     {
+      "id": "TSA1",
+      "nome": "Serviço auxiliar 1",
+      "barra": "MT-1",
+      "equipment": [
+       {
+        "id": "FU-TSA1",
+        "type": "FUS",
+        "nodes": [
+         "MT1",
+         "TSA1p"
+        ],
+        "normalState": "closed"
+       },
+       {
+        "id": "TSA1",
+        "type": "PTR",
+        "kind": "sa",
+        "node": "TSA1p",
+        "kVA": 75
+       }
+      ]
+     },
+     {
+      "id": "TSA2",
+      "nome": "Serviço auxiliar 2",
+      "barra": "MT-2",
+      "equipment": [
+       {
+        "id": "FU-TSA2",
+        "type": "FUS",
+        "nodes": [
+         "MT2",
+         "TSA2p"
+        ],
+        "normalState": "closed"
+       },
+       {
+        "id": "TSA2",
+        "type": "PTR",
+        "kind": "sa",
+        "node": "TSA2p",
+        "kVA": 75
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "id": "SA",
+    "kV": 0.38,
+    "bays": [
+     {
+      "id": "QGCA",
+      "nome": "Quadro geral CA 380/220 V",
+      "equipment": [
+       {
+        "id": "ATS",
+        "type": "ATS",
+        "fontes": {
+         "TSA1": "TSA1p",
+         "TSA2": "TSA2p"
+        },
+        "normalState": "TSA1"
+       }
+      ]
+     },
+     {
+      "id": "CC",
+      "nome": "Sistema 125 Vcc",
+      "equipment": [
+       {
+        "id": "RT1",
+        "type": "RET"
+       },
+       {
+        "id": "RT2",
+        "type": "RET"
+       },
+       {
+        "id": "BB1",
+        "type": "BAT"
+       }
+      ]
+     }
+    ]
+   }
+  ]
+ },
+ "barras": [
+  {
+   "id": "BAT",
+   "node": "BAT",
+   "nome": "Barra 138 kV",
+   "nivel": "AT"
+  },
+  {
+   "id": "MT-1",
+   "node": "MT1",
+   "nome": "Barra MT-1",
+   "nivel": "MT",
+   "tp": "TP-B1"
+  },
+  {
+   "id": "MT-2",
+   "node": "MT2",
+   "nome": "Barra MT-2",
+   "nivel": "MT",
+   "tp": "TP-B2"
+  }
+ ],
+ "trafos": {
+  "T1": {
+   "at": "52-T1",
+   "mt": "52-T1M",
+   "barra": "MT-1"
+  },
+  "T2": {
+   "at": "52-T2",
+   "mt": "52-T2M",
+   "barra": "MT-2"
+  }
+ },
+ "paralelo": {
+  "disjuntor": "52-P",
+  "barras": [
+   "MT-1",
+   "MT-2"
+  ],
+  "trafos": [
+   "T1",
+   "T2"
+  ],
+  "mestre": "T1"
+ }
+}

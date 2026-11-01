@@ -1,0 +1,66 @@
+{
+  "versao": "1.0.0",
+  "_nota": "FMEA didática por tipo de equipamento. Estrutura: componente, modo de falha, causa, efeito (local e no sistema), como detectar, ação. Severidade (S), ocorrência (O) e detecção (D) de 1 a 10; NPR = S × O × D. Os números são ESTIMATIVAS DIDÁTICAS [VALIDAR com a engenharia de manutenção]. 'falhas' liga ao catálogo F01–F25 do simulador.",
+  "escala": { "S": "1 = sem efeito · 10 = risco à vida / perda total", "O": "1 = remota · 10 = quase certa", "D": "1 = detecta sempre (alarme) · 10 = não detecta antes de falhar" },
+  "tipos": {
+    "disjuntor_at": { "nome": "Disjuntor 145 kV SF6 (tanque vivo)", "modos": [
+      { "comp": "Gás SF6", "modo": "Perda de densidade", "causa": "Vazamento em vedação/flange, variação térmica", "efeito": "Est. 1 alarme; est. 2 bloqueia comando (I-07)", "detecta": "Densímetro com contatos (alarme e bloqueio), leitura na ronda", "acao": "Comunicar, completar gás com equipe habilitada, não manobrar em est. 2", "S": 8, "O": 4, "D": 2, "falhas": ["F08"] },
+      { "comp": "Mecanismo de mola", "modo": "Mola não carrega", "causa": "Motor de carregamento, fim de curso, falta de CA/CC", "efeito": "Não fecha (I-07); abre uma vez", "detecta": "Indicador de mola e alarme 'mola descarregada'", "acao": "Verificar alimentação do motor e fim de curso; manutenção", "S": 6, "O": 4, "D": 2, "falhas": ["F07"] },
+      { "comp": "Bobina de abertura / mecanismo", "modo": "Não abre sob comando ou trip", "causa": "Bobina queimada, travamento mecânico, falta de CC", "efeito": "50BF atua, 86BF abre a montante (perda maior de carga)", "detecta": "Discordância de posição, 50BF, supervisão de bobina (74TC)", "acao": "Isolar pelo disjuntor a montante, liberação de emergência só com barra morta", "S": 10, "O": 2, "D": 4, "falhas": ["F05"] },
+      { "comp": "Bobina de fechamento", "modo": "Não fecha", "causa": "Bobina, contato auxiliar, 86 atuado, intertravamento", "efeito": "Comando falha; carga sem retorno", "detecta": "Discordância de comando", "acao": "Verificar 86, mola, intertravamentos; manutenção", "S": 5, "O": 3, "D": 2, "falhas": ["F06"] },
+      { "comp": "Contatos principais", "modo": "Desgaste / aquecimento", "causa": "Número de operações, interrupção de curtos", "efeito": "Ponto quente, risco de falha na interrupção", "detecta": "Contador de operações, termografia, resistência de contato", "acao": "Manutenção por número de operações/condição", "S": 7, "O": 3, "D": 6, "falhas": [] }
+    ] },
+    "disjuntor_mt": { "nome": "Disjuntor 15 kV a vácuo extraível (cubículo metal-clad)", "modos": [
+      { "comp": "Mecanismo", "modo": "Não abre", "causa": "Travamento, bobina, falta de CC", "efeito": "50BF → 86BF → perde a barra (C2)", "detecta": "Posição fechado com corrente após trip, 50BF", "acao": "Não rearmar o 86BF com o disjuntor na barra; liberação de emergência I-14 com barra morta", "S": 10, "O": 2, "D": 4, "falhas": ["F05"] },
+      { "comp": "Mola", "modo": "Não carrega", "causa": "Motor, fim de curso", "efeito": "Não fecha", "detecta": "Lâmpada/indicador de mola", "acao": "Manutenção", "S": 5, "O": 4, "D": 2, "falhas": ["F07"] },
+      { "comp": "Contatos de extração (garras)", "modo": "Aquecimento", "causa": "Pressão de contato baixa, inserção incompleta", "efeito": "Ponto quente no compartimento de barras", "detecta": "Etiqueta térmica, termografia", "acao": "Programar desligamento, inspecionar garras", "S": 7, "O": 3, "D": 5, "falhas": [] },
+      { "comp": "Ampola de vácuo", "modo": "Perda de vácuo", "causa": "Envelhecimento, dano", "efeito": "Não interrompe corrente", "detecta": "Ensaio de integridade do vácuo", "acao": "Substituir ampola", "S": 9, "O": 2, "D": 7, "falhas": [] },
+      { "comp": "Sinalização", "modo": "Lâmpada queimada", "causa": "Fim de vida", "efeito": "Indicação de estado ausente (erro de leitura)", "detecta": "Ronda, teste de lâmpadas", "acao": "Trocar lâmpada (baixa tensão)", "S": 3, "O": 5, "D": 4, "falhas": [] }
+    ] },
+    "seccionadora_at": { "nome": "Seccionadora 145 kV de abertura vertical (motorizada)", "modos": [
+      { "comp": "Mecanismo / articulação", "modo": "Emperrada (não abre ou não fecha)", "causa": "Falta de lubrificação, corrosão, gelo, desalinhamento", "efeito": "Não isola o trecho; atraso na manobra", "detecta": "Discordância de posição, inspeção visual", "acao": "Não forçar; comunicar; manutenção", "S": 6, "O": 4, "D": 3, "falhas": ["F21"] },
+      { "comp": "Lâminas / contatos", "modo": "Aquecimento", "causa": "Contato mal fechado, oxidação", "efeito": "Ponto quente, risco de queda do condutor", "detecta": "Termografia, inspeção visual", "acao": "Programar manutenção", "S": 7, "O": 3, "D": 5, "falhas": [] },
+      { "comp": "Uso indevido", "modo": "Abertura sob carga", "causa": "Bypass do I-01, erro de sequência", "efeito": "Arco na seccionadora, dano e risco à vida", "detecta": "Intertravamento I-01", "acao": "Seccionadora só opera com disjuntor aberto", "S": 10, "O": 1, "D": 2, "falhas": [] }
+    ] },
+    "chave_terra": { "nome": "Chave de terra (89T) / lâmina de terra", "modos": [
+      { "comp": "Uso indevido", "modo": "Fechamento com o trecho energizado", "causa": "Falta de constatação, bypass do I-02", "efeito": "Curto franco, arco, risco à vida", "detecta": "Intertravamento I-02 + constatação", "acao": "Seccionar, impedir, constatar e só então aterrar", "S": 10, "O": 1, "D": 2, "falhas": [] },
+      { "comp": "Contato de terra", "modo": "Mau contato", "causa": "Oxidação, desalinhamento", "efeito": "Aterramento ineficaz", "detecta": "Inspeção visual, ensaio de resistência", "acao": "Manutenção; usar aterramento temporário adicional", "S": 8, "O": 2, "D": 6, "falhas": [] }
+    ] },
+    "tc": { "nome": "Transformador de corrente (TC)", "modos": [
+      { "comp": "Secundário", "modo": "Circuito secundário aberto", "causa": "Borne solto, desconexão sem curto-circuitar", "efeito": "Sobretensão perigosa no secundário, aquecimento, 87T indevido", "detecta": "Perda de medição, ruído, alarme diferencial", "acao": "Não aproximar; abrir o disjuntor remoto; manutenção curto-circuita o TC", "S": 9, "O": 2, "D": 5, "falhas": ["F18"] },
+      { "comp": "Isolação (óleo)", "modo": "Degradação", "causa": "Umidade, envelhecimento", "efeito": "Falha interna, explosão", "detecta": "Ensaio de óleo e de fator de potência", "acao": "Manutenção preditiva", "S": 9, "O": 2, "D": 7, "falhas": [] }
+    ] },
+    "tp": { "nome": "Transformador de potencial (TP)", "modos": [
+      { "comp": "Fusível do secundário", "modo": "Queimado", "causa": "Curto no secundário", "efeito": "Medição zerada, 27/81 indevido", "detecta": "Perda de medição de uma fase", "acao": "Bloquear funções por tensão (60), trocar fusível", "S": 6, "O": 3, "D": 3, "falhas": ["F19"] }
+    ] },
+    "pararaios": { "nome": "Para-raios ZnO 138 kV", "modos": [
+      { "comp": "Blocos de ZnO", "modo": "Degradação / falha", "causa": "Surtos repetidos, umidade", "efeito": "Corrente de fuga alta, falha à terra", "detecta": "Contador de descargas e miliamperímetro de fuga, termografia", "acao": "Registrar leitura na ronda, comparar com histórico", "S": 8, "O": 2, "D": 5, "falhas": [] }
+    ] },
+    "trafo": { "nome": "Transformador de potência 138/13,8 kV 20/25 MVA", "modos": [
+      { "comp": "Parte ativa", "modo": "Falta interna", "causa": "Falha de isolação entre espiras", "efeito": "87T + 63 desligam (86T); risco de incêndio", "detecta": "87T, Buchholz, análise de gases do óleo", "acao": "Não reenergizar sem ensaios", "S": 10, "O": 2, "D": 4, "falhas": ["F23"] },
+      { "comp": "Óleo / Buchholz", "modo": "Formação de gás", "causa": "Ponto quente, descarga parcial", "efeito": "Est. 1 alarme; est. 2 trip (86T)", "detecta": "Relé 63 (visor), análise cromatográfica", "acao": "Comunicar, reduzir carga se orientado, coletar gás", "S": 8, "O": 3, "D": 3, "falhas": ["F14"] },
+      { "comp": "Arrefecimento", "modo": "Temperatura alta", "causa": "Sobrecarga, ventilação parada, radiador sujo", "efeito": "26/49 alarme e trip; envelhecimento", "detecta": "Termômetros de óleo e enrolamento", "acao": "Ligar ventilação forçada, aliviar carga", "S": 7, "O": 4, "D": 2, "falhas": ["F13", "F15"] },
+      { "comp": "Tanque / vedação", "modo": "Nível de óleo baixo", "causa": "Vazamento", "efeito": "71 alarme; risco de exposição da parte ativa", "detecta": "Indicador de nível (71), inspeção visual", "acao": "Localizar vazamento, programar reposição", "S": 7, "O": 3, "D": 3, "falhas": ["F16"] },
+      { "comp": "OLTC (comutador)", "modo": "Travado ou 'caçando'", "causa": "Motor, controle, contatos", "efeito": "Tensão fora da faixa", "detecta": "Tensão de barra, posição de TAP, alarme do 90", "acao": "Passar para manual e regular; manutenção", "S": 5, "O": 3, "D": 3, "falhas": ["F17"] },
+      { "comp": "Buchas", "modo": "Má conexão / aquecimento", "causa": "Conexão frouxa", "efeito": "Ponto quente, falha da bucha", "detecta": "Termografia, inspeção", "acao": "Reaperto programado", "S": 8, "O": 4, "D": 5, "falhas": [] }
+    ] },
+    "rele": { "nome": "Relé de proteção (IED)", "modos": [
+      { "comp": "Ajuste", "modo": "Ajuste incorreto", "causa": "Erro de parametrização", "efeito": "Não atua ou atua indevidamente", "detecta": "Ensaio de injeção (M3), estudo de coordenação", "acao": "Revisar ajustes com a engenharia de proteção", "S": 8, "O": 3, "D": 6, "falhas": [] },
+      { "comp": "Fonte CC", "modo": "Sem alimentação", "causa": "Perda de CC", "efeito": "Proteção inoperante (C3)", "detecta": "LED de watchdog, alarme de CC", "acao": "Restabelecer CC; desligamento controlado se necessário", "S": 10, "O": 2, "D": 2, "falhas": ["F09", "F12"] }
+    ] },
+    "bateria": { "nome": "Banco de baterias 125 Vcc", "modos": [
+      { "comp": "Elementos", "modo": "Capacidade baixa / descarga", "causa": "Envelhecimento, falta de CA no carregador", "efeito": "Autonomia reduzida; sem CC nada atua", "detecta": "Tensão e corrente CC, ensaio de capacidade", "acao": "Restabelecer carregadores; plano de desligamento controlado", "S": 10, "O": 3, "D": 3, "falhas": ["F09", "F12"] },
+      { "comp": "Isolação CC", "modo": "Terra no sistema CC", "causa": "Umidade, cabo danificado", "efeito": "Alarme; segundo terra pode causar trip ou bloqueio indevido", "detecta": "Detector de terra CC", "acao": "Localizar por seccionamento de circuitos (manutenção)", "S": 7, "O": 4, "D": 2, "falhas": ["F11"] }
+    ] },
+    "retificador": { "nome": "Retificador / carregador", "modos": [
+      { "comp": "Eletrônica", "modo": "Falha", "causa": "Componente, falta de CA", "efeito": "Bateria assume a carga", "detecta": "Alarme de falha de retificador", "acao": "Transferir para o outro retificador, manutenção", "S": 6, "O": 3, "D": 2, "falhas": ["F10"] }
+    ] },
+    "qgca": { "nome": "QGCA com transferência automática (ATS)", "modos": [
+      { "comp": "Disjuntor geral", "modo": "Desarme", "causa": "Sobrecarga, curto em circuito CA", "efeito": "Perda de CA, retificadores param (C3)", "detecta": "Alarme 'QGCA sem CA'", "acao": "Rearmar uma vez; se desarmar de novo, isolar circuito com defeito", "S": 8, "O": 3, "D": 2, "falhas": ["F09"] }
+    ] },
+    "cabo_mt": { "nome": "Cabo e terminação MT 15 kV", "modos": [
+      { "comp": "Terminação", "modo": "Falha de isolação", "causa": "Montagem, umidade, envelhecimento", "efeito": "Falta à terra no alimentador", "detecta": "50N/51N do alimentador, termografia", "acao": "Liberar o alimentador (M1) para manutenção", "S": 8, "O": 3, "D": 5, "falhas": ["F01", "F03"] }
+    ] }
+  },
+  "mapaTipos": { "CBR:at": "disjuntor_at", "CBR:mt": "disjuntor_mt", "DIS:line": "seccionadora_at", "DIS:earthing": "chave_terra", "CTR": "tc", "VTR": "tp", "PTR": "trafo", "FUS": "tp", "BAT": "bateria", "RET": "retificador", "ATS": "qgca", "LOAD": "cabo_mt" }
+}

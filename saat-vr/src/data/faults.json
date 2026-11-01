@@ -1,0 +1,31 @@
+{
+  "versao": "1.0.0",
+  "_nota": "Catálogo F01–F25 (anexo, seção 8). mvp=false: fora do escopo desta entrega.",
+  "falhas": [
+    { "id": "F01", "nome": "Falta fase-terra permanente em ALn", "alvos": ["AL1", "AL2", "AL3", "AL4"], "efeito": "51N/50N → 79 → bloqueio", "prim": { "t": "falta", "tipo": "1f", "permanente": true }, "mvp": true },
+    { "id": "F02", "nome": "Falta transitória em ALn", "alvos": ["AL1", "AL2", "AL3", "AL4"], "efeito": "79 religa com sucesso", "prim": { "t": "falta", "tipo": "1f", "permanente": false }, "mvp": true },
+    { "id": "F03", "nome": "Falta bifásica em ALn", "alvos": ["AL1", "AL2", "AL3", "AL4"], "efeito": "50/51", "prim": { "t": "falta", "tipo": "2f", "permanente": true }, "mvp": true },
+    { "id": "F04", "nome": "Falta trifásica na barra MT", "alvos": ["MT-1", "MT-2"], "efeito": "51 MT / 87T conforme zona", "prim": { "t": "falta", "tipo": "3f", "permanente": true }, "mvp": true },
+    { "id": "F05", "nome": "Disjuntor trava fechado", "alvos": ["52-AL1", "52-AL2", "52-AL3", "52-AL4", "52-T1M", "52-T2M", "52-T1", "52-T2", "52-P", "52-LT1"], "efeito": "50BF", "prim": { "t": "travar", "modo": "fechado" }, "mvp": true },
+    { "id": "F06", "nome": "Disjuntor não fecha", "alvos": ["52-AL1", "52-AL2", "52-AL3", "52-AL4", "52-T1M", "52-T2M", "52-T1", "52-T2", "52-P", "52-LT1"], "efeito": "Alarme, comando falha", "prim": { "t": "travar", "modo": "naofecha" }, "mvp": true },
+    { "id": "F07", "nome": "Mola não carregada / motor de mola", "alvos": ["52-AL1", "52-AL2", "52-AL3", "52-AL4", "52-T1M", "52-T2M", "52-T1", "52-T2", "52-P", "52-LT1"], "efeito": "I-07", "prim": { "t": "mola" }, "mvp": true },
+    { "id": "F08", "nome": "SF6 est. 1 / est. 2", "alvos": ["52-LT1", "52-T1", "52-T2"], "efeito": "Alarme / bloqueio", "prim": { "t": "sf6" }, "niveis": [1, 2], "mvp": true },
+    { "id": "F09", "nome": "Perda de CA no QGCA", "alvos": ["QGCA"], "efeito": "C3", "prim": { "t": "ca" }, "mvp": true },
+    { "id": "F10", "nome": "Falha de RT1/RT2", "alvos": ["RT1", "RT2"], "efeito": "Bateria assume", "prim": { "t": "retificador" }, "mvp": true },
+    { "id": "F11", "nome": "Terra CC", "alvos": ["CC"], "efeito": "Alarme", "prim": { "t": "terracc" }, "mvp": true },
+    { "id": "F12", "nome": "Subtensão CC", "alvos": ["CC"], "efeito": "Alarme / crítico", "prim": { "t": "vcc" }, "niveis": [105, 95, 70], "mvp": true },
+    { "id": "F13", "nome": "Sobrecarga térmica de trafo", "alvos": ["T1", "T2"], "efeito": "49/26", "prim": { "t": "temp", "deltaC": 45 }, "mvp": true },
+    { "id": "F14", "nome": "Buchholz est. 1 / est. 2", "alvos": ["T1", "T2"], "efeito": "C5", "prim": { "t": "buchholz" }, "niveis": [1, 2], "mvp": true },
+    { "id": "F15", "nome": "Temperatura de óleo alta", "alvos": ["T1", "T2"], "efeito": "Ventilação / alarme", "prim": { "t": "temp", "deltaC": 30 }, "mvp": true },
+    { "id": "F16", "nome": "Nível de óleo baixo", "alvos": ["T1", "T2"], "efeito": "71", "prim": { "t": "nivel" }, "mvp": true },
+    { "id": "F17", "nome": "OLTC travado ou \"caçando\"", "alvos": ["T1", "T2"], "efeito": "Tensão fora da faixa", "prim": { "t": "oltc" }, "mvp": true, "obs": "MVP: só travado" },
+    { "id": "F18", "nome": "TC aberto", "alvos": [], "efeito": "C6, 87T indevido", "mvp": false },
+    { "id": "F19", "nome": "Fusível de TP queimado", "alvos": [], "efeito": "27/81 indevido, bloqueio por 60", "mvp": false },
+    { "id": "F20", "nome": "Perda da LT-01", "alvos": ["LT-01"], "efeito": "E3", "prim": { "t": "fonte" }, "mvp": true },
+    { "id": "F21", "nome": "Seccionadora emperrada", "alvos": ["89-LT1-1", "89-LT1-2", "89-T1-1", "89-T1-2", "89-T2-1", "89-T2-2"], "efeito": "Não abre; não forçar", "prim": { "t": "travar", "modo": "emperrada" }, "mvp": true },
+    { "id": "F22", "nome": "Perda de supervisão remota", "alvos": ["SE"], "efeito": "Só operação local", "prim": { "t": "supervisao" }, "mvp": true },
+    { "id": "F23", "nome": "Incêndio no trafo", "alvos": ["T1", "T2"], "efeito": "E1", "prim": { "t": "incendio" }, "mvp": true },
+    { "id": "F24", "nome": "Arco interno em cubículo MT", "alvos": [], "efeito": "E2", "mvp": false },
+    { "id": "F25", "nome": "Animal no barramento", "alvos": ["MT-1", "MT-2"], "efeito": "Falta transitória", "prim": { "t": "falta", "tipo": "3f", "permanente": false }, "mvp": true }
+  ]
+}

@@ -1,0 +1,148 @@
+{
+  "versao": "2.0.0",
+  "_nota": "Todo valor marcado VALIDAR no anexo é parâmetro editável aqui. Campos _validar listam o que o engenheiro deve confirmar.",
+  "base": {
+    "mva": 25
+  },
+  "fonte": {
+    "kV": 138,
+    "icc3kA": 8.0,
+    "_validar": "Icc 3f em 138 kV"
+  },
+  "trafo": {
+    "kVat": 138,
+    "kVmt": 13.8,
+    "mvaONAN": 20,
+    "mvaONAF1": 22.5,
+    "mvaONAF": 25,
+    "zPu": 0.09,
+    "z0Pu": 0.09,
+    "grupo": "Dyn1",
+    "neutroMT": "solido",
+    "oltc": {
+      "degraus": 8,
+      "passoPu": 0.0125,
+      "tapInicial": 1,
+      "alvoPu": 1.0,
+      "bandaPu": 0.015,
+      "atrasoS": 30
+    },
+    "_validar": "Z, grupo vetorial, OLTC, aterramento do neutro; mvaONAF1 (1 grupo de ventilação) e tapInicial são DECISÃO do simulador"
+  },
+  "carga": {
+    "fp": 0.92,
+    "alimentadores": {
+      "AL1": 5.5,
+      "AL2": 4.5,
+      "AL3": 5.0,
+      "AL4": 4.0
+    },
+    "curva": {
+      "madrugada": 0.45,
+      "dia": 0.8,
+      "ponta": 1.0
+    },
+    "diaQuente": 1.2,
+    "nivelInicial": 1.0
+  },
+  "disjuntor": {
+    "mt": {
+      "kA": 25,
+      "aberturaMs": 50,
+      "fechamentoMs": 50,
+      "_validar": "capacidade 16 ou 25 kA; tempo de abertura (resposta do usuário: 25 kA, 50 ms)"
+    },
+    "at": {
+      "kA": 31.5,
+      "aberturaMs": 50,
+      "fechamentoMs": 50,
+      "_validar": "capacidade e tempo de abertura do 145 kV não constam no anexo"
+    },
+    "molaCargaMs": 5000
+  },
+  "manobra": {
+    "seccionadoraMs": 4000,
+    "terraMs": 1500,
+    "extracaoMs": 3000,
+    "_decisao": "tempos de curso didáticos"
+  },
+  "paralelismo": {
+    "politica": "permitido",
+    "permiteBarraMorta": true,
+    "dTapMax": 1,
+    "dVmaxPu": 0.03,
+    "_validar": "I-05 exige ambas as barras energizadas, mas C2/C4/E1 mandam fechar 52-P sobre barra morta. Tratado como modo barra-morta do 25."
+  },
+  "barraMT": {
+    "u27Pu": 0.8,
+    "t27S": 3,
+    "u59Pu": 1.1,
+    "t59S": 10
+  },
+  "cc": {
+    "nominalV": 125,
+    "flutuacaoV": 135,
+    "alarmeV": 108,
+    "criticoV": 100,
+    "sobreV": 150,
+    "mortoV": 80,
+    "fimDescargaV": 105,
+    "autonomiaH": 4,
+    "compressao": 12,
+    "_validar": "autonomia, flutuação e limites; curva de descarga linear é DECISÃO"
+  },
+  "sa": {
+    "atsAtrasoS": 2,
+    "_decisao": "atraso da transferência automática"
+  },
+  "termico": {
+    "ambienteC": 30,
+    "elevOleoNominalK": 55,
+    "gradEnrolK": 23,
+    "expoente": 1.6,
+    "tauMin": 180,
+    "compressao": 12,
+    "ventG1C": 65,
+    "ventG2C": 75,
+    "_validar": "modelo de 1ª ordem simplificado; nenhum destes parâmetros térmicos consta no anexo, exceto os limiares de ventilação"
+  },
+  "protecaoRemota": {
+    "atrasoS": 1.5,
+    "_validar": "anexo diz apenas 'com atraso'"
+  },
+  "inrush": {
+    "minPu": 6,
+    "maxPu": 8,
+    "h2MinPct": 20,
+    "h2MaxPct": 40
+  },
+  "falta": {
+    "fator2f": 0.866,
+    "_validar": "I2f = 0,866 x I3f; falta no terminal do alimentador (sem impedância de linha, dado ausente)"
+  },
+  "instrumentos": {
+    "sf6": {
+      "nominalBar": 6.0,
+      "est1Bar": 5.4,
+      "est2Bar": 5.1,
+      "_validar": "Densidade SF6 (bar abs. a 20 °C) depende do fabricante. Valores didáticos."
+    },
+    "opsFaixa": [
+      800,
+      4200
+    ],
+    "pararaiosFaixa": [
+      0,
+      40
+    ],
+    "oltcOpsFaixa": [
+      15000,
+      60000
+    ],
+    "_nota": "Leituras de campo (manômetros, contadores) geradas por semente a partir destas faixas. Não são dados do anexo."
+  },
+  "ventilacao": {
+    "manualForca": 2,
+    "_decisao": "Comando manual da ventilação forçada liga os dois grupos (M2/C4)."
+  }
+}

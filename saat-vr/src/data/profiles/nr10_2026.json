@@ -1,0 +1,21 @@
+{
+  "id": "nr10_2026", "nome": "Nova NR-10 (Portaria MTE 737/2026), vigência 01/06/2027",
+  "status": "NÃO CONFIRMADO NO TEXTO OFICIAL (pendência 3). Ordem provisória conforme artigo técnico citado no anexo: seccionamento → constatação → impedimento → aterramento. Publicações divergentes citam 7 etapas.",
+  "desenergizacao": [
+    { "id": "seccionamento", "nome": "Seccionamento" },
+    { "id": "constatacao", "nome": "Constatação da ausência de tensão" },
+    { "id": "impedimento", "nome": "Impedimento de reenergização" },
+    { "id": "aterramento", "nome": "Aterramento temporário com equipotencialização" },
+    { "id": "protecao", "nome": "Proteção dos elementos energizados na zona controlada" },
+    { "id": "sinalizacao", "nome": "Sinalização de impedimento de reenergização" }
+  ],
+  "reenergizacao": [
+    { "id": "r_ferramentas", "nome": "Retirada de ferramentas, utensílios e equipamentos" },
+    { "id": "r_pessoas", "nome": "Retirada dos trabalhadores não envolvidos da zona controlada" },
+    { "id": "r_aterramento", "nome": "Remoção do aterramento, equipotencialização e proteções adicionais" },
+    { "id": "r_sinalizacao", "nome": "Remoção da sinalização" },
+    { "id": "r_religacao", "nome": "Destravamento e religação dos dispositivos de seccionamento" }
+  ],
+  "paresCriticos": [["seccionamento", "constatacao"], ["seccionamento", "impedimento"], ["seccionamento", "aterramento"], ["constatacao", "aterramento"], ["impedimento", "aterramento"], ["r_aterramento", "r_religacao"]],
+  "boaPratica": {}
+}

@@ -1,0 +1,372 @@
+{
+  "versao": "1.0.0",
+  "_nota": "Modelos genéricos de OS, APR e PT para treinamento. Estrutura baseada em POP público de trabalhos em eletricidade (APR em equipe, PT antes da atividade, LOTO, reenergização) e na NR-10 (10.5.1, 10.5.2, 10.7.3). Trocar pelos modelos da empresa quando houver. [VALIDAR]",
+  "riscos": [
+    {
+      "id": "choque",
+      "nome": "Choque elétrico por contato com parte energizada",
+      "controles": [
+        "desenergizar_nr10",
+        "constatacao",
+        "aterramento",
+        "luvas",
+        "distancias"
+      ]
+    },
+    {
+      "id": "arco",
+      "nome": "Arco elétrico (queimadura, explosão)",
+      "controles": [
+        "remoto",
+        "epi_arco",
+        "porta_fechada",
+        "distancias"
+      ]
+    },
+    {
+      "id": "reenergizacao",
+      "nome": "Reenergização acidental durante o serviço",
+      "controles": [
+        "loto",
+        "aterramento",
+        "sinalizacao",
+        "comunicacao_cos",
+        "bloq79"
+      ]
+    },
+    {
+      "id": "inducao",
+      "nome": "Tensão induzida / carga residual",
+      "controles": [
+        "aterramento",
+        "constatacao"
+      ]
+    },
+    {
+      "id": "passo_toque",
+      "nome": "Tensão de passo e de toque no pátio",
+      "controles": [
+        "malha_ok",
+        "distancias",
+        "clima"
+      ]
+    },
+    {
+      "id": "queda_mesmo_nivel",
+      "nome": "Queda de mesmo nível (brita, canaletas, cabos)",
+      "controles": [
+        "atencao_piso",
+        "iluminacao"
+      ]
+    },
+    {
+      "id": "animais",
+      "nome": "Animais peçonhentos no pátio e em canaletas",
+      "controles": [
+        "atencao_piso",
+        "luvas_mecanicas"
+      ]
+    },
+    {
+      "id": "sf6",
+      "nome": "Exposição a SF6 e subprodutos (vazamento em disjuntor)",
+      "controles": [
+        "ventilacao",
+        "nao_abrir_camara"
+      ]
+    },
+    {
+      "id": "ergonomico",
+      "nome": "Esforço com manivela/extração",
+      "controles": [
+        "postura",
+        "dupla"
+      ]
+    },
+    {
+      "id": "eletrolito",
+      "nome": "Respingo de eletrólito e hidrogênio na sala de baterias",
+      "controles": [
+        "epi_quimico",
+        "ventilacao",
+        "proibido_chama"
+      ]
+    },
+    {
+      "id": "clima",
+      "nome": "Descarga atmosférica / chuva no pátio",
+      "controles": [
+        "clima"
+      ]
+    },
+    {
+      "id": "incendio",
+      "nome": "Incêndio em equipamento com óleo",
+      "controles": [
+        "extintor",
+        "rota_fuga",
+        "plano_emergencia"
+      ]
+    },
+    {
+      "id": "trabalho_isolado",
+      "nome": "Trabalho individual em instalação energizada ou no SEP",
+      "controles": [
+        "dupla"
+      ]
+    },
+    {
+      "id": "ruido",
+      "nome": "Ruído (ventilação de trafo, manobra de disjuntor)",
+      "controles": [
+        "protetor_auricular"
+      ]
+    }
+  ],
+  "controles": {
+    "desenergizar_nr10": "Desenergizar na ordem do perfil NR-10 (seccionamento, impedimento, constatação, aterramento, proteção, sinalização)",
+    "constatacao": "Constatar ausência de tensão com detector adequado, testado antes e depois",
+    "aterramento": "Aterrar com equipotencialização (chave de terra ou conjunto temporário)",
+    "luvas": "Luva isolante classe adequada + luva de cobertura, inspecionadas",
+    "distancias": "Respeitar zona de risco e zona controlada (NR-10, tabela de raios)",
+    "remoto": "Manobrar por comando remoto sempre que disponível",
+    "epi_arco": "Vestimenta antichama, protetor facial e balaclava",
+    "porta_fechada": "Inserir/extrair o disjuntor com a porta do cubículo fechada",
+    "loto": "Cadeado pessoal + etiqueta em cada ponto de seccionamento",
+    "sinalizacao": "Sinalização NÃO OPERAR e delimitação da área",
+    "comunicacao_cos": "Read-back das ordens e comunicação com o COS",
+    "bloq79": "Bloquear o religamento automático (79)",
+    "malha_ok": "Não interromper conexões da malha de aterramento",
+    "atencao_piso": "Atenção ao piso, tampas de canaleta fechadas",
+    "iluminacao": "Iluminação adequada / lanterna",
+    "luvas_mecanicas": "Luvas de vaqueta para mexer em tampas e canaletas",
+    "ventilacao": "Ventilar o ambiente antes e durante o serviço",
+    "nao_abrir_camara": "Não abrir câmara de disjuntor SF6 sem equipe e procedimento próprios",
+    "postura": "Postura correta e ferramenta adequada",
+    "dupla": "Trabalho em dupla no mínimo (NR-10, 10.7.3)",
+    "epi_quimico": "Luva de PVC e óculos de ampla visão",
+    "proibido_chama": "Proibido fumar e fazer chama ou faísca",
+    "clima": "Suspender serviço no pátio com chuva ou descargas atmosféricas",
+    "extintor": "Extintor adequado (CO₂/PQS) acessível",
+    "rota_fuga": "Rota de fuga livre e ponto de encontro definido",
+    "plano_emergencia": "Seguir o Plano de Atendimento a Emergências",
+    "protetor_auricular": "Protetor auricular perto de fontes de ruído"
+  },
+  "pt": [
+    {
+      "id": "equipe",
+      "texto": "Equipe autorizada (NR-10 básico + SEP) e em dupla",
+      "auto": true
+    },
+    {
+      "id": "apr",
+      "texto": "APR feita em equipe e assinada",
+      "flag": "apr_ok"
+    },
+    {
+      "id": "epi",
+      "texto": "EPI conferido e inspecionado por todos",
+      "flag": "epi_ok"
+    },
+    {
+      "id": "bloqueios",
+      "texto": "Bloqueios (LOTO) aplicados nos pontos de seccionamento",
+      "etapa": "impedimento"
+    },
+    {
+      "id": "constatacao",
+      "texto": "Ausência de tensão constatada (detector testado antes e depois)",
+      "etapa": "constatacao"
+    },
+    {
+      "id": "aterramento",
+      "texto": "Aterramento instalado no ponto de trabalho",
+      "etapa": "aterramento"
+    },
+    {
+      "id": "sinalizacao",
+      "texto": "Área sinalizada e delimitada",
+      "etapa": "sinalizacao"
+    },
+    {
+      "id": "cos",
+      "texto": "COS informado (ordem com read-back)",
+      "auto": true
+    }
+  ],
+  "ordens": {
+    "R1": {
+      "numero": "OS-R1-{n}",
+      "tipo": "Inspeção de rotina",
+      "titulo": "Ronda de inspeção da SE Vale Verde",
+      "local": "Pátio 138 kV, casa de comando, sala de baterias",
+      "descricao": "Percorrer a SE, verificar o estado dos equipamentos e relatar qualquer anomalia ao COS. Não manobrar sem ordem.",
+      "riscos": [
+        "queda_mesmo_nivel",
+        "animais",
+        "passo_toque",
+        "eletrolito",
+        "ruido",
+        "clima"
+      ],
+      "epiTarefas": [
+        "patio",
+        "bateria"
+      ]
+    },
+    "R2": {
+      "numero": "OS-R2-{n}",
+      "tipo": "Operação",
+      "titulo": "Regulação de tensão da MT-1 e leitura de grandezas",
+      "local": "Sala de comando (supervisório) e painel do TR-01 no pátio",
+      "descricao": "Tensão da MT-1 abaixo da faixa na ponta, com o OLTC do T1 em manual. Subir degrau a degrau sem 'caçar', anotar as grandezas na folha de leitura e informar o COS.",
+      "riscos": [
+        "queda_mesmo_nivel",
+        "ruido",
+        "passo_toque",
+        "clima"
+      ],
+      "epiTarefas": [
+        "patio"
+      ]
+    },
+    "C1": {
+      "numero": "RO-C1-{n}",
+      "tipo": "Atendimento a ocorrência",
+      "titulo": "Desligamento do alimentador AL2",
+      "local": "Supervisório e cubículo AL2",
+      "descricao": "Atender ao desligamento do AL2: ler as indicações, comunicar o COS, decidir sobre religamento conforme a política e registrar.",
+      "riscos": [
+        "arco",
+        "reenergizacao"
+      ],
+      "epiTarefas": [
+        "manobra_local_mt"
+      ],
+      "semAPR": true
+    },
+    "M1": {
+      "numero": "OM-001",
+      "tipo": "Manutenção programada",
+      "titulo": "Liberar AL1 para manutenção na terminação do cabo e inspeção do disjuntor 52-AL1",
+      "local": "Cubículo AL1 (PDMT, casa de comando)",
+      "descricao": "Desenergizar AL1 na ordem do perfil NR-10, emitir a PT, acompanhar o serviço e devolver ao COS.",
+      "riscos": [
+        "choque",
+        "arco",
+        "reenergizacao",
+        "inducao",
+        "ergonomico",
+        "trabalho_isolado"
+      ],
+      "epiTarefas": [
+        "extracao_mt",
+        "constatacao_mt",
+        "aterramento_mt",
+        "bloqueio"
+      ]
+    },
+    "M2": {
+      "numero": "OM-002",
+      "tipo": "Manutenção programada",
+      "titulo": "Retirar o TR-01 (T1) de operação sem cortar carga e devolver",
+      "local": "Pátio 138 kV (bay do T1), TR-01, cubículo T1M",
+      "descricao": "Transferir a carga da MT-1 para o T2 pelo paralelo 52-P, isolar o T1 pelo AT e pelo MT, liberar para a manutenção com PT e devolver ao serviço energizando pelo AT. Serviço da manutenção: [VALIDAR com a manutenção].",
+      "riscos": [
+        "choque",
+        "arco",
+        "reenergizacao",
+        "inducao",
+        "passo_toque",
+        "sf6",
+        "ergonomico",
+        "trabalho_isolado",
+        "clima",
+        "ruido"
+      ],
+      "epiTarefas": [
+        "patio",
+        "extracao_mt",
+        "constatacao_mt",
+        "constatacao_at",
+        "aterramento_at",
+        "aterr_temp_mt",
+        "bloqueio"
+      ]
+    },
+    "C2": {
+      "numero": "RO-C2-{n}",
+      "tipo": "Atendimento a ocorrência",
+      "titulo": "Ocorrência na barra MT-1",
+      "local": "Supervisório e cubículos MT",
+      "descricao": "Atender à ocorrência, isolar o defeito e recompor a barra com segurança.",
+      "riscos": [
+        "arco",
+        "choque",
+        "reenergizacao"
+      ],
+      "epiTarefas": [
+        "extracao_mt",
+        "constatacao_mt",
+        "aterramento_mt"
+      ],
+      "semAPR": true
+    },
+    "E1": {
+      "numero": "RO-E1-{n}",
+      "tipo": "Emergência",
+      "titulo": "Emergência na SE",
+      "local": "SE Vale Verde",
+      "descricao": "Seguir o Plano de Atendimento a Emergências.",
+      "riscos": [
+        "incendio"
+      ],
+      "epiTarefas": [],
+      "semAPR": true
+    },
+    "S1": {
+      "numero": "RO-S1-{n}",
+      "tipo": "Emergência",
+      "titulo": "Acidente com vítima — choque elétrico no PDMT",
+      "local": "Casa de comando · cubículo AL3",
+      "descricao": "Plano de Atendimento a Emergências: isolar a fonte, não tocar na vítima energizada, acionar socorro, primeiros socorros (RCP/DEA).",
+      "riscos": [
+        "choque",
+        "arco",
+        "reenergizacao"
+      ],
+      "epiTarefas": [
+        "constatacao_mt"
+      ],
+      "semAPR": true
+    },
+    "S2": {
+      "numero": "RO-S2-{n}",
+      "tipo": "Emergência",
+      "titulo": "Condutor rompido no pátio — risco de tensão de passo",
+      "local": "Pátio 138 kV · pórtico LT-01",
+      "descricao": "Manter distância mínima de 10 m, isolar a área, pedir desligamento ao COS, constatar, aterrar e só então socorrer.",
+      "riscos": [
+        "choque",
+        "passo_toque",
+        "reenergizacao"
+      ],
+      "epiTarefas": [
+        "patio",
+        "constatacao_at",
+        "aterramento_at"
+      ],
+      "semAPR": true
+    },
+    "T0": {
+      "numero": "TR-{n}",
+      "tipo": "Treinamento",
+      "titulo": "Familiarização com o simulador",
+      "local": "Casa de comando",
+      "descricao": "Percorra a casa de comando seguindo o roteiro no canto superior esquerdo. Nada aqui é perigoso: o objetivo é aprender os controles.",
+      "riscos": [],
+      "epiTarefas": [],
+      "semAPR": true
+    }
+  }
+}

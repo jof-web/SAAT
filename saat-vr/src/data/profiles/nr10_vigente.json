@@ -1,0 +1,95 @@
+{
+ "id": "nr10_vigente",
+ "nome": "NR-10 vigente (Portaria SEPRT 915/2019, item 10.5.1)",
+ "status": "padrão até 31/05/2027",
+ "desenergizacao": [
+  {
+   "id": "seccionamento",
+   "nome": "Seccionamento"
+  },
+  {
+   "id": "impedimento",
+   "nome": "Impedimento de reenergização"
+  },
+  {
+   "id": "constatacao",
+   "nome": "Constatação da ausência de tensão"
+  },
+  {
+   "id": "aterramento",
+   "nome": "Aterramento temporário com equipotencialização"
+  },
+  {
+   "id": "protecao",
+   "nome": "Proteção dos elementos energizados na zona controlada"
+  },
+  {
+   "id": "sinalizacao",
+   "nome": "Sinalização de impedimento de reenergização"
+  }
+ ],
+ "reenergizacao": [
+  {
+   "id": "r_ferramentas",
+   "nome": "Retirada de ferramentas, utensílios e equipamentos"
+  },
+  {
+   "id": "r_pessoas",
+   "nome": "Retirada dos trabalhadores não envolvidos da zona controlada"
+  },
+  {
+   "id": "r_aterramento",
+   "nome": "Remoção do aterramento, equipotencialização e proteções adicionais"
+  },
+  {
+   "id": "r_sinalizacao",
+   "nome": "Remoção da sinalização"
+  },
+  {
+   "id": "r_religacao",
+   "nome": "Destravamento e religação dos dispositivos de seccionamento"
+  }
+ ],
+ "paresCriticos": [
+  [
+   "seccionamento",
+   "impedimento"
+  ],
+  [
+   "seccionamento",
+   "constatacao"
+  ],
+  [
+   "seccionamento",
+   "aterramento"
+  ],
+  [
+   "impedimento",
+   "constatacao"
+  ],
+  [
+   "impedimento",
+   "aterramento"
+  ],
+  [
+   "constatacao",
+   "aterramento"
+  ],
+  [
+   "r_aterramento",
+   "r_religacao"
+  ]
+ ],
+ "boaPratica": {
+  "repeticoes": [
+   {
+    "etapa": "constatacao",
+    "entre": [
+     "seccionamento",
+     "impedimento"
+    ],
+    "nota": "verificação adicional logo após o seccionamento: bônus, sem penalidade (Celesc I-332.0020)"
+   }
+  ]
+ }
+}

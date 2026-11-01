@@ -1,0 +1,127 @@
+{
+ "versao": "1.0.0",
+ "_nota": "v5: níveis 0 Como jogar, 1 Operador, 2 Eletromecânico, 3 Técnico (pedido da equipe). Ids basico/intermediario/avancado mantidos por compatibilidade de histórico.",
+ "niveis": [
+  {
+   "id": "comojogar",
+   "sigla": "0",
+   "nome": "Como jogar",
+   "cor": "#6fb3e0",
+   "descricao": "Tutorial: andar, abrir portas, vestir EPI, usar tablet e ferramentas. Roteiro e dicas sempre visíveis.",
+   "missoes": [
+    "T0"
+   ],
+   "dicaFator": 0,
+   "roteiro": true,
+   "epi": "bloqueia",
+   "surpresa": false,
+   "tempoFator": 3.0
+  },
+  {
+   "id": "basico",
+   "sigla": "1",
+   "nome": "Operador",
+   "cor": "#36c46b",
+   "descricao": "Rotina do operador: ronda, leituras, regulação de tensão e falta com religamento. Roteiro visível; falta de EPI bloqueia a ação.",
+   "missoes": [
+    "R1",
+    "R2",
+    "C1"
+   ],
+   "dicaFator": 0,
+   "roteiro": true,
+   "epi": "bloqueia",
+   "surpresa": false,
+   "tempoFator": 2.0
+  },
+  {
+   "id": "intermediario",
+   "sigla": "2",
+   "nome": "Eletromecânico",
+   "cor": "#f5b041",
+   "descricao": "Manutenção: liberar e devolver equipamento (bloqueio, constatação, aterramento). Sem roteiro; dicas custam pontos; EPI faltando conta erro maior.",
+   "missoes": [
+    "M1",
+    "M2"
+   ],
+   "dicaFator": 1,
+   "roteiro": false,
+   "epi": "penaliza",
+   "surpresa": false,
+   "tempoFator": 1.5
+  },
+  {
+   "id": "avancado",
+   "sigla": "3",
+   "nome": "Técnico",
+   "cor": "#ff5a52",
+   "descricao": "Ocorrências: falha de disjuntor (50BF) e incêndio no transformador. Sem roteiro, sem dicas, falha surpresa e tempo curto.",
+   "missoes": [
+    "C2",
+    "E1"
+   ],
+   "dicaFator": 1.5,
+   "roteiro": false,
+   "epi": "penaliza",
+   "surpresa": true,
+   "tempoFator": 1.2,
+   "surpresas": [
+    {
+     "falha": "F22",
+     "alvo": "SE",
+     "nome": "Perda de supervisão remota (só operação local)"
+    },
+    {
+     "falha": "F10",
+     "alvo": "RT2",
+     "nome": "Falha do retificador RT2"
+    },
+    {
+     "falha": "F15",
+     "alvo": "T2",
+     "nome": "Temperatura de óleo alta no T2"
+    },
+    {
+     "falha": "F07",
+     "alvo": "52-AL3",
+     "nome": "Mola descarregada no 52-AL3"
+    },
+    {
+     "falha": "F11",
+     "alvo": "CC",
+     "nome": "Terra no sistema CC"
+    }
+   ],
+   "surpresaJanelaS": [
+    60,
+    180
+   ]
+  }
+ ],
+ "desbloqueio": {
+  "notaMin": 70,
+  "regra": "Aprovar (nota ≥ 70 % e sem erro crítico) todas as missões do nível para liberar o próximo."
+ },
+ "emergencia": {
+  "nome": "Emergência e resgate",
+  "descricao": "NR-10 10.12: isolar, não tocar, socorrer (RCP/DEA). Livre para qualquer nível.",
+  "missoes": [
+   "S1",
+   "S2",
+   "E1"
+  ]
+ },
+ "avaliacao": {
+  "id": "avaliacao",
+  "sigla": "AV",
+  "nome": "Avaliação",
+  "cor": "#6fb3e0",
+  "descricao": "Prova: sem roteiro e sem dicas; EPI faltando conta erro maior; nota registrada como avaliação.",
+  "missoes": [],
+  "dicaFator": 2,
+  "roteiro": false,
+  "epi": "penaliza",
+  "surpresa": false,
+  "tempoFator": 1.2
+ }
+}

@@ -1,0 +1,59 @@
+{
+  "versao": "1.0.0",
+  "_nota": "Ajustes didáticos (anexo, seção 4). VALIDAR todos. Valores com _derivado foram calculados pela regra do anexo (Δt 0,3 s) e não constam explicitamente.",
+  "curvas": { "NI": { "k": 0.14, "a": 0.02 }, "VI": { "k": 13.5, "a": 1 }, "EI": { "k": 80, "a": 2 } },
+  "instantaneoMs": 0,
+  "bfRefA": { "mt": 1046, "at": 104.6, "_validar": "In de referência do 50BF: adotado In do trafo" },
+  "reles": [
+    { "id": "REL-AL1", "nome": "Relé AL1", "tc": "52-AL1", "trip": ["52-AL1"], "86": "86-AL1",
+      "el": { "51": { "pickupA": 450, "curva": "NI", "tms": 0.15 }, "50": { "pickupA": 4000 }, "51N": { "pickupA": 100, "curva": "NI", "tms": 0.10 }, "50N": { "pickupA": 2000 } },
+      "79": { "tentativas": 1, "tempoMortoS": 3, "rearmeS": 30 },
+      "bf": { "atrasoMs": 150, "minPu": 0.1, "86": "86BF-MT1", "trip": ["52-T1M", "52-P"], "bloqueia": ["52-T1M"] } },
+    { "id": "REL-AL2", "nome": "Relé AL2", "tc": "52-AL2", "trip": ["52-AL2"], "86": "86-AL2",
+      "el": { "51": { "pickupA": 370, "curva": "NI", "tms": 0.15 }, "50": { "pickupA": 4000 }, "51N": { "pickupA": 100, "curva": "NI", "tms": 0.10 }, "50N": { "pickupA": 2000 } },
+      "79": { "tentativas": 1, "tempoMortoS": 3, "rearmeS": 30 },
+      "bf": { "atrasoMs": 150, "minPu": 0.1, "86": "86BF-MT1", "trip": ["52-T1M", "52-P"], "bloqueia": ["52-T1M"] } },
+    { "id": "REL-AL3", "nome": "Relé AL3", "tc": "52-AL3", "trip": ["52-AL3"], "86": "86-AL3",
+      "el": { "51": { "pickupA": 410, "curva": "NI", "tms": 0.15 }, "50": { "pickupA": 4000 }, "51N": { "pickupA": 100, "curva": "NI", "tms": 0.10 }, "50N": { "pickupA": 2000 } },
+      "79": { "tentativas": 1, "tempoMortoS": 3, "rearmeS": 30 },
+      "bf": { "atrasoMs": 150, "minPu": 0.1, "86": "86BF-MT2", "trip": ["52-T2M", "52-P"], "bloqueia": ["52-T2M"] } },
+    { "id": "REL-AL4", "nome": "Relé AL4", "tc": "52-AL4", "trip": ["52-AL4"], "86": "86-AL4",
+      "el": { "51": { "pickupA": 330, "curva": "NI", "tms": 0.15 }, "50": { "pickupA": 4000 }, "51N": { "pickupA": 100, "curva": "NI", "tms": 0.10 }, "50N": { "pickupA": 2000 } },
+      "79": { "tentativas": 1, "tempoMortoS": 3, "rearmeS": 30 },
+      "bf": { "atrasoMs": 150, "minPu": 0.1, "86": "86BF-MT2", "trip": ["52-T2M", "52-P"], "bloqueia": ["52-T2M"] } },
+    { "id": "REL-T1M", "nome": "Relé entrada MT T1", "tc": "52-T1M", "neutro": "T1", "trip": ["52-T1M"],
+      "el": { "51": { "pickupA": 1255, "curva": "NI", "tms": 0.13, "_derivado": "Δt 0,3 s acima do 51 de AL1 em 4 kA" },
+              "51G": { "pickupA": 200, "curva": "VI", "tms": 1.2, "estagio2": { "atrasoS": 0.3, "trip": ["52-T1"] }, "_derivado": "Δt ≥ 0,3 s acima do 50N/51N dos alimentadores; atraso do 2º estágio não consta no anexo" } },
+      "bf": { "atrasoMs": 150, "minPu": 0.1, "86": "86BF-T1M", "trip": ["52-T1", "52-P"], "bloqueia": ["52-T1", "52-P"] } },
+    { "id": "REL-T2M", "nome": "Relé entrada MT T2", "tc": "52-T2M", "neutro": "T2", "trip": ["52-T2M"],
+      "el": { "51": { "pickupA": 1255, "curva": "NI", "tms": 0.13, "_derivado": "idem T1" },
+              "51G": { "pickupA": 200, "curva": "VI", "tms": 1.2, "estagio2": { "atrasoS": 0.3, "trip": ["52-T2"] } } },
+      "bf": { "atrasoMs": 150, "minPu": 0.1, "86": "86BF-T2M", "trip": ["52-T2", "52-P"], "bloqueia": ["52-T2", "52-P"] } },
+    { "id": "REL-T1A", "nome": "Relé AT T1 (retaguarda)", "tc": "52-T1", "trip": ["52-T1", "52-T1M"],
+      "el": { "51": { "pickupA": 136, "curva": "NI", "tms": 0.22, "_derivado": "Δt 0,3 s acima do 51 MT na falta MT refletida" }, "50": { "pickupA": 1200 } },
+      "bf": { "atrasoMs": 150, "minPu": 0.1, "86": "86BF-T1", "trip": ["52-LT1"], "bloqueia": ["52-LT1"] } },
+    { "id": "REL-T2A", "nome": "Relé AT T2 (retaguarda)", "tc": "52-T2", "trip": ["52-T2", "52-T2M"],
+      "el": { "51": { "pickupA": 136, "curva": "NI", "tms": 0.22 }, "50": { "pickupA": 1200 } },
+      "bf": { "atrasoMs": 150, "minPu": 0.1, "86": "86BF-T2", "trip": ["52-LT1"], "bloqueia": ["52-LT1"] } }
+  ],
+  "trafo": {
+    "T1": { "86": "86T-T1", "trip": ["52-T1", "52-T1M"], "bfDe": ["REL-T1A", "REL-T1M"] },
+    "T2": { "86": "86T-T2", "trip": ["52-T2", "52-T2M"], "bfDe": ["REL-T2A", "REL-T2M"] },
+    "87T": { "idiffMinPu": 0.30, "slope1": 0.25, "slope2": 0.50, "joelhoPu": 2.0, "h2Pct": 15, "h5Pct": 35, "instPu": 8,
+             "_validar": "joelhoPu (transição slope 1 → 2) não consta no anexo; valor provisório" },
+    "26": { "alarmeC": 85, "tripC": 95 }, "49": { "alarmeC": 110, "tripC": 125 }
+  },
+  "bloqueios": {
+    "86-AL1": { "bloqueia": ["52-AL1"], "local": "AL1" }, "86-AL2": { "bloqueia": ["52-AL2"], "local": "AL2" },
+    "86-AL3": { "bloqueia": ["52-AL3"], "local": "AL3" }, "86-AL4": { "bloqueia": ["52-AL4"], "local": "AL4" },
+    "86BF-MT1": { "bloqueia": ["52-T1M"], "local": "T1M" }, "86BF-MT2": { "bloqueia": ["52-T2M"], "local": "T2M" },
+    "86BF-T1M": { "bloqueia": ["52-T1", "52-P"], "local": "PROT" }, "86BF-T2M": { "bloqueia": ["52-T2", "52-P"], "local": "PROT" },
+    "86BF-T1": { "bloqueia": ["52-LT1"], "local": "PROT" }, "86BF-T2": { "bloqueia": ["52-LT1"], "local": "PROT" },
+    "86T-T1": { "bloqueia": ["52-T1", "52-T1M"], "local": "PROT" }, "86T-T2": { "bloqueia": ["52-T2", "52-T2M"], "local": "PROT" }
+  },
+  "_pendente": [
+    "52-P: 50/51 de retaguarda sem ajuste no anexo; não implementado (só o 25).",
+    "50BF: anexo cita trip só do 52-TnM; incluído 52-P na lista de trip para eliminar a falta com paralelo fechado. VALIDAR.",
+    "74TC e 81 não implementados no MVP."
+  ]
+}

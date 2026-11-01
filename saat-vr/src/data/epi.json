@@ -1,0 +1,484 @@
+{
+ "versao": "1.0.0",
+ "_nota": "Catálogo de EPI, EPC e ferramentas e matriz de exigência por tarefa. Base: NR-6, NR-10 e POP público de trabalhos em eletricidade (V.tal POP-10021). Classes de luva conforme tabela de mercado (classe 2 = 17 kV de uso). ATPV, categorias e periodicidade de ensaio são [VALIDAR] com o SESMT.",
+ "itens": [
+  {
+   "id": "capacete",
+   "nome": "Capacete classe B com jugular",
+   "cat": "EPI",
+   "icone": "capacete",
+   "local": "EPI",
+   "qtd": 2,
+   "serve": "Protege a cabeça de impacto e de contato elétrico (classe B = isolante).",
+   "inspecao": "Casco sem trinca ou furo, suspensão inteira, jugular presa, dentro da validade do fabricante.",
+   "quando": "Sempre no pátio e em qualquer manobra."
+  },
+  {
+   "id": "oculos",
+   "nome": "Óculos de segurança",
+   "cat": "EPI",
+   "icone": "oculos",
+   "local": "EPI",
+   "qtd": 2,
+   "serve": "Protege os olhos de partículas e respingos.",
+   "inspecao": "Lente sem risco que atrapalhe a visão, haste firme.",
+   "quando": "Sempre no pátio e na casa de comando durante manobras."
+  },
+  {
+   "id": "vestimenta",
+   "nome": "Vestimenta antichama NR-10 (camisa + calça)",
+   "cat": "EPI",
+   "icone": "roupa",
+   "local": "EPI",
+   "qtd": 2,
+   "atpv": "[VALIDAR] categoria conforme estudo de energia incidente",
+   "serve": "Não pega fogo nem derrete se houver arco elétrico. Reduz queimaduras.",
+   "inspecao": "Etiqueta com ATPV legível, sem rasgo, sem mancha de óleo/graxa, mangas abaixadas e abotoadas.",
+   "quando": "Sempre em área de SE."
+  },
+  {
+   "id": "botina",
+   "nome": "Botina de segurança sem partes metálicas",
+   "cat": "EPI",
+   "icone": "botina",
+   "local": "EPI",
+   "qtd": 2,
+   "serve": "Protege os pés e não conduz eletricidade (biqueira de composite, não de aço).",
+   "inspecao": "Solado inteiro, sem furo ou desgaste profundo, sem prego/metal.",
+   "quando": "Sempre em área de SE."
+  },
+  {
+   "id": "protetor_facial",
+   "nome": "Protetor facial contra arco elétrico",
+   "cat": "EPI",
+   "icone": "facial",
+   "local": "EPI",
+   "qtd": 2,
+   "atpv": "[VALIDAR]",
+   "serve": "Protege rosto e pescoço do calor e da luz do arco.",
+   "inspecao": "Visor sem trinca, sem bolha, preso no suporte do capacete.",
+   "quando": "Manobra local em cubículo MT, extração de disjuntor, constatação e aterramento."
+  },
+  {
+   "id": "balaclava",
+   "nome": "Balaclava antichama",
+   "cat": "EPI",
+   "icone": "balaclava",
+   "local": "EPI",
+   "qtd": 2,
+   "serve": "Cobre cabeça e pescoço por baixo do capacete, contra arco.",
+   "inspecao": "Sem furo, sem desgaste, etiqueta antichama.",
+   "quando": "Junto com o protetor facial nas manobras locais MT."
+  },
+  {
+   "id": "luva_isolante",
+   "nome": "Luva isolante de borracha classe 2 (17 kV)",
+   "cat": "EPI",
+   "icone": "luva",
+   "local": "EPI",
+   "qtd": 2,
+   "defeitavel": true,
+   "serve": "Isola as mãos de choque elétrico. Classe 2 serve até 17 kV de uso, então cobre os 13,8 kV.",
+   "inspecao": "1) Conferir a etiqueta do ensaio dielétrico (dentro da validade). 2) Teste de ar: enrolar o punho e ver se a luva segura o ar sem vazar. 3) Olhar contra a luz: sem furo, corte, ressecamento.",
+   "quando": "Constatação, aterramento, extração de disjuntor e qualquer contato com partes que podem estar energizadas.",
+   "defeitos": [
+    "furo detectado no teste de ar (vaza)",
+    "etiqueta de ensaio dielétrico vencida"
+   ]
+  },
+  {
+   "id": "luva_cobertura",
+   "nome": "Luva de cobertura (vaqueta)",
+   "cat": "EPI",
+   "icone": "luvac",
+   "local": "EPI",
+   "qtd": 2,
+   "serve": "Vai por cima da luva isolante e protege a borracha de cortes e furos.",
+   "inspecao": "Couro inteiro, sem metal, tamanho compatível com a luva isolante.",
+   "quando": "Sempre por cima da luva isolante."
+  },
+  {
+   "id": "protetor_auricular",
+   "nome": "Protetor auricular",
+   "cat": "EPI",
+   "icone": "ouvido",
+   "local": "EPI",
+   "qtd": 2,
+   "serve": "Reduz o ruído (disjuntor, ventilação dos trafos).",
+   "inspecao": "Limpo e inteiro.",
+   "quando": "Perto dos trafos com ventilação ligada e em manobra de disjuntor AT."
+  },
+  {
+   "id": "luva_pvc",
+   "nome": "Luva de PVC cano longo",
+   "cat": "EPI químico",
+   "icone": "luvap",
+   "local": "EPIQ",
+   "qtd": 1,
+   "serve": "Protege as mãos do eletrólito.",
+   "inspecao": "Sem furo, sem ressecamento.",
+   "quando": "Na sala de baterias."
+  },
+  {
+   "id": "oculos_ampla",
+   "nome": "Óculos de ampla visão",
+   "cat": "EPI químico",
+   "icone": "oculos",
+   "local": "EPIQ",
+   "qtd": 1,
+   "serve": "Veda os olhos contra respingo de eletrólito.",
+   "inspecao": "Vedação inteira, sem trinca.",
+   "quando": "Na sala de baterias."
+  },
+  {
+   "id": "detector_mt",
+   "nome": "Detector de tensão 15 kV (por aproximação) com bastão",
+   "cat": "Ferramenta",
+   "icone": "detector",
+   "local": "FERR",
+   "qtd": 2,
+   "classe": "MT",
+   "defeitavel": true,
+   "serve": "Indica se há tensão no ponto. Faixa adequada aos 13,8 kV.",
+   "inspecao": "Autoteste (botão de teste: luz e som), bastão limpo e seco, sem trinca, dentro da validade de ensaio.",
+   "quando": "Constatação de ausência de tensão em MT. Testar ANTES e DEPOIS da medição.",
+   "defeitos": [
+    "autoteste falha: bateria fraca"
+   ]
+  },
+  {
+   "id": "detector_at",
+   "nome": "Detector de tensão 145 kV com vara telescópica",
+   "cat": "Ferramenta",
+   "icone": "detector",
+   "local": "FERR",
+   "qtd": 1,
+   "classe": "AT",
+   "serve": "Indica tensão em 138 kV a distância segura, na ponta da vara isolante.",
+   "inspecao": "Autoteste, vara limpa e seca, seções travando, validade de ensaio.",
+   "quando": "Constatação de ausência de tensão no pátio 138 kV."
+  },
+  {
+   "id": "vara_manobra",
+   "nome": "Vara de manobra telescópica (bastão isolante)",
+   "cat": "Ferramenta",
+   "icone": "vara",
+   "local": "FERR",
+   "qtd": 1,
+   "serve": "Permite instalar o aterramento temporário e operar à distância.",
+   "inspecao": "Superfície limpa e seca, sem trinca, travas funcionando, validade de ensaio.",
+   "quando": "Instalação e retirada de aterramento temporário."
+  },
+  {
+   "id": "aterr_mt",
+   "nome": "Conjunto de aterramento temporário MT",
+   "cat": "Ferramenta",
+   "icone": "aterr",
+   "local": "FERR",
+   "qtd": 1,
+   "serve": "Liga as três fases à terra no ponto de trabalho. Se alguém energizar por engano, a proteção desliga em vez de a corrente passar pelo trabalhador.",
+   "inspecao": "Grampos inteiros e com mola firme, cabo sem fio partido, conexões apertadas.",
+   "quando": "Aterramento do lado MT quando não há chave de terra fixa. Ordem: primeiro na terra, depois nas fases; retirar ao contrário."
+  },
+  {
+   "id": "manivela_extracao",
+   "nome": "Manivela de extração do disjuntor MT",
+   "cat": "Ferramenta",
+   "icone": "manivela",
+   "local": "FERR",
+   "qtd": 1,
+   "serve": "Movimenta o disjuntor extraível entre SERVIÇO, TESTE e EXTRAÍDO com a porta fechada.",
+   "inspecao": "Encaixe sem folga, sem deformação.",
+   "quando": "Inserir ou extrair disjuntor de cubículo."
+  },
+  {
+   "id": "alavanca_terra",
+   "nome": "Alavanca de manobra da chave de terra MT",
+   "cat": "Ferramenta",
+   "icone": "alavanca",
+   "local": "FERR",
+   "qtd": 1,
+   "serve": "Opera a chave de terra 89T do cubículo.",
+   "inspecao": "Encaixe sem folga.",
+   "quando": "Fechar/abrir 89T-ALn."
+  },
+  {
+   "id": "manivela_secc",
+   "nome": "Manivela de acionamento manual da seccionadora AT",
+   "cat": "Ferramenta",
+   "icone": "manivela",
+   "local": "FERR",
+   "qtd": 1,
+   "serve": "Opera manualmente a seccionadora ou a lâmina de terra 138 kV na caixa de comando.",
+   "inspecao": "Encaixe sem folga.",
+   "quando": "Chaves de terra 89T do pátio e operação manual de emergência."
+  },
+  {
+   "id": "kit_bloqueio",
+   "nome": "Kit de bloqueio pessoal (cadeado, garra e etiqueta NÃO OPERAR)",
+   "cat": "EPC",
+   "icone": "cadeado",
+   "local": "LOTO",
+   "qtd": 1,
+   "serve": "Impede que alguém religue o que você desligou. A chave do cadeado é só sua.",
+   "inspecao": "Cadeado com uma chave só, etiqueta com nome, data e motivo.",
+   "quando": "Impedimento de reenergização (LOTO)."
+  },
+  {
+   "id": "sinalizacao",
+   "nome": "Fita, correntes e cones de sinalização",
+   "cat": "EPC",
+   "icone": "cone",
+   "local": "LOTO",
+   "qtd": 1,
+   "serve": "Delimita a área de trabalho e a zona controlada.",
+   "inspecao": "Material completo e visível.",
+   "quando": "Sinalização e delimitação da área."
+  },
+  {
+   "id": "tapete",
+   "nome": "Tapete isolante",
+   "cat": "EPC",
+   "icone": "tapete",
+   "local": "FERR",
+   "qtd": 1,
+   "serve": "Isola o piso em frente ao painel durante a manobra local.",
+   "inspecao": "Sem furo, sem corte, limpo.",
+   "quando": "Manobra local em cubículo e painel (boa prática)."
+  },
+  {
+   "id": "radio",
+   "nome": "Rádio portátil",
+   "cat": "Ferramenta",
+   "icone": "radio",
+   "local": "FERR",
+   "qtd": 1,
+   "serve": "Comunicação com o COS e com a equipe fora da sala de comando.",
+   "inspecao": "Bateria carregada, canal certo, teste de chamada.",
+   "quando": "Sempre que sair da sala de comando durante uma ordem de manobra."
+  },
+  {
+   "id": "lampada",
+   "nome": "Lâmpada de sinalização sobressalente",
+   "cat": "Material",
+   "icone": "lampada",
+   "local": "FERR",
+   "qtd": 2,
+   "serve": "Repõe lâmpada queimada de sinalização de painel/cubículo.",
+   "inspecao": "Mesma tensão e soquete da original.",
+   "quando": "Troca de lâmpada de sinalização (baixa tensão)."
+  }
+ ],
+ "tarefas": {
+  "patio": {
+   "nome": "Entrar no pátio",
+   "epi": [
+    "capacete",
+    "oculos",
+    "vestimenta",
+    "botina"
+   ]
+  },
+  "bateria": {
+   "nome": "Entrar na sala de baterias",
+   "epi": [
+    "oculos_ampla",
+    "luva_pvc"
+   ]
+  },
+  "manobra_local_mt": {
+   "nome": "Manobra local em cubículo MT",
+   "epi": [
+    "capacete",
+    "oculos",
+    "vestimenta",
+    "botina",
+    "protetor_facial",
+    "balaclava"
+   ]
+  },
+  "extracao_mt": {
+   "nome": "Inserir/extrair disjuntor MT",
+   "epi": [
+    "capacete",
+    "oculos",
+    "vestimenta",
+    "botina",
+    "protetor_facial",
+    "balaclava",
+    "luva_isolante",
+    "luva_cobertura"
+   ],
+   "ferr": [
+    "manivela_extracao"
+   ]
+  },
+  "porta_mt": {
+   "nome": "Abrir/fechar porta de cubículo MT",
+   "epi": [
+    "capacete",
+    "vestimenta",
+    "botina",
+    "protetor_facial"
+   ]
+  },
+  "constatacao_mt": {
+   "nome": "Constatação de ausência de tensão MT",
+   "epi": [
+    "capacete",
+    "oculos",
+    "vestimenta",
+    "botina",
+    "protetor_facial",
+    "balaclava",
+    "luva_isolante",
+    "luva_cobertura"
+   ],
+   "ferr": [
+    "detector_mt"
+   ]
+  },
+  "constatacao_at": {
+   "nome": "Constatação de ausência de tensão AT",
+   "epi": [
+    "capacete",
+    "oculos",
+    "vestimenta",
+    "botina",
+    "luva_isolante",
+    "luva_cobertura"
+   ],
+   "ferr": [
+    "detector_at"
+   ]
+  },
+  "aterramento_mt": {
+   "nome": "Fechar/abrir chave de terra MT",
+   "epi": [
+    "capacete",
+    "oculos",
+    "vestimenta",
+    "botina",
+    "protetor_facial",
+    "balaclava",
+    "luva_isolante",
+    "luva_cobertura"
+   ],
+   "ferr": [
+    "alavanca_terra"
+   ]
+  },
+  "aterramento_at": {
+   "nome": "Fechar/abrir chave de terra AT",
+   "epi": [
+    "capacete",
+    "oculos",
+    "vestimenta",
+    "botina",
+    "luva_isolante",
+    "luva_cobertura"
+   ],
+   "ferr": [
+    "manivela_secc"
+   ]
+  },
+  "aterr_temp_mt": {
+   "nome": "Instalar/retirar aterramento temporário MT",
+   "epi": [
+    "capacete",
+    "oculos",
+    "vestimenta",
+    "botina",
+    "protetor_facial",
+    "balaclava",
+    "luva_isolante",
+    "luva_cobertura"
+   ],
+   "ferr": [
+    "aterr_mt",
+    "vara_manobra"
+   ]
+  },
+  "manobra_local_at": {
+   "nome": "Manobra local no pátio (caixa de comando)",
+   "epi": [
+    "capacete",
+    "oculos",
+    "vestimenta",
+    "botina",
+    "protetor_auricular"
+   ]
+  },
+  "bloqueio": {
+   "nome": "Aplicar bloqueio (LOTO)",
+   "epi": [],
+   "ferr": [
+    "kit_bloqueio"
+   ]
+  },
+  "troca_lampada": {
+   "nome": "Trocar lâmpada de sinalização",
+   "epi": [
+    "capacete",
+    "vestimenta",
+    "botina"
+   ],
+   "ferr": [
+    "lampada"
+   ]
+  },
+  "trafo_local": {
+   "nome": "Comando local no painel do trafo",
+   "epi": [
+    "capacete",
+    "oculos",
+    "vestimenta",
+    "botina",
+    "protetor_auricular"
+   ]
+  }
+ },
+ "missao": {
+  "R1": [
+   "patio",
+   "bateria"
+  ],
+  "R2": [
+   "patio"
+  ],
+  "C1": [
+   "manobra_local_mt"
+  ],
+  "M1": [
+   "extracao_mt",
+   "constatacao_mt",
+   "aterramento_mt",
+   "bloqueio"
+  ],
+  "M2": [
+   "patio",
+   "extracao_mt",
+   "constatacao_mt",
+   "constatacao_at",
+   "aterramento_at",
+   "aterr_temp_mt",
+   "bloqueio"
+  ],
+  "C2": [
+   "extracao_mt",
+   "constatacao_mt",
+   "aterramento_mt"
+  ],
+  "E1": [],
+  "S1": [
+   "constatacao_mt"
+  ],
+  "S2": [
+   "patio",
+   "constatacao_at",
+   "aterramento_at"
+  ],
+  "T0": []
+ },
+ "_niveis": "Básico: falta de EPI bloqueia a ação e explica. Intermediário/Avançado: a ação acontece e conta erro maior de segurança (como no mundo real, a falha é humana). Falta de ferramenta sempre impede a ação."
+}
