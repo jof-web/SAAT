@@ -271,5 +271,5 @@ body.console,.console{overflow:auto}.console{display:flex;flex-direction:column;
 .h-boneco{position:absolute;left:18px;bottom:60px;width:70px;height:133px}
 .pip{position:fixed;right:18px;top:84px;width:min(34vw,420px);aspect-ratio:16/9;border:2px solid var(--line2);background:transparent;z-index:6;pointer-events:none;box-shadow:0 6px 24px rgba(0,0,0,.45)}
 .pip span{position:absolute;left:0;right:0;bottom:0;padding:4px 8px;font:600 13px/1.2 var(--mono);color:var(--tx);background:var(--panel)}
-.pip.hidden{display:none}
+.pip.hidden{display:none}.pip.esq{right:auto;left:18px;top:auto;bottom:210px;width:min(30vw,380px)}
 .hm-side{overflow-y:auto;max-height:100vh}.hm-side .hm-mode small{font-size:11.5px}

@@ -453,6 +453,8 @@ function armarioEPI(c: MCtx, R: Indoor, x0: number, x1: number, zWall: number) {
   put('oculos#1', mk(2, 4, 7, bx(0.14, 0.05, 0.07, M.plastic))); put('oculos#2', mk(2, 4, 7, (g) => { g.position.y += 0.05; dbox(0.14, 0.05, 0.07, M.plastic, 0, 0.025, 0, g); }));
   put('protetor_auricular#1', mk(2, 5, 7, bx(0.09, 0.07, 0.09, M.yellow))); put('protetor_auricular#2', mk(2, 5, 7, (g) => { g.position.y += 0.07; dbox(0.09, 0.07, 0.09, M.yellow, 0, 0.035, 0, g); }));
   put('radio#1', mk(2, 6, 7, (g) => { dbox(0.06, 0.14, 0.04, M.black, 0, 0.07, 0, g); dcyl(0.006, 0.08, M.black, 0.015, 0.18, 0, g, 6); }));
+  const lant = (g: Group) => { const b = dcyl(0.022, 0.17, M.black, 0, 0.022, 0, g, 12); b.rotation.z = Math.PI / 2; const hd = dcyl(0.034, 0.05, M.yellow, 0.1, 0.034, 0, g, 14); hd.rotation.z = Math.PI / 2; const lens = dcyl(0.028, 0.004, M.glass as any, 0.126, 0.034, 0, g, 14); lens.rotation.z = Math.PI / 2; };
+  put('lanterna#1', mk(1, 2, 6, lant)); put('lanterna#2', mk(1, 2, 6, (g) => { g.position.z += 0.08; lant(g); }));
   put('oculos_ampla#1', mk(1, 0, 6, bx(0.16, 0.07, 0.1, M.glass as any))); put('luva_pvc#1', mk(1, 1, 6, gloves(0x2f7a3c)));
   put('lampada#1', mk(1, 3, 6, bx(0.06, 0.07, 0.06, M.white))); put('lampada#2', mk(1, 4, 6, bx(0.06, 0.07, 0.06, M.white)));
   put('botina#1', mk(1, 5, 6, (g) => { for (const s of [-1, 1]) dbox(0.1, 0.12, 0.26, M.black, s * 0.055, 0.06, 0, g); })); put('botina#2', mk(1, 5, 6, (g) => { g.position.y += 0.13; for (const s of [-1, 1]) dbox(0.1, 0.12, 0.26, M.black, s * 0.055, 0.06, 0, g); }));

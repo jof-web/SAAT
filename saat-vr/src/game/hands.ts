@@ -12,7 +12,7 @@ function mesh(g: any, m: any, x = 0, y = 0, z = 0, p?: Group) { const o = new Me
 export const TOOL_NAMES: Record<string, string> = {
   detector_mt: 'Detector de tensão 15 kV', detector_at: 'Detector 145 kV (vara)', vara_manobra: 'Vara de manobra', manivela_extracao: 'Manivela de extração',
   alavanca_terra: 'Alavanca da chave de terra', manivela_secc: 'Manivela da seccionadora', kit_bloqueio: 'Kit de bloqueio (cadeado)', aterr_mt: 'Aterramento temporário MT',
-  radio: 'Rádio portátil', lampada: 'Lâmpada sobressalente', sinalizacao: 'Sinalização (fita/cones)', tapete: 'Tapete isolante', dea: 'DEA (desfibrilador)',
+  radio: 'Rádio portátil', lampada: 'Lâmpada sobressalente', sinalizacao: 'Sinalização (fita/cones)', tapete: 'Tapete isolante', dea: 'DEA (desfibrilador)', lanterna: 'Lanterna LED',
 };
 
 export class Hands {
@@ -52,6 +52,7 @@ export class Hands {
     mk('manivela_secc', (g) => { const r = mesh(new CylinderGeometry(0.012, 0.012, 0.4, 8), A, 0, 0.02, -0.2, g); r.rotation.x = Math.PI / 2; mesh(new BoxGeometry(0.18, 0.016, 0.016), A, 0.09, 0.02, 0, g); mesh(new CylinderGeometry(0.016, 0.016, 0.08, 10), K, 0.18, 0.06, 0, g); });
     mk('kit_bloqueio', (g) => { mesh(new BoxGeometry(0.04, 0.04, 0.018), R, 0, 0.03, -0.05, g); const sh = mesh(new TorusGeometry(0.014, 0.0035, 6, 12, Math.PI), A, 0, 0.055, -0.05, g); void sh; mesh(new BoxGeometry(0.05, 0.08, 0.002), R, 0.03, -0.01, -0.06, g).rotation.z = 0.2; });
     mk('aterr_mt', (g) => { mesh(new BoxGeometry(0.05, 0.08, 0.04), Y, 0, 0.05, -0.08, g); for (let i = 0; i < 3; i++) mesh(new TorusGeometry(0.07, 0.008, 6, 16), K, 0, -0.04 + i * 0.012, 0.0, g).rotation.x = Math.PI / 2; });
+    mk('lanterna', (g) => { const b = mesh(new CylinderGeometry(0.018, 0.016, 0.16, 12), K, 0, 0.03, -0.08, g); b.rotation.x = Math.PI / 2; const hd = mesh(new CylinderGeometry(0.03, 0.022, 0.05, 14), A, 0, 0.03, -0.18, g); hd.rotation.x = Math.PI / 2; });
     mk('radio', (g) => { mesh(new RoundedBoxGeometry(0.055, 0.12, 0.035, 2, 0.008), K, 0, 0.06, -0.04, g); mesh(new CylinderGeometry(0.006, 0.006, 0.09, 6), K, 0.015, 0.16, -0.04, g); });
     mk('lampada', (g) => { mesh(new SphereGeometry(0.02, 10, 8), W, 0, 0.05, -0.06, g); mesh(new CylinderGeometry(0.012, 0.012, 0.02, 10), A, 0, 0.025, -0.06, g); });
     mk('sinalizacao', (g) => { mesh(new CylinderGeometry(0.01, 0.06, 0.18, 12), O, 0, 0.06, -0.06, g); });

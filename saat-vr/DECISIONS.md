@@ -228,3 +228,11 @@ Referências: `docs/ref/planta-geral-v2-final.png`, `docs/ref/fichas-patio-v2.pn
 - **Andar no pátio é mais lento** que na casa e não dá para correr (grama/brita, estruturas e cabos); tampas de canaleta funcionam como passeio.
 - **Explosão com luz fixa da cena** (não cria luz nova: evita recompilar shaders no Quest).
 - **Mesa no VR**: sentar move a cabeça para a cadeira e põe o supervisório no monitor físico (0,56 m); tela grande é opcional.
+
+## SAAT 0.5.0 — clima, horário, lanterna, ranking público
+- **PiP no PC**: à esquerda (acima do boneco) quando o cartão ou o tablet ocupam a direita (pedido do usuário: ficava escondido).
+- **Clima/horário** escolhidos ao iniciar (ou aleatório); muda ao vivo só na prática livre. Faltas por descarga atmosférica só com opção ligada, para não alterar a avaliação das missões sem o instrutor querer.
+- **Regra de segurança da tempestade**: atividade externa deve ser suspensa; o segundo raio com a pessoa no pátio registra erro maior.
+- **Lanterna como item do armário** (com defeito possível), não botão mágico: no escuro, sem lanterna, não se lê instrumento no pátio.
+- **Ranking em site separado, mesma origem** (GitHub Pages): lê o localStorage do simulador neste navegador; outros aparelhos entram por arquivo exportado. Sem servidor (o projeto é offline).
+- **LGPD**: minimização (só indicadores de treino), pseudonimização (código FNV-1a do id) e consentimento explícito para o apelido; acidentes e faltas nunca por pessoa na tela pública. Importar backup completo converte na hora e guarda só a versão pública.

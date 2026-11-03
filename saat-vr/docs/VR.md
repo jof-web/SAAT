@@ -41,6 +41,14 @@ Documento de passagem completo: projeto claude.ai › `claude/SAAT-VR-handoff.md
 - **Pátio**: grama (brita só no poço dos trafos); espaço do TR-03 vazio (sem base, pórtico ou ligação); andar no pátio a 70 %, dentro dos vãos 45 %, sobre a tampa da canaleta 85 %; não dá para correr no pátio; placa de área energizada na entrada de cada vão.
 - **Extintores**: carreta PQS 50 kg refeita (tanque abaulado, rótulo, manômetro, rodas com pneu, alça, mangueira e esguicho no suporte) e extintor de parede PQS 6 kg com placa.
 
+## V0.5 (SAAT VR 0.5.0) — clima, horário, lanterna e ranking
+- **Clima** (sol, nublado, chuva, tempestade) e **horário** (dia, entardecer, noite), em Configurações (ou aleatório); na prática livre muda ao vivo (pausa no PC, aba Locomoção no VR). Chuva: traços em volta da câmera (1 draw call), som, piso molhado (pátio 15 % mais lento). Tempestade: relâmpago e trovão; ficar no pátio com descargas vira erro; com "descargas causam faltas" ligado, 35 % dos raios geram falta transitória num alimentador (F02).
+- **Noite**: luminárias acesas com mancha de luz no chão; sem lanterna acesa não dá para ler instrumento no pátio.
+- **Lanterna** (2 unidades no armário de ferramentas, uma pode estar com bateria fraca): no PC, F liga/desliga; no VR, pegue com o grip e o gatilho liga. Holofote único criado só quando escurece (não recompila shaders a cada uso).
+- **PiP** no PC vai para a esquerda quando o cartão do equipamento ou o tablet estão abertos.
+- **Tela de ranking** (`ranking/index.html`, outra tela/TV): lê o cadastro deste navegador ao vivo e importa o arquivo "Exportar ranking público" de outros aparelhos (Quest, outros PCs). Telas giram a cada 15 s: Pontuação, Horas de treino, Destaques da semana, Recordes por missão e Equipe.
+- **LGPD**: apelido só com consentimento no cadastro (senão código estável), nível e indicadores; sem matrícula, empresa, função, validade NR-10 ou erros individuais; segurança (acidentes simulados) só em números da equipe.
+
 ## Orçamento medido (headless, IWER, dois olhos)
 | Ponto | Draw calls | Triângulos |
 |---|---|---|

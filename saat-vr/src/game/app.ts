@@ -33,6 +33,7 @@ import { GFX, detectLite, presetLambert, SmallCull, AutoBatch } from './gfx';
 import { XRLayer } from '../xr/session';
 import { estadoBoneco, desenharBoneco, type Boneco } from '../ui/boneco';
 import { VERSION } from '../version';
+import { Ambiente, CLIMAS, HORAS, type Clima, type Hora } from './ambiente';
 
 const $ = (s: string) => document.querySelector(s) as HTMLElement;
 
@@ -43,6 +44,7 @@ export async function bootGame() {
   const loading = h('div', { class: 'boot' }, h('b', {}, 'SAAT'), h('span', {}, 'Montando a subestação…')); document.body.append(loading);
   await new Promise((r) => setTimeout(r, 30));
   GFX.lite = detectLite(); const E = new Engine(canvas); const W = new GameWorld(E, d); if (GFX.lite) presetLambert(E.scene, true); const autoBatch = GFX.lite ? new AutoBatch().build(W.zones) : null; const cull = new SmallCull(E.scene); const P = new Player(E.cam, canvas, () => W.colliders());
+  const amb = new Ambiente(E, W.yard.lights, E.scene); let lanternaOn = false, raios = 0;
   const hands = new Hands(); hands.setEnv(E.envOut); const hud = new Hud(); const audio = new Audio(); const alarm = new WebAudioAlarm(null);
   const visor = h('div', { id: 'visor', class: 'hidden' }); const pipFrame = h('div', { class: 'pip hidden' }, h('span', {})); document.body.append(visor, pipFrame);
   (alarm as any).flashEl = hud.flashEl;
@@ -117,13 +119,13 @@ export async function bootGame() {
 
   // ---------- interação, segurança ----------
   const app: any = { W, P, E, hands, hud, tablet, d, get sess() { return sess; }, get tool() { return tool; }, cmd, ctx, setTool, sit, sfx: audio, audio, livre, openFicha, refreshEpi, rearOpen, get deaTaken() { return deaTaken; }, takeDea,
-    restart: () => sess && start(sess.cfg), home: () => showHome(false), startRescue: (k: string) => startRescue(k), finalizar: () => finalizar() };
+    semLuz: () => semLuz(), restart: () => sess && start(sess.cfg), home: () => showHome(false), startRescue: (k: string) => startRescue(k), finalizar: () => finalizar() };
   const inter = new Interaction(app); const safety = new Safety(app); app.safety = safety;
   // ---------- VR ----------
   const xr = new XRLayer({ E, W, P, inter, hud, safety, audio, livre, area: () => W.areaAt(P.pos.x, P.pos.z), faltas: () => faltas, boneco, correndo,
     acc: { restart: () => { if (sess) start(sess.cfg); }, rescue: (a: any) => startRescue(a?.tipo === 'passo' ? 'S2' : 'S1'), report: () => { xr.exit(); setTimeout(() => finalizar(), 400); }, home: () => showHome(false) },
     sess: () => sess, cmd: (c: any) => cmd(c), tool: () => tool, toolName: () => (tool ? (TOOL_NAMES as any)[tool] || tool : 'mãos livres'), setTool, usarFerramenta: () => useTool(), refreshEpi, toast: (m: string, k?: string) => hud.toast(m, k as any),
-    takeDea, deaTaken: () => deaTaken, dead: () => safety.dead, ctx: () => (sess ? ctx() : null), readback: () => { const o = sess?.sc?.st.cos.find((x: any) => x.readbackReq && !x.readback); if (!o || !sess) return null; sess.readback(o.id); return `Read-back ${o.id}: "${o.texto.replace(/^COS[^:]*:\s*/, '').slice(0, 90)}"`; },
+    takeDea, deaTaken: () => deaTaken, lanterna: () => lanterna(!lanternaOn), semLuz: () => semLuz(), clima: () => ({ clima: amb.clima, hora: amb.hora, livre: !!sess?.cfg.sandbox, set: (c: Clima, h: Hora) => { amb.set(c, h); (W as any).wet = amb.chovendo; } }), dead: () => safety.dead, ctx: () => (sess ? ctx() : null), readback: () => { const o = sess?.sc?.st.cos.find((x: any) => x.readbackReq && !x.readback); if (!o || !sess) return null; sess.readback(o.id); return `Read-back ${o.id}: "${o.texto.replace(/^COS[^:]*:\s*/, '').slice(0, 90)}"`; },
     conferirEpi: () => { if (!sess) return '—'; const x = sess.conferirEpi(); refreshEpi(); return x.txt; }, rcpQualidade,
     alturaPerfil: () => { const id = sess?.cfg.treinandoId; return (id && TR.obter(id)?.alturaCm) || null; }, salvarAltura: (cm: number) => { const id = sess?.cfg.treinandoId, t = id ? TR.obter(id) : null; if (t) TR.salvar({ ...t, alturaCm: cm }); },
     gear: () => { const inv = sess?.inv; return { isolante: !!inv?.tem('luva_isolante'), cobertura: !!inv?.tem('luva_cobertura'), pvc: !!inv?.tem('luva_pvc'), fr: !!inv?.tem('vestimenta') }; },
@@ -164,9 +166,20 @@ export async function bootGame() {
   function useTool() {
     if (!sess || !tool) { hud.toast('Mãos livres. Escolha uma ferramenta (1–9).', 'muted'); return; } hands.use();
     if (tool.startsWith('detector')) { const r = cmd({ t: 'vtest', passo: 'provar' }); hands.ledOn(r?.result === 'ok'); setTimeout(() => hands.ledOn(false), 1200); return; }
+    if (tool === 'lanterna') { lanterna(!lanternaOn); return; }
     if (tool === 'radio') { if (xr.active) hud.toast('Rádio: ordens do COS aparecem na legenda; read-back no menu (aba Missão).', 'muted'); else toggleTablet('radio'); return; }
     hud.toast('Use a ferramenta na peça certa: mire o equipamento, E para inspecionar e clique na peça.', 'muted');
   }
+  /** Lanterna: liga/desliga (unidade com bateria fraca não acende). */
+  function lanterna(on: boolean) { if (!sess) return false; const u = sess.inv.comigo('lanterna')[0]; if (on && u?.defeito) { lanternaOn = false; hud.toast('A lanterna não acende: bateria fraca. Troque pela outra unidade no armário.', 'warn'); return false; } lanternaOn = on && !!u; hud.toast(lanternaOn ? 'Lanterna ligada.' : 'Lanterna desligada.', 'muted', 1500); audio.click(); return lanternaOn; }
+  /** Sem luz para ler instrumento: noite (ou entardecer fechado) no pátio sem lanterna acesa. */
+  const semLuz = () => amb.escuro && W.areaAt(P.pos.x, P.pos.z) === 'patio' && !(lanternaOn && (tool === 'lanterna' || xr.phys?.lanternaNaMao()));
+  /** Clima e horário da sessão (aleatório resolve aqui); trovoada com regra de segurança e, se ligado, faltas transitórias. */
+  function aplicarClima(cfg: any) { const pick = <T,>(v: any, L: [T, string][]) => (v && v !== 'aleatorio' ? v : L[Math.floor(Math.random() * L.length)][0]) as T;
+    const cl = pick<Clima>(cfg.clima || 'sol', CLIMAS), hr = pick<Hora>(cfg.hora || 'dia', HORAS); amb.set(cl, hr); (W as any).wet = amb.chovendo; raios = 0; lanternaOn = false; return { cl, hr }; }
+  amb.onBolt = () => { if (!sess || onHome) return; const fora = W.areaAt(P.pos.x, P.pos.z) === 'patio'; xr.active && xr.input.hands.forEach((h) => h.pulse(0.5, 120));
+    if (fora) { raios++; hud.toast('Descarga atmosférica perto! Suspenda a atividade no pátio e abrigue-se na casa de comando.', 'bad', 6000); if (raios >= 2) sess.erroJogo('maior', 'seguranca', 'Permaneceu no pátio durante tempestade com descargas atmosféricas (atividade externa deve ser suspensa)', 'clima_tempestade'); }
+    if ((sess.cfg as any).eventosClima && Math.random() < 0.35) { const al = ['AL1', 'AL2', 'AL3', 'AL4'][Math.floor(Math.random() * 4)]; const r = sess.cmd({ t: 'inject', falha: 'F02', alvo: al } as any, 'sistema'); if (r.result === 'ok') hud.toast(`Descarga atmosférica: falta transitória no alimentador ${al}.`, 'warn', 6000); } };
   // ---------- pausa ----------
   const pauseEl = h('div', { class: 'pausem hidden' }); document.body.append(pauseEl);
   function togglePause(force?: boolean) {
@@ -176,9 +189,11 @@ export async function bootGame() {
       h('button', { class: 'hw', onclick: () => { togglePause(false); toggleTablet('tarefa'); } }, ic('ClipboardList', 16), ' Tablet (tarefa)'),
       h('button', { class: 'hw', onclick: () => { paused = false; pauseEl.classList.add('hidden'); if (sess) start(sess.cfg); } }, ic('RotateCcw', 16), ' Reiniciar'),
       sess?.sc ? h('button', { class: 'hw', onclick: () => { if (confirm('Encerrar e gerar o relatório?')) { paused = false; pauseEl.classList.add('hidden'); sess!.finish('encerrada pelo treinando'); } } }, ic('FileText', 16), ' Encerrar e ver relatório') : null,
+      sess?.cfg.sandbox ? h('div', { class: 'row' }, h('button', { class: 'hw', onclick: () => { const i = CLIMAS.findIndex((x) => x[0] === amb.clima); amb.set(CLIMAS[(i + 1) % 4][0], amb.hora); (W as any).wet = amb.chovendo; togglePause(true); } }, ic('CloudRain', 16), ' Clima: ' + CLIMAS.find((x) => x[0] === amb.clima)![1]),
+        h('button', { class: 'hw', onclick: () => { const i = HORAS.findIndex((x) => x[0] === amb.hora); amb.set(amb.clima, HORAS[(i + 1) % 3][0]); togglePause(true); } }, ic('Moon', 16), ' Horário: ' + HORAS.find((x) => x[0] === amb.hora)![1])) : null,
       h('button', { class: 'hw', onclick: openInstructor }, ic('Users', 16), ' Console do instrutor'),
       h('button', { class: 'hw ghost', onclick: () => { paused = false; pauseEl.classList.add('hidden'); showHome(true); } }, ic('LogOut', 16), ' Menu inicial'),
-      h('p', { class: 'muted keys' }, 'WASD/setas andar · mouse olhar · E interagir · Tab tablet · 1–9 ferramenta · F usar · Q guardar · R read-back · M minimapa · C pés juntos')));
+      h('p', { class: 'muted keys' }, 'WASD/setas andar · mouse olhar · E interagir · Tab tablet · 1–9 ferramenta · F usar (lanterna liga/desliga) · Q guardar · R read-back · M minimapa · C pés juntos')));
   }
 
   // ---------- modal genérico ----------
@@ -193,7 +208,7 @@ export async function bootGame() {
   }
   function start(cfg: SessionCfg) {
     closeModal(); if (seated) stand(); if (inter.insp) inter.exit(); tablet.hide(); resetWorld(); agendados = []; trend = []; lastTrendT = -1; alarm.deactivate(); LS.set('cfg', cfg);
-    sess = new Session(d, cfg); (W as any).sim = sess.sim; onHome = false; faltas = 0; runT = 0; runFlag = false; $('#home')?.classList.add('hidden'); hud.show(true);
+    sess = new Session(d, cfg); (W as any).sim = sess.sim; const ch = aplicarClima(cfg); onHome = false; faltas = 0; runT = 0; runFlag = false; $('#home')?.classList.add('hidden'); hud.show(true);
     sess.sim.onEvent = (n, x) => { if (n === 'ALARM' && x.sev >= 2) alarm.activate('alarme'); if (n === 'ACK') alarm.deactivate('alarme'); if (n === 'ALARM_EMERGENCY') x.on ? alarm.activate('emergencia') : alarm.deactivate('emergencia');
       if (n === 'FOGO') hud.toast('Fumaça e chamas no pátio!', 'bad', 6000); if (n === 'ARCO') safety.onArc(x.id); };
     const prevLog = sess.sim.onLog; sess.sim.onLog = (e) => { prevLog?.(e); if (e.kind === 'com' && e.actor !== 'treinando') { const rb = sess?.sc?.st.cos.find((o: any) => o.texto === e.msg && o.readbackReq); hud.say(e.actor, e.msg, rb ? rb.id : undefined); audio.radio(e.msg); } };
@@ -210,6 +225,7 @@ export async function bootGame() {
       const b = h('div', { class: 'brief' }, osDoc(d, sess), h('div', { class: 'brief-keys' }, h('b', {}, 'Controles'), h('p', {}, h('kbd', {}, 'W A S D'), ' andar  ', h('kbd', {}, 'Mouse'), ' olhar  ', h('kbd', {}, 'E'), ' interagir  ', h('kbd', {}, 'Tab'), ' tablet  ', h('kbd', {}, '1–9'), ' ferramenta  ', h('kbd', {}, 'F'), ' usar  ', h('kbd', {}, 'Esc'), ' pausa')),
         h('div', { class: 'row' }, h('button', { class: 'hw primary', onclick: () => { closeModal(); sess!.paused = false; P.lock(); audio.unlock(); alarm.unlock(); hud.toast(o?.semAPR ? 'Atendimento de ocorrência: aja com segurança.' : 'Você está na casa de comando. APR no tablet (Tab) e EPI nos armários.', 'muted', 6000); } }, ic('Play', 16), ' Iniciar'), xr.supported ? h('button', { class: 'hw vr', onclick: () => { audio.unlock(); alarm.unlock(); void xr.enter(); } }, ic('Headset', 16), ' Iniciar em VR') : null));
       modal(`${o?.tipo || 'Ordem de serviço'} — ${m.id}`, b, true); }
+    if (ch.cl !== 'sol' || ch.hr !== 'dia') setTimeout(() => hud.toast(`Condições: ${CLIMAS.find((x) => x[0] === ch.cl)![1]} · ${HORAS.find((x) => x[0] === ch.hr)![1]}.${amb.escuro ? ' Leve a lanterna (armário de ferramentas).' : ''}${amb.chovendo ? ' Piso molhado: ande com cuidado.' : ''}`, 'warn', 7000), 1200);
     else { if (!xr.active) refreshVrUi(); hud.toast('Prática livre: tudo liberado. Z mostra as zonas NR-10; no tablet, o mapa leva você a qualquer ponto.', 'muted', 7000); P.lock(); }
   }
   function startRescue(kind: string) { if (!sess) return; const cur = sess.cfg; start({ ...cur, missao: kind, sandbox: false, nivel: undefined }); }
@@ -272,7 +288,7 @@ export async function bootGame() {
     modal('Diagnóstico', h('div', {}, h('table', { class: 'mtab' }, ...rows.map(([a, b]) => h('tr', {}, h('td', {}, a), h('td', {}, b)))), h('p', { class: 'muted' }, 'Abaixo de 30 FPS no pátio, use qualidade Baixa.'))); }
 
   // ---------- laço ----------
-  let acc = 0, lastT = performance.now(), slow = 0, bc = 0, autosave = 0, hudT = 0, orbit = 0;
+  let acc = 0, lastT = performance.now(), slow = 0, bc = 0, autosave = 0, hudT = 0, orbit = 0, tempoT = 0;
   const camW = new Vector3();
   function loop(now: number) {
     const dt = Math.max(0, Math.min(0.1, (now - lastT) / 1000)); lastT = now;
@@ -286,15 +302,17 @@ export async function bootGame() {
       if (xr.active) xr.update(dt); else { P.update(dt); correndo(!!(P.keys.ShiftLeft || P.keys.ShiftRight) && P.moving > 0.5, dt); } if (!xr.active) inter.update(); safety.update(dt); if (sess.cfg.missao === 'T0') tutorial();
       if (hudT >= 0.2) { hudT = 0; updateHUD(); tablet.tick(); inter.tick(); if (minimap) mini.update(W.plantPos(P.pos, P.yaw)); }
       if (bc >= 0.25) { bc = 0; broadcast(); }
+      if (!sess.paused && sess.cfg.treinandoId) { tempoT += dt; if (tempoT >= 10) { TR.addTempo(sess.cfg.treinandoId, tempoT, xr.active); tempoT = 0; } }
       if (autosave >= 10) { autosave = 0; LS.set('autosave', { cfg: sess.cfg, inputs: sess.inputs.slice(-2000) }); }
     } else { orbit += dt * 0.04; const [fx1, fz1, fx2, fz2] = W.fenceRect; const cx = (fx1 + fx2) / 2, cz = (fz1 + fz2) / 2; E.cam.position.set(cx + Math.sin(orbit) * 62, 24, cz + Math.cos(orbit) * 62); E.cam.lookAt(cx, 2, cz + 6); }
-    E.cam.getWorldPosition(camW); const area = W.areaAt(camW.x, camW.z); E.setIndoor(!onHome && (area === 'casa' || area === 'bateria')); hands.setEnv(E.indoor ? E.envIn : E.envOut); cull.update(dt, camW, GFX.lite || xr.active); autoBatch?.sync();
+    E.cam.getWorldPosition(camW); const area = W.areaAt(camW.x, camW.z); amb.update(dt, camW, !onHome && (area === 'patio' || area === 'externo'), sess && !onHome ? audio : null);
+    if (!sess || onHome || !lanternaOn) amb.luz(null); else if (xr.active) { const lp = xr.phys.lanternaPose(); amb.luz(lp?.o || null, lp?.d); } else if (tool === 'lanterna') { const f = E.cam.getWorldDirection(new Vector3()); amb.luz(camW.clone().add(new Vector3(0, -0.25, 0)), f); } else amb.luz(null); E.setIndoor(!onHome && (area === 'casa' || area === 'bateria')); hands.setEnv(E.indoor ? E.envIn : E.envOut); cull.update(dt, camW, GFX.lite || xr.active); autoBatch?.sync();
     W.frame(dt, onHome ? E.cam.position : P.pos, onHome ? 'externo' : area, false);
     E.follow(onHome ? new Vector3(27, 0, 38) : P.pos);
     const w = canvas.clientWidth || innerWidth, hgt = canvas.clientHeight || innerHeight;
     if (!xr.active) hands.update(dt, P.moving, P.bob, w / hgt);
     if (xr.active && pip.on && performance.now() < pip.until) { pip.cam.layers.mask = E.cam.layers.mask; xr.pip.render(E.renderer, E.scene, pip.cam, () => { W.frame(0, P.pos, area, pip.xray); if (pip.zone === 'casa') W.zones.casa.visible = true; }, () => W.frame(0, P.pos, area, false)); }
-    const pipOn = pip.on && performance.now() < pip.until && !xr.active && !onHome; if (pip.on && performance.now() >= pip.until) pip.on = false; pipFrame.classList.toggle('hidden', !pipOn || seated);
+    const pipOn = pip.on && performance.now() < pip.until && !xr.active && !onHome; if (pip.on && performance.now() >= pip.until) pip.on = false; pipFrame.classList.toggle('esq', !!document.querySelector('.icard:not(.hidden)') || tablet.open); pipFrame.classList.toggle('hidden', !pipOn || seated);
     E.render(dt, () => {
       if (pipOn) { const r = (seated ? cftv : pipFrame).getBoundingClientRect(), R = E.renderer; if (r.width > 10) {
           W.frame(0, P.pos, area, pip.xray); if (pip.zone === 'casa') W.zones.casa.visible = true; pip.cam.layers.mask = E.cam.layers.mask; pip.cam.aspect = r.width / r.height; pip.cam.updateProjectionMatrix();
@@ -319,7 +337,7 @@ export async function bootGame() {
   }
   P.onStep = () => audio.step(W.areaAt(P.pos.x, P.pos.z));
   showHome(false); E.renderer.setAnimationLoop(loop);
-  (window as any).saatVR = xr; (window as any).__saat = { xr, get faltas() { return faltas; }, boneco, get sess() { return sess; }, rearOpen, W, P, E, hands, hud, tablet, inter, safety, start, cmd, setTool, sit, stand, finalizar, showHome, togglePause, toggleTablet, openFicha, refreshEpi, takeDea, d: () => d, get seated() { return seated; }, get tool() { return tool; } };
+  (window as any).saatVR = xr; (window as any).__saat = { xr, amb, aplicarClima, lanterna, get lanternaOn() { return lanternaOn; }, get faltas() { return faltas; }, boneco, get sess() { return sess; }, rearOpen, W, P, E, hands, hud, tablet, inter, safety, start, cmd, setTool, sit, stand, finalizar, showHome, togglePause, toggleTablet, openFicha, refreshEpi, takeDea, d: () => d, get seated() { return seated; }, get tool() { return tool; } };
 }
 
 export function bootConsoleWindow() {

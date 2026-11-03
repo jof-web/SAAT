@@ -267,6 +267,21 @@
    "serve": "Repõe lâmpada queimada de sinalização de painel/cubículo.",
    "inspecao": "Mesma tensão e soquete da original.",
    "quando": "Troca de lâmpada de sinalização (baixa tensão)."
+  },
+  {
+   "id": "lanterna",
+   "nome": "Lanterna LED de mão",
+   "cat": "Ferramenta",
+   "icone": "lanterna",
+   "local": "FERR",
+   "qtd": 2,
+   "defeitavel": true,
+   "serve": "Iluminar o caminho, o ponto de trabalho e os instrumentos à noite, com chuva forte ou sem iluminação.",
+   "inspecao": "Ligar e conferir o facho; bateria carregada; lente limpa e sem trinca.",
+   "quando": "Ronda, leitura e manobra no pátio à noite ou com pouca luz.",
+   "defeitos": [
+    "bateria fraca: não acende"
+   ]
   }
  ],
  "tarefas": {

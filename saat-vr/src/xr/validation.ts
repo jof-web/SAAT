@@ -41,7 +41,7 @@ export interface MenuHost {
   version: string; loco: Locomotion; debug: Debug; check: Checklist; hands: Hand[]; cam: PerspectiveCamera; scene: Scene; renderer: WebGLRenderer;
   missao(): { codigo: string; titulo: string; passo: string; area: string; livre: boolean; faltas: number; epi: string };
   teleport(k: string): void; pausar(): boolean; sair(): void; boneco: { on: boolean }; setBoneco(on: boolean): void;
-  extra: { radio(): void; readback(): string | null; conferir(): string; tool(): string; usar(): void; guardar(): void; altura(): number; setAltura(cm: number): void; aplicarAltura(): string; perfil(): number | null; local(): { loc: string; label: string } | null; ctx(): any };
+  extra: { clima(): { clima: string; hora: string; livre: boolean; set(c: any, h: any): void }; radio(): void; readback(): string | null; conferir(): string; tool(): string; usar(): void; guardar(): void; altura(): number; setAltura(cm: number): void; aplicarAltura(): string; perfil(): number | null; local(): { loc: string; label: string } | null; ctx(): any };
 }
 const TABS: [string, string][] = [['mis', 'Missão'], ['proc', 'Tarefas'], ['loc', 'Locomoção'], ['cfg', 'Config'], ['chk', 'Checklist'], ['dbg', 'Debug']];
 const ROWS = 7, _v = new Vector3(), _v2 = new Vector3(), _m = new Matrix4(), _x = new Vector3(), _y = new Vector3(), _z = new Vector3();
@@ -118,6 +118,8 @@ export class Menu {
     row(y, 'Giro suave'); p.button('ss-', 600, y, 90, 64, '−', () => { s.smoothSpeed = Math.max(30, s.smoothSpeed - 15); sv(); }, { size: 36 }); p.text(s.smoothSpeed + ' °/s', 795, y + 32, { size: 26, align: 'center', mono: true }); p.button('ss+', 910, y, 90, 64, '+', () => { s.smoothSpeed = Math.min(180, s.smoothSpeed + 15); sv(); }, { size: 36 }); y += 76;
     row(y, 'L4 Vinheta de conforto'); tog('vg', y, s.vignette, () => { s.vignette = !s.vignette; }); y += 76;
     row(y, 'Modo sentado'); tog('se', y, s.seated, () => lo.setSeated(!s.seated)); y += 76;
+    { const C = this.A.extra.clima(), CL = ['sol', 'nublado', 'chuva', 'tempestade'], HR = ['dia', 'entardecer', 'noite'], N: Record<string, string> = { sol: 'Sol', nublado: 'Nublado', chuva: 'Chuva', tempestade: 'Tempestade', dia: 'Dia', entardecer: 'Entardecer', noite: 'Noite' };
+      p.button('cli', 24, 716, 480, 64, 'Clima: ' + N[C.clima], () => C.set(CL[(CL.indexOf(C.clima) + 1) % 4], C.hora), { size: 24, disabled: !C.livre }); p.button('hor', 520, 716, 480, 64, 'Horário: ' + N[C.hora], () => C.set(C.clima, HR[(HR.indexOf(C.hora) + 1) % 3]), { size: 24, disabled: !C.livre }); }
     row(y, 'Altura extra'); p.button('h-', 600, y, 90, 64, '−5', () => lo.nudgeHeight(-0.05), { size: 26 }); p.text((s.manual >= 0 ? '+' : '') + s.manual.toFixed(2).replace('.', ',') + ' m', 795, y + 32, { size: 26, align: 'center', mono: true }); p.button('h+', 910, y, 90, 64, '+5', () => lo.nudgeHeight(0.05), { size: 26 });
   }
   private drawCfg(p: Panel) {

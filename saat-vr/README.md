@@ -21,3 +21,5 @@ Decisões, valores provisórios [VALIDAR] e pendências: `DECISIONS.md`. O que o
 - Jogar: https://jof-web.github.io/SAAT/saat-vr/jogar/ (no navegador do Quest, botão amarelo **Entrar em VR**).
 - Build: `npm run build` → `jogar/index.html`. Teste VR sem óculos: `node e2e/xr.cjs` (emulador IWER).
 - Estado e orçamento: `docs/VR.md`. Decisões: `DECISIONS.md` (seção VR).
+
+- Tela de ranking (TV/segunda tela): https://jof-web.github.io/SAAT/saat-vr/ranking/

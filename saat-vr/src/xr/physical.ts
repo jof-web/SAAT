@@ -9,7 +9,7 @@ import type { Hand } from './input';
 
 export interface PhysHost {
   W: any; inter: any; scene: Object3D; sess(): any; cmd(c: any): any; setTool(id: string | null): void; tool(): string | null; toast(m: string, k?: string): void; refreshEpi(): void;
-  audio: any; takeDea(): void; deaTaken(): boolean; safety: any; rcpQualidade(ts: number[]): number; fallback(t: any, ops: [string, () => void][]): void;
+  audio: any; takeDea(): void; deaTaken(): boolean; lanterna(): boolean; semLuz(): boolean; safety: any; rcpQualidade(ts: number[]): number; fallback(t: any, ops: [string, () => void][]): void;
 }
 type Cat = 'poke' | 'rot' | 'crank' | 'lever' | 'touch' | 'pull';
 const CAT: Record<string, Cat> = { sel43: 'rot', 'bay:43': 'rot', ats: 'rot', oltc: 'rot', rack: 'crank', terra: 'lever', terraAT: 'lever', porta: 'pull', tampa: 'pull' };
@@ -58,7 +58,7 @@ export class Physical {
   // ---------- laço ----------
   update(dt: number, hands: Hand[], head: Vector3, fwd: Vector3, dead: boolean) {
     this.refreshT += dt; if (this.refreshT > 0.3) { this.refreshT = 0; this.refresh(head); }
-    this.hl = null; let hlD = 0.06;
+    this.hl = null; let hlD = 0.06; this.hands = hands;
     const yaw = Math.atan2(-fwd.x, -fwd.z); this.beltYaw += wrap(yaw - this.beltYaw) * Math.min(1, dt * 3); this.belt.position.set(head.x, Math.max(0.62, head.y * 0.58), head.z); this.belt.rotation.y = this.beltYaw; this.belt.visible = !dead;
     hands.forEach((h, k) => {
       if (!h.connected) return; this.vel[k].lerp(_v.copy(h.pos).sub(this.last[k]).divideScalar(Math.max(dt, 1e-3)), 0.4); this.last[k].copy(h.pos);
@@ -89,6 +89,7 @@ export class Physical {
     const H = this.H, s = H.sess(), { p, t } = pc; if (!s) return;
     if (t.kind === 'bay') { const cb = H.W.yard.cabs[t.eq]; if (cb && cb.open < 0.5) { H.toast('Abra a porta da caixa de comando (grip na porta e puxe).', 'warn'); h.pulse(0.2, 20); return; } }
     if (p.act === 'inter:emerg') { H.inter.useDirect(t); h.pulse(0.7, 40); return; }
+    if (String(p.act).startsWith('leitura:') && H.semLuz()) { H.toast('Está escuro: não dá para ler o instrumento. Use a lanterna (gatilho liga).', 'warn'); return; }
     if (String(p.act).startsWith('leitura:')) { const r = s.sim.leitura(p.data.ref); if (r) { H.cmd({ t: 'anotacao', ref: p.data.ref, valor: +r.valor.toFixed(2) }); H.toast(`${p.label}: ${n2(r.valor)} ${r.un}. Registrado no caderno de ronda.`, 'ok'); } h.pulse(0.4, 25); return; }
     if (p.act === 'ats') return;
     const ok = H.inter.actVR(t, p, (ops: [string, () => void][]) => H.fallback(t, ops)); h.pulse(ok ? 0.6 : 0.2, ok ? 35 : 15); H.audio?.click?.();
@@ -160,6 +161,7 @@ export class Physical {
     // inspecionar: segurar perto do rosto, na frente dos olhos, ~1,2 s
     if (!hd.inspDone && hd.uid && !hd.eng) { const c = _b.setFromObject(hd.obj).getCenter(_c), d = c.distanceTo(head); if (d < 0.4 && _w.copy(c).sub(head).normalize().dot(fwd) > 0.55) { hd.insp += dt; if (hd.insp > 1.0) { hd.inspDone = true; const r = s.epi('inspecionar', hd.uid); H.toast(r.txt, r.ok ? 'ok' : 'bad'); h.pulse(r.ok ? 0.3 : 0.8, r.ok ? 30 : 120); } } else hd.insp = Math.max(0, hd.insp - dt); }
     if (!hd.tool) return; if (hd.eng) { this.engUpdate(hd, h); return; }
+    if (hd.item === 'lanterna') { if (h.triggerDown) { this.H.lanterna(); h.pulse(0.2, 15); } return; }
     const tip = h.grip!.localToWorld(_c.copy(hd.tipL));
     for (const pc of this.pcs) { if (!pc.p.tool) continue; const inn = this.inBox(pc, tip, 0.035);
       if (!inn) { if (pc.inside[k] && !this.inBox(pc, tip, 0.07)) { pc.inside[k] = false; pc.warned[k] = false; } continue; } if (pc.inside[k]) continue; pc.inside[k] = true;
@@ -238,6 +240,11 @@ export class Physical {
     for (const o of [...this.loose]) this.restore(o); if (W.indoor.dea?.userData.vr) this.restore(W.indoor.dea);
     this.falling = []; this.loose.clear(); this.stopRcp(); clearTimeout(this.rescue.deaT); this.rescue.dea = ''; this.rescue.t = 0;
   }
+  private hands: Hand[] = [];
+  lanternaNaMao() { return this.hold.some((x) => x?.k === 'item' && x.item === 'lanterna'); }
+  /** Facho da lanterna na mão: ponta e direção (frente do controle). */
+  lanternaPose() { const k = this.hold.findIndex((x) => x?.k === 'item' && x.item === 'lanterna'), h = this.hands[k], hd = this.hold[k] as any; if (k < 0 || !h?.grip) return null;
+    const o = h.grip.localToWorld(hd.tipL.clone()), d = new Vector3(0, -0.25, -1).normalize().applyQuaternion(h.quat); return { o, d }; }
   /** Peça em destaque (perto do dedo, da mão ou da ponta da ferramenta). */
   get highlight() { return this.hl?.p.hit as Mesh | undefined; }
 }

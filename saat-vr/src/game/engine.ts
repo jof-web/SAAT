@@ -52,12 +52,12 @@ export class Engine {
   }
   private makeSky(forEnv = false) {
     const m = new ShaderMaterial({ side: BackSide, depthWrite: false, fog: false,
-      uniforms: { top: { value: new Color(0x5d8fc4) }, mid: { value: new Color(0xa9c4dc) }, bot: { value: new Color(forEnv ? 0x6f6a60 : 0xd4dbe0) }, sun: { value: SUN_DIR.clone() } },
+      uniforms: { top: { value: new Color(0x5d8fc4) }, mid: { value: new Color(0xa9c4dc) }, bot: { value: new Color(forEnv ? 0x6f6a60 : 0xd4dbe0) }, sun: { value: SUN_DIR.clone() }, sunAmt: { value: 1 } },
       vertexShader: 'varying vec3 vD; void main(){ vD=normalize(position); vec4 p=projectionMatrix*modelViewMatrix*vec4(position,1.0); gl_Position=p.xyww; }',
-      fragmentShader: `uniform vec3 top,mid,bot,sun; varying vec3 vD;
+      fragmentShader: `uniform vec3 top,mid,bot,sun; uniform float sunAmt; varying vec3 vD;
         void main(){ float h=vD.y; vec3 c = h>0.0 ? mix(mid,top,pow(h,0.55)) : mix(mid,bot,pow(-h,0.35));
-          float s=max(dot(normalize(vD),sun),0.0); c+=vec3(1.0,0.93,0.8)*(pow(s,900.0)*8.0+pow(s,12.0)*0.18);
-          c=mix(c,vec3(0.86,0.89,0.9),smoothstep(0.12,0.0,abs(h))*0.55); gl_FragColor=vec4(c,1.0);
+          float s=max(dot(normalize(vD),sun),0.0); c+=vec3(1.0,0.93,0.8)*(pow(s,900.0)*8.0+pow(s,12.0)*0.18)*sunAmt;
+          c=mix(c,mid*1.05,smoothstep(0.12,0.0,abs(h))*0.55); gl_FragColor=vec4(c,1.0);
           #include <tonemapping_fragment>
           #include <colorspace_fragment>
         }` });
@@ -97,9 +97,13 @@ export class Engine {
   }
   setIndoor(v: boolean) {
     if (v === this.indoor) return; this.indoor = v; this.scene.environment = v ? this.envIn : this.envOut;
-    this.scene.traverse((o: any) => { const ms = o.material ? (Array.isArray(o.material) ? o.material : [o.material]) : []; for (const m of ms) if (m.isMeshStandardMaterial) { m.userData.env0 ??= m.envMapIntensity ?? 1; m.envMapIntensity = m.userData.env0 * (v ? 0.26 : 1); } });
-    this.hemi.intensity = v ? 0.24 : 0.75; this.renderer.toneMappingExposure = v ? 0.74 : 0.92;
+    this.scene.traverse((o: any) => { const ms = o.material ? (Array.isArray(o.material) ? o.material : [o.material]) : []; for (const m of ms) if (m.isMeshStandardMaterial) { m.userData.env0 ??= m.envMapIntensity ?? 1; m.envMapIntensity = m.userData.env0 * (v ? 0.26 : this.out.env); } });
+    this.hemi.intensity = v ? 0.24 : this.out.hemi; this.renderer.toneMappingExposure = v ? 0.74 : this.out.expo;
   }
+  /** Ambiente externo (clima/horário): reflexo do céu, luz do céu e exposição fora da casa. */
+  out = { env: 1, hemi: 0.75, expo: 0.92 };
+  setOutdoor(o: { env: number; hemi: number; expo: number }) { const envCh = o.env !== this.out.env; this.out = o;
+    if (!this.indoor) { if (envCh) this.scene.traverse((x: any) => { const ms = x.material ? (Array.isArray(x.material) ? x.material : [x.material]) : []; for (const m of ms) if (m.isMeshStandardMaterial) { m.userData.env0 ??= m.envMapIntensity ?? 1; m.envMapIntensity = m.userData.env0 * o.env; } }); this.hemi.intensity = o.hemi; this.renderer.toneMappingExposure = o.expo; } }
   setVignette(amount: number, tint = 0x000000, tintAmt = 0) { if (!this.vignette) return; const u = this.vignette.uniforms as any; u.amount.value = amount; u.tint.value.setHex(tint); u.tintAmt.value = tintAmt; }
   /** VR: sem sombra e sem pós-processamento (não renderiza nos dois olhos). */
   xrMode(on: boolean) { if (on) { this.renderer.shadowMap.enabled = false; this.sun.castShadow = false; this.scene.traverse((o: any) => { if (o.material) for (const m of [].concat(o.material)) (m as any).needsUpdate = true; }); } else this.setQuality(this.quality); }

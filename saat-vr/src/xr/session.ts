@@ -23,7 +23,7 @@ export interface XRHost {
   livre(): boolean; area(): string; faltas(): number; boneco(): Boneco | null; gear(): { isolante: boolean; cobertura: boolean; pvc: boolean; fr: boolean };
   missao(): { codigo: string; titulo: string; passo: string }; pausar(): boolean; correndo(on: boolean, dt: number): void; onStart(): void; onEnd(): void;
   sess(): any; cmd(c: any): any; tool(): string | null; toolName(): string; setTool(id: string | null): void; usarFerramenta(): void; refreshEpi(): void; toast(m: string, k?: string): void;
-  takeDea(): void; deaTaken(): boolean;
+  takeDea(): void; deaTaken(): boolean; lanterna(): boolean; semLuz(): boolean; clima(): { clima: string; hora: string; livre: boolean; set(c: any, h: any): void };
   dead(): boolean; ctx(): any; readback(): string | null; conferirEpi(): string; alturaPerfil(): number | null; salvarAltura(cm: number): void; rcpQualidade(ts: number[]): number;
 }
 const _h = new Vector3(), _d = new Vector3(), _f = new Vector3(), _p = new Vector3(), _m = new Matrix4();
@@ -46,14 +46,14 @@ export class XRLayer {
       missao: () => { const m = H.missao(), b = this.lastBoneco; return { ...m, area: H.area(), livre: H.livre(), faltas: H.faltas(), epi: b ? (b.pronto ? 'EPI completo' : `faltam ${b.faltam.length} EPI`) : '—' }; },
       teleport: (k) => { const s = H.W.spawns[k]; if (s && H.livre()) { this.loco.placeHead(s.x, s.z, s.yaw); this.menu.hide(); } }, pausar: () => H.pausar(), sair: () => { void R.xr.getSession()?.end(); },
       boneco: this.boneco, setBoneco: (on) => { this.boneco.on = on; },
-      extra: { radio: () => this.radio(), readback: () => H.readback(), conferir: () => H.conferirEpi(), tool: () => H.toolName(), usar: () => H.usarFerramenta(), guardar: () => H.setTool(null),
+      extra: { clima: () => H.clima(), radio: () => this.radio(), readback: () => H.readback(), conferir: () => H.conferirEpi(), tool: () => H.toolName(), usar: () => H.usarFerramenta(), guardar: () => H.setTool(null),
         altura: () => this.alturaCm(), setAltura: (cm: number) => { this.loco.s.alturaCm = Math.round(Math.min(210, Math.max(120, cm))); this.loco.save(); },
         aplicarAltura: () => { const cm = this.alturaCm(), e = this.loco.applyStature(cm); if (e === null) return 'Altura inválida.'; this.loco.s.autoAltura = true; this.loco.save(); H.salvarAltura(cm); return `Altura ${cm} cm aplicada: olhos a ${e.toFixed(2).replace('.', ',')} m.`; },
         perfil: () => H.alturaPerfil(), local: () => this.nearLocal(), ctx: () => H.ctx() } });
     this.card = new VRCard({ inter: H.inter, W: H.W, sess: () => H.sess(), refreshEpi: () => H.refreshEpi(), toast: (m, k) => H.toast(m, k), cmd: (c) => H.cmd(c), tool: () => H.tool(), safety: H.safety, audio: H.audio, rcpQualidade: (ts) => H.rcpQualidade(ts), ctx: () => H.ctx() }, E.scene);
     this.scada = new VRScada({ sess: () => H.sess(), cmd: (c) => H.cmd(c), ctx: () => H.ctx(), desk: { seated: () => this.seated, sit: () => this.sit(), stand: () => this.stand(), big: () => this.seatBig, setBig: (b) => { this.seatBig = b; this.scadaPose(); } } }, E.scene);
     this.phys = new Physical({ W: H.W, inter: H.inter, scene: E.scene, sess: () => H.sess(), cmd: (c) => H.cmd(c), setTool: (id) => H.setTool(id), tool: () => H.tool(), toast: (m, k) => H.toast(m, k), refreshEpi: () => H.refreshEpi(),
-      audio: H.audio, takeDea: () => H.takeDea(), deaTaken: () => H.deaTaken(), safety: H.safety, rcpQualidade: (ts) => H.rcpQualidade(ts),
+      audio: H.audio, takeDea: () => H.takeDea(), deaTaken: () => H.deaTaken(), lanterna: () => H.lanterna(), semLuz: () => H.semLuz(), safety: H.safety, rcpQualidade: (ts) => H.rcpQualidade(ts),
       fallback: (t, ops) => { this.card.show(t, this.head(new Vector3()), this.fwd(new Vector3())); this.card.ask = ops; this.card.panel.dirty = true; } });
     this.fx = new VRFx(E.cam); this.acc = new VRAccident(H.acc, E.scene); this.hud = new VRHud(E.scene); this.pip = new VRPip(R, E.scene);
     H.hud.listeners.push((k: string, t: string, who?: string) => { if (this.active) this.hud.push(k, t, who); });

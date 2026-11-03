@@ -304,8 +304,9 @@ export class GameWorld {
   }
   /** Andar no pátio não é como no piso da casa: grama/brita 70 %, dentro do vão (estruturas, cabos, aterramento) 45 %,
    *  sobre a tampa da canaleta (passeio) 85 %. Correr no pátio não é possível. */
-  walkFactor(x: number, z: number) { const a = this.areaAt(x, z); if (a !== 'patio') return { mul: 1, run: true };
-    const inR = (r: number[]) => x > r[0] && x < r[2] && z > r[1] && z < r[3]; if (this.walkR.some(inR)) return { mul: 0.85, run: false }; if (this.bayR.some(inR)) return { mul: 0.45, run: false }; return { mul: 0.7, run: false }; }
+  wet = false;
+  walkFactor(x: number, z: number) { const a = this.areaAt(x, z); if (a !== 'patio') return { mul: 1, run: true }; const w = this.wet ? 0.85 : 1; // piso molhado: mais devagar
+    const inR = (r: number[]) => x > r[0] && x < r[2] && z > r[1] && z < r[3]; if (this.walkR.some(inR)) return { mul: 0.85 * w, run: false }; if (this.bayR.some(inR)) return { mul: 0.45 * w, run: false }; return { mul: 0.7 * w, run: false }; }
   areaAt(x: number, z: number) { const [fx1, fz1, fx2, fz2] = this.fenceRect, [cx1, cz1, cx2, cz2] = this.casaRect;
     if (x > cx1 && x < cx2 && z > cz1 && z < cz2) { const [bx1, bz1, bx2, bz2] = this.batRect; return x > bx1 && x < bx2 && z > bz1 && z < bz2 ? 'bateria' : 'casa'; } if (x > fx1 && x < fx2 && z > fz1 && z < fz2 && !(z > cz2 && x > cx1 && x < cx2)) return 'patio'; return 'externo'; }
   colliders(): AABB[] { return [...this.col, ...this.doorCol.values()]; }

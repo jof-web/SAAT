@@ -7,6 +7,7 @@ import { Inventory, tarefaDe } from '../train/inventory';
 export interface SessionCfg {
   missao: string | null; perfil: string; modo: 'instrutor' | 'autonomo'; semente: number; treinando: string; sandbox: boolean;
   nivel?: string; treinandoId?: string; matricula?: string; funcao?: string; exigirEpi?: boolean;
+  clima?: string; hora?: string; eventosClima?: boolean;
 }
 export type Input = { t: number; k: string; a: any[] };
 

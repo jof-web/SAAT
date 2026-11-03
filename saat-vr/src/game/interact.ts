@@ -131,7 +131,7 @@ export class Interaction {
       case 'dis:open': C({ t: 'switch', id: p.data.id, op: 'open', via: 'local' }); break;
       case 'dis:close': C({ t: 'switch', id: p.data.id, op: 'close', via: 'local' }); break;
       case 'terraAT': { const id = p.data.id; C({ t: 'switch', id, op: s.eq[id].state === 'closed' ? 'open' : 'close', via: 'local' }); break; }
-      case 'leitura:sf6': case 'leitura:ops': this.leituraCard(p.data.ref); break;
+      case 'leitura:sf6': case 'leitura:ops': if ((A as any).semLuz?.()) { A.hud.toast('Está escuro: não dá para ler o instrumento. Pegue a lanterna (armário de ferramentas) e ligue com F.', 'warn', 5000); break; } this.leituraCard(p.data.ref); break;
       case 'tap:+1': C({ t: 'tap', id: p.data.id, dir: 1, via: 'local' }); break;
       case 'tap:-1': C({ t: 'tap', id: p.data.id, dir: -1, via: 'local' }); break;
       case 'oltc': C({ t: 'oltc', id: p.data.id, modo: s.tr[p.data.id].modo === 'auto' ? 'manual' : 'auto', via: 'local' }); break;

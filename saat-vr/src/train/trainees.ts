@@ -9,6 +9,10 @@ export interface Resultado {
 export interface Treinando {
   id: string; nome: string; matricula: string; funcao: string; empresa: string;
   nr10Basico: string; nr10Sep: string; obs: string; criado: string; resultados: Resultado[]; alturaCm?: number;
+  /** Ranking público (LGPD): só aparece com o apelido se rankingPublico = true (consentimento); senão, código. */
+  apelido?: string; rankingPublico?: boolean;
+  /** Tempo real de treino (s), em VR (s) e dias com treino (AAAA-MM-DD). */
+  tempoS?: number; tempoVR?: number; dias?: string[];
 }
 const KEY = 'treinandos';
 export const FUNCOES = ['Operador de subestação', 'Eletricista de manutenção', 'Técnico de eletrotécnica', 'Técnico de segurança', 'Engenheiro', 'Supervisor', 'Estagiário', 'Outro'];
@@ -21,6 +25,9 @@ export function salvar(t: Partial<Treinando> & { nome: string }): Treinando {
   if (!x) { x = { id: 'T' + Date.now().toString(36) + Math.floor(Math.random() * 1e4).toString(36), nome: '', matricula: '', funcao: FUNCOES[0], empresa: '', nr10Basico: '', nr10Sep: '', obs: '', criado: new Date().toISOString(), resultados: [] }; l.push(x); }
   const { id: _id, resultados: _r, ...rest } = t as any; void _id; void _r; Object.assign(x, rest); gravar(l); return x;
 }
+/** Soma tempo real de treino (chamado a cada ~10 s de sessão ativa). */
+export function addTempo(id: string, s: number, vr: boolean) { const l = listar(); const x = l.find((t) => t.id === id); if (!x) return; x.tempoS = (x.tempoS || 0) + s; if (vr) x.tempoVR = (x.tempoVR || 0) + s;
+  const dia = new Date().toISOString().slice(0, 10); x.dias = x.dias || []; if (x.dias[x.dias.length - 1] !== dia) { x.dias.push(dia); if (x.dias.length > 400) x.dias.splice(0, x.dias.length - 400); } gravar(l); }
 export function remover(id: string) { gravar(listar().filter((t) => t.id !== id)); }
 export function addResultado(id: string, r: Resultado) { const l = listar(); const x = l.find((t) => t.id === id); if (!x) return; x.resultados.push(r); if (x.resultados.length > 400) x.resultados.splice(0, x.resultados.length - 400); gravar(l); }
 

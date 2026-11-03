@@ -4,7 +4,7 @@ import { Sfx } from '../io/sfx';
 import type { Vector3 } from 'three';
 
 export class Audio extends Sfx {
-  private c: AudioContext | null = null; private amb: { wind: GainNode; room: GainNode; hum: { g: GainNode; p: PannerNode }[]; zone: GainNode } | null = null;
+  private c: AudioContext | null = null; private amb: { wind: GainNode; room: GainNode; hum: { g: GainNode; p: PannerNode }[]; zone: GainNode; rain: GainNode } | null = null;
   vol = 0.8; voz = true;
   private ac2() { if (!this.c) { const C = (window as any).AudioContext || (window as any).webkitAudioContext; if (C) this.c = new C(); } if (this.c?.state === 'suspended') this.c.resume(); return this.c; }
   start(trafos: Vector3[]) {
@@ -16,7 +16,8 @@ export class Audio extends Sfx {
       for (const [f, a] of [[120, 1], [240, 0.45], [360, 0.18]] as const) { const o = c.createOscillator(); o.frequency.value = f; const og = c.createGain(); og.gain.value = a * 0.25; o.connect(og).connect(g); o.start(); }
       g.connect(pn).connect(master); return { g, p: pn }; });
     const zone = c.createGain(); zone.gain.value = 0; const zf = c.createBiquadFilter(); zf.type = 'highpass'; zf.frequency.value = 2500; noise(1).connect(zf).connect(zone).connect(master);
-    this.amb = { wind, room, hum, zone };
+    const rain = c.createGain(); rain.gain.value = 0; const rnf = c.createBiquadFilter(); rnf.type = 'bandpass'; rnf.frequency.value = 1800; rnf.Q.value = 0.4; noise(3).connect(rnf).connect(rain).connect(master);
+    this.amb = { wind, room, hum, zone, rain };
   }
   /** Atualiza ouvinte e ambiente. */
   listen(p: Vector3, yaw: number, indoor: boolean, energ: boolean[]) {
@@ -35,6 +36,10 @@ export class Audio extends Sfx {
   click() { this.burst(0.03, 0.4, 3000, 0, 4); }
   arc(k: number) { this.burst(0.5, 1.2 * k, 300, 0, 0.4); this.burst(1.2, 0.6 * k, 2500, 0.05, 0.3); this.beep(60, 0.6, 0.6 * k, 'sawtooth', 30); }
   accident(tipo: string) { if (tipo === 'arco') this.arc(1); else { this.beep(60, 1.2, 0.5, 'sawtooth'); this.burst(0.8, 0.4, 4000); } setTimeout(() => this.beep(4200, 4, 0.06), 600); for (let i = 0; i < 6; i++) setTimeout(() => this.thump(), 1500 + i * 900); }
+  /** Chuva contínua (0 = parada, 1 = tempestade). */
+  chuva(k: number) { const a = this.amb, c = this.c; if (!a?.rain || !c) return; if (Math.abs((a.rain as any)._k - k) < 0.01) return; (a.rain as any)._k = k; a.rain.gain.setTargetAtTime(k * 0.35, c.currentTime, 0.6); }
+  /** Trovão: estalo seco (perto) e ronco grave longo. */
+  trovao(k: number) { this.burst(0.25, 0.9 * k, 900, 0, 0.5); this.burst(3.2, 0.8 * k, 160, 0.08, 0.3); this.beep(38, 2.4, 0.35 * k, 'sawtooth', 20); }
   thump() { this.beep(55, 0.18, 0.5, 'sine', 40); }
   /** Monitor cardíaco: três bipes e linha contínua (morte). */
   flatline() { for (let i = 0; i < 3; i++) setTimeout(() => this.beep(980, 0.12, 0.12, 'sine'), i * 800); setTimeout(() => this.beep(980, 4.5, 0.1, 'sine'), 2400); }
