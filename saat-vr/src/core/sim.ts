@@ -6,7 +6,7 @@ import { Branch, Net, makeNet, solve, reach, curveTime, eval87T, mulberry32, Z_S
 
 export type Actor = 'treinando' | 'instrutor' | 'supervisor' | 'cos' | 'manutencao' | 'protecao' | 'sistema';
 export type Cmd = { t: string; [k: string]: any };
-export interface CmdOpt { bypass?: string[]; just?: string; aprovadoPor?: Actor }
+export interface CmdOpt { bypass?: string[]; just?: string; aprovadoPor?: Actor; forcado?: boolean }
 export interface CmdResult { result: 'ok' | 'bloqueado' | 'falha' | 'negado'; rules: string[]; msg: string; noop?: boolean; changed?: boolean; consequencia?: string }
 export interface LogEntry {
   seq: number; t: number; hora: string; kind: 'cmd' | 'prot' | 'ev' | 'com' | 'err'; actor: Actor; msg: string;
@@ -86,6 +86,8 @@ export class Sim {
   }
   sched(t: number, ev: any) { ev.t = t; ev.n = ++this.qn; const q = this.s.q; let i = q.length; while (i > 0 && (q[i - 1].t > t)) i--; q.splice(i, 0, ev); }
   ccOk() { return this.s.cc.v >= this.d.params.cc.mortoV; } // A10: CC < 80 V ⇒ nada atua
+  /** Regras que podem ser forçadas em campo (têm consequência física definida; 'nenhuma' = impossível forçar). */
+  forcavel(rules: string[]) { return rules.length > 0 && rules.every((id) => this.d.interlocks.regras.some((r: any) => r.id === id && r.bypass && r.bypass !== 'nenhuma')); }
   ruleOn(id: string) { return this.d.interlocks.regras.some((r: any) => r.id === id && r.enabled); }
   opMs(e: any, op: string) { const c = this.d.params.disjuntor[e.ratings?.classe || 'mt']; return op === 'open' ? c.aberturaMs : c.fechamentoMs; }
   conduz(e: any, over?: Record<string, boolean>) {
@@ -473,7 +475,7 @@ export class Sim {
   can(actor: Actor, cat: string) { return (this.d.scoring.permissoes[this.mode][actor] || []).includes(cat); }
   dispatch(cmd: Cmd, actor: Actor = 'treinando', opt: CmdOpt = {}): CmdResult {
     const r = this.exec(cmd, actor, opt);
-    this.lg('cmd', actor, r.msg, { cmd, result: r.result, rules: r.rules, just: opt.just, bypass: opt.bypass, aprovadoPor: opt.aprovadoPor, noop: r.noop, consequencia: r.consequencia, medida: (r as any).medida, antes: (r as any).antes });
+    this.lg('cmd', actor, r.msg, { cmd, result: r.result, rules: r.rules, just: opt.just, bypass: opt.bypass, forcado: opt.forcado, aprovadoPor: opt.aprovadoPor, noop: r.noop, consequencia: r.consequencia, medida: (r as any).medida, antes: (r as any).antes });
     if (r.result === 'ok' && !r.noop) this.resolve();
     return r;
   }
@@ -483,7 +485,7 @@ export class Sim {
     const fail = (msg: string): CmdResult => ({ result: 'falha', rules: [], msg });
     const cat = CAT[cmd.t] || 'manobrar';
     if (!this.can(actor, cat)) return { result: 'negado', rules: [], msg: `Perfil ${actor} sem permissão para ${cat}` };
-    if (opt.bypass?.length && !this.can(opt.aprovadoPor || actor, 'bypass')) return { result: 'negado', rules: opt.bypass, msg: 'Bypass de intertravamento só com liberação do Supervisor' };
+    if (opt.bypass?.length && !opt.forcado && !this.can(opt.aprovadoPor || actor, 'bypass')) return { result: 'negado', rules: opt.bypass, msg: 'Bypass de intertravamento só com liberação do Supervisor' };
     const block = (v: any[]): CmdResult | null => {
       const left = v.filter((x) => !opt.bypass?.includes(x.id));
       return left.length ? { result: 'bloqueado', rules: [...new Set(left.map((x) => x.id))] as string[], msg: 'Bloqueado — ' + left.map((x) => `${x.id}: ${x.det}`).join('; ') } : null;
@@ -501,8 +503,9 @@ export class Sim {
         if (e.type === 'CBR' && cmd.op === 'close' && b.trava === 'naofecha') { this.alarm(`DISC:${cmd.id}`, `${cmd.id}: discordância de comando (não fechou)`, 2); return fail(`${nome}: comando emitido, disjuntor não fechou`); }
         if (e.type === 'DIS' && b.trava === 'emperrada') return fail(`${nome}: seccionadora emperrada, não forçar`);
         const by = v.filter((x) => opt.bypass?.includes(x.id)).map((x) => x.id); let cons = '';
-        const arco = by.includes('I-01') && (this.der.I[cmd.id] || 0) > 1; // bypass de I-01 sob carga → arco
-        if (arco) cons = 'arco_seccionadora'; else if (by.some((x) => ['I-02', 'I-03', 'I-10'].includes(x))) cons = 'curto_franco';
+        const curto = by.some((x) => ['I-02', 'I-03', 'I-10'].includes(x)) && e.nodes.some((n: string) => this.der.energ[n]); // fechar terra/fonte sobre trecho vivo → curto franco com arco
+        const arco = (by.includes('I-01') && (this.der.I[cmd.id] || 0) > 1) || curto; // bypass de I-01 sob carga → arco
+        if (arco) cons = curto ? 'curto_franco' : 'arco_seccionadora'; else if (by.some((x) => ['I-02', 'I-03', 'I-10'].includes(x))) cons = 'curto_franco';
         const ms = e.type === 'CBR' ? this.opMs(e, cmd.op) : e.kind === 'earthing' ? p.manobra.terraMs : p.manobra.seccionadoraMs;
         b.moving = cmd.op === 'close' ? 'closing' : 'opening';
         this.sched(s.t + ms, { type: 'swDone', id: cmd.id, to: want, arco });

@@ -3,7 +3,7 @@
 // sala de baterias (dividida dentro do salão) e duas salas anexas com acesso pelo pátio (TSA e almoxarifado).
 // Coordenadas da planta: u = m a partir da parede do portão (leste) para oeste; v = m a partir da parede do pátio (norte)
 // para o sul. Mundo: x = xE - u, z = zN + v (rotação de 180° da planta, sem espelhar).
-import { Group, Mesh, Vector3, MeshStandardMaterial, PlaneGeometry, CylinderGeometry, SphereGeometry, PointLight, TorusGeometry, CapsuleGeometry, BoxGeometry, type Material } from 'three';
+import { Group, Mesh, Vector3, Vector2, MeshStandardMaterial, PlaneGeometry, CylinderGeometry, SphereGeometry, PointLight, TorusGeometry, CapsuleGeometry, BoxGeometry, LatheGeometry, TubeGeometry, CatmullRomCurve3, ConeGeometry, type Material } from 'three';
 import { type MCtx, inter, part, colBox, dbox, dcyl, dmesh, plate, canvasTex, FONT, MONO } from '../common';
 import { glow } from '../materials';
 import { Print } from '../print';
@@ -209,6 +209,7 @@ export function buildIndoor(c: MCtx, d: any, _P: (px: number, py: number) => [nu
     ['1. Toda manobra exige OS e autorização do COS', '2. APR antes de iniciar a tarefa', '3. Desenergizar: seccionar, bloquear, constatar,', '    aterrar, proteger, sinalizar (NR-10 10.5.1)', '4. EPI inspecionado antes do uso', '5. Comunicação com read-back', '6. Emergência: 193 · SAMU 192 · COS ramal 2100'].forEach((l, i) => pr.text(l, 0.06, 0.55 - i * 0.07, 0.034, { align: 'left', weight: 500 }));
     const [q0, q1] = Ly.quadro, m = pr.mesh(0.7); m.position.set(X((q0 + q1) / 2), 1.6, Z(aV) + tp / 2 + 0.015); c.root.casa.add(m); B.box(q1 - q0 + 0.04, 0.74, 0.02, M.aluDull, X((q0 + q1) / 2), 1.6, Z(aV) + tp / 2 + 0.005); }
   extintorCarreta(c, X(Ly.extintorCarreta[0]), Z(Ly.extintorCarreta[1]));
+  { const [u0, u1] = Ly.extintorPiso, zw = Z(WW), zi = Z(WW - 0.12), sg = Math.sign(zi - zw) || 1; extintorPortatil(c, X((u0 + u1) / 2), zi, sg > 0 ? 0 : Math.PI); plate(c, 'extintor', ['EXTINTOR'], 0.2, 0.27, X((u0 + u1) / 2), 1.86, zw + sg * 0.012, sg > 0 ? 0 : Math.PI); }
   plate(c, 'extintor', ['EXTINTOR'], 0.24, 0.32, X(anx[0].u[0]) + tp / 2 + 0.012, 1.95, Z(Ly.extintorCarreta[1]), Math.PI / 2);
   plate(c, 'saida', ['SAÍDA'], 0.42, 0.16, X((Ly.ret.RT2[0] + Ly.ret.RT1[1]) / 2), 2.2, zS - 0.012, Math.PI);
   plate(c, 'saida', ['SAÍDA'], 0.42, 0.16, X(11.0), 2.2, zS - 0.012, Math.PI);
@@ -486,12 +487,54 @@ function carrinhoDJ(c: MCtx, x: number, z: number) {
   for (let i = 0; i < 3; i++) { B.cyl(0.05, 0.38, M.plastic, x - 0.2 + i * 0.2, 1.05, z - 0.22, 0, 0, 14); for (const yy of [1.17, 0.95]) B.cylZ(0.016, 0.22, M.copper, x - 0.2 + i * 0.2, yy, z - 0.38, 8); }
   B.box(0.3, 0.2, 0.01, M.copperOld, x, 1.05, z + 0.33); c.col.push([x - 0.4, z - 0.45, x + 0.4, z + 0.42]);
 }
+/** Corpo de extintor por perfil de revolução (fundo e topo abaulados), faixa de rótulo envolvente e conjunto de válvula. */
+function tanque(M: any, g: Group, R: number, H: number, y0: number, rot: string[], peso: string) {
+  const pts = [[0, 0], [R * 0.55, 0.004], [R * 0.86, 0.018], [R * 0.98, 0.05], [R, 0.09], [R, H - 0.1], [R * 0.97, H - 0.055], [R * 0.84, H - 0.022], [R * 0.6, H - 0.004], [R * 0.32, H], [0, H]].map(([r, y]) => new Vector2(r, y));
+  const body = new Mesh(new LatheGeometry(pts, 28), M.extRed); body.position.y = y0; body.castShadow = true; g.add(body);
+  const ct = canvasTex(512, 160), G = ct.g; G.fillStyle = '#f2f0ea'; G.fillRect(0, 0, 512, 160); G.fillStyle = '#c4161c'; G.fillRect(0, 0, 512, 10); G.fillRect(0, 150, 512, 10);
+  const fit = (t: string, wgt: number, px: number) => { let z = px; do { G.font = `${wgt} ${z}px ${FONT}`; z--; } while (G.measureText(t).width > 228 && z > 10); };
+  for (const ox of [0, 256]) { G.fillStyle = '#111'; G.textAlign = 'center'; fit(rot[0], 700, 30); G.fillText(rot[0], ox + 128, 46); fit(rot[1], 600, 22); G.fillText(rot[1], ox + 128, 78); G.fillStyle = '#c4161c'; fit(peso, 700, 26); G.fillText(peso, ox + 128, 112);
+    G.fillStyle = '#333'; G.font = `500 15px ${MONO}`; G.fillText('INMETRO · NBR 15808', ox + 128, 138); }
+  ct.t.needsUpdate = true; const lab = new Mesh(new CylinderGeometry(R + 0.0015, R + 0.0015, H * 0.36, 28, 1, true), new MeshStandardMaterial({ map: ct.t, roughness: 0.5 })); lab.position.y = y0 + H * 0.5; g.add(lab);
+  // válvula, manômetro (face com zona verde), gatilho e lacre
+  const vy = y0 + H; const v = new Mesh(new CylinderGeometry(R * 0.2, R * 0.24, 0.05, 12), M.brass); v.position.y = vy + 0.02; g.add(v);
+  const lev = new Mesh(new BoxGeometry(0.018, 0.012, R * 1.4), M.black); lev.position.set(0, vy + 0.06, -R * 0.35); lev.rotation.x = 0.25; g.add(lev); const lev2 = lev.clone(); lev2.position.y = vy + 0.035; lev2.rotation.x = 0.05; g.add(lev2);
+  const gt = canvasTex(64, 64), gg = gt.g; gg.fillStyle = '#fff'; gg.beginPath(); gg.arc(32, 32, 30, 0, 7); gg.fill(); gg.lineWidth = 9; gg.strokeStyle = '#1f9a4a'; gg.beginPath(); gg.arc(32, 32, 21, -2.2, -0.9); gg.stroke(); gg.strokeStyle = '#c4161c'; gg.beginPath(); gg.arc(32, 32, 21, -0.9, 0.3); gg.stroke(); gg.strokeStyle = '#111'; gg.lineWidth = 3; gg.beginPath(); gg.moveTo(32, 32); gg.lineTo(22, 14); gg.stroke(); gt.t.needsUpdate = true;
+  const gauge = new Mesh(new CylinderGeometry(R * 0.2, R * 0.2, 0.014, 18), [M.chrome, new MeshStandardMaterial({ map: gt.t, roughness: 0.3 }), M.chrome] as any); gauge.rotation.x = Math.PI / 2; gauge.position.set(0, vy + 0.03, R * 0.26); g.add(gauge);
+  const pin = new Mesh(new TorusGeometry(R * 0.11, 0.0025, 6, 14), M.yellow); pin.position.set(R * 0.22, vy + 0.045, 0); pin.rotation.y = Math.PI / 2; g.add(pin);
+  return vy + 0.03;
+}
+/** Extintor sobre rodas (PQS 50 kg): tanque abaulado inclinado na carreta, rodas com pneu, alça, mangueira até o esguicho no suporte. */
 function extintorCarreta(c: MCtx, x: number, z: number) {
-  const M = c.M, B = c.b; B.cyl(0.15, 0.82, M.red, x, 0.62, z + 0.06, 0.1, 0, 18); B.sphere(0.15, M.red, x, 1.04, z + 0.1, 14); B.cyl(0.03, 0.1, M.black, x, 1.18, z + 0.12, 0, 0, 8);
-  for (const s of [-1, 1]) { B.cyl(0.2, 0.05, M.black, x + s * 0.22, 0.2, z + 0.1, 0, Math.PI / 2, 18); B.rod(new Vector3(x + s * 0.17, 0.2, z + 0.1), new Vector3(x + s * 0.17, 1.35, z + 0.25), 0.014, M.red, 8); }
-  B.rod(new Vector3(x - 0.17, 1.35, z + 0.25), new Vector3(x + 0.17, 1.35, z + 0.25), 0.014, M.red, 8); B.cylX(0.012, 0.44, M.steelDark, x, 0.2, z + 0.1, 8);
-  for (let k = 0; k < 3; k++) { const tr = new Mesh(new TorusGeometry(0.12 + k * 0.012, 0.014, 6, 18), M.black); tr.position.set(x + 0.18, 0.7, z - 0.05); tr.rotation.y = Math.PI / 2; c.root.casa.add(tr); }
-  c.col.push([x - 0.3, z - 0.25, x + 0.3, z + 0.35]);
+  const M = c.M, g = new Group(); g.position.set(x, 0, z); g.rotation.y = Math.PI / 2; c.root.casa.add(g);
+  const t = new Group(); t.position.set(0, 0.06, 0.02); t.rotation.x = -0.1; g.add(t); const vy = tanque(M, t, 0.165, 0.86, 0.17, ['EXTINTOR SOBRE RODAS', 'PÓ QUÍMICO SECO · ABC'], 'PQS 50 kg');
+  const base = new Mesh(new CylinderGeometry(0.17, 0.17, 0.03, 20), M.black); base.position.y = 0.17; t.add(base);
+  for (const yy of [0.38, 0.86]) { const st = new Mesh(new TorusGeometry(0.168, 0.008, 6, 28), M.black); st.rotation.x = Math.PI / 2; st.position.y = yy; t.add(st); }
+  // carreta: dois tubos dobrados (eixo → atrás do tanque → alça), travessa com manopla, eixo e rodas
+  for (const s of [-1, 1]) { const cur = new CatmullRomCurve3([new Vector3(s * 0.2, 0.2, 0.0), new Vector3(s * 0.2, 0.32, -0.16), new Vector3(s * 0.19, 0.95, -0.22), new Vector3(s * 0.18, 1.22, -0.3), new Vector3(s * 0.16, 1.3, -0.38)]);
+    g.add(new Mesh(new TubeGeometry(cur, 24, 0.014, 8, false), M.black));
+    const tire = new Mesh(new TorusGeometry(0.15, 0.04, 10, 28), M.rubber); tire.position.set(s * 0.25, 0.19, 0); tire.rotation.y = Math.PI / 2; g.add(tire);
+    const hub = new Mesh(new CylinderGeometry(0.1, 0.1, 0.05, 18), M.extRed); hub.rotation.z = Math.PI / 2; hub.position.set(s * 0.25, 0.19, 0); g.add(hub);
+    const cap = new Mesh(new CylinderGeometry(0.03, 0.03, 0.065, 10), M.chrome); cap.rotation.z = Math.PI / 2; cap.position.set(s * 0.25, 0.19, 0); g.add(cap); }
+  const axle = new Mesh(new CylinderGeometry(0.016, 0.016, 0.5, 8), M.steelDark); axle.rotation.z = Math.PI / 2; axle.position.y = 0.19; g.add(axle);
+  const grip = new Mesh(new CylinderGeometry(0.02, 0.02, 0.34, 10), M.rubber); grip.rotation.z = Math.PI / 2; grip.position.set(0, 1.3, -0.38); g.add(grip);
+  const foot = new Mesh(new BoxGeometry(0.36, 0.02, 0.1), M.black); foot.position.set(0, 0.03, -0.2); g.add(foot); const leg = new Mesh(new BoxGeometry(0.03, 0.2, 0.03), M.black); leg.position.set(0, 0.12, -0.2); g.add(leg);
+  // mangueira: da válvula, por cima, descendo ao lado até o esguicho preso no suporte
+  const hz0 = new Vector3(0, vy + 0.13, 0.05), hose = new CatmullRomCurve3([hz0, new Vector3(0.05, vy + 0.2, 0.08), new Vector3(0.17, vy + 0.08, 0.1), new Vector3(0.22, 0.85, 0.08), new Vector3(0.23, 0.62, 0.06)]);
+  g.add(new Mesh(new TubeGeometry(hose, 30, 0.015, 8, false), M.rubber));
+  const gun = new Mesh(new CylinderGeometry(0.022, 0.018, 0.12, 10), M.black); gun.position.set(0.23, 0.55, 0.06); g.add(gun); const noz = new Mesh(new ConeGeometry(0.03, 0.09, 12), M.black); noz.rotation.x = Math.PI; noz.position.set(0.23, 0.45, 0.06); g.add(noz);
+  const hold = new Mesh(new TorusGeometry(0.03, 0.006, 6, 12), M.chrome); hold.position.set(0.23, 0.58, 0.06); hold.rotation.x = Math.PI / 2; g.add(hold);
+  g.traverse((o: any) => { if (o.isMesh) o.castShadow = true; });
+  c.col.push([x - 0.32, z - 0.32, x + 0.32, z + 0.32]);
+}
+/** Extintor portátil de parede (PQS 6 kg) no suporte, topo a ≤ 1,60 m (NBR 12693). */
+function extintorPortatil(c: MCtx, x: number, z: number, ry: number) {
+  const M = c.M, g = new Group(); g.position.set(x, 0, z); g.rotation.y = ry; c.root.casa.add(g);
+  const vy = tanque(M, g, 0.078, 0.42, 1.05, ['EXTINTOR', 'PÓ QUÍMICO · ABC'], 'PQS 6 kg');
+  const br = new Mesh(new BoxGeometry(0.05, 0.16, 0.06), M.black); br.position.set(0, 1.42, -0.09); g.add(br); const hook = new Mesh(new TorusGeometry(0.08, 0.006, 6, 20, Math.PI), M.black); hook.position.set(0, 1.3, -0.01); hook.rotation.x = Math.PI / 2; g.add(hook);
+  const hose = new CatmullRomCurve3([new Vector3(0, vy + 0.03, 0.03), new Vector3(0.05, vy + 0.06, 0.07), new Vector3(0.09, 1.3, 0.06), new Vector3(0.095, 1.12, 0.03)]); g.add(new Mesh(new TubeGeometry(hose, 18, 0.009, 6, false), M.rubber));
+  const noz = new Mesh(new ConeGeometry(0.016, 0.06, 10), M.black); noz.rotation.x = Math.PI; noz.position.set(0.095, 1.08, 0.03); g.add(noz);
+  g.traverse((o: any) => { if (o.isMesh) o.castShadow = true; });
 }
 function salaTSA(c: MCtx, xA: number, xB: number, zN: number, zS: number) {
   // grade de proteção (tubo amarelo + tela soldada) e dois transformadores a seco (resina) com cabos

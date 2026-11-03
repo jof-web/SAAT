@@ -219,3 +219,12 @@ Referências: `docs/ref/planta-geral-v2-final.png`, `docs/ref/fichas-patio-v2.pn
 - **Ferramenta solta no ar cai** (treina cuidado); perto da cintura vai para o cinto; perto do lugar no armário volta.
 - **Objetos pegos saem do lote do AutoBatch** (`AutoBatch.detach`) para desenhar na mão fora da zona; voltam no reinício.
 - **FPS no VR desligado por padrão** (liga em Debug).
+
+## SAAT 0.4.0 — consequências, mesa no VR, pátio
+- **Pátio em grama** (pedido do usuário). Ressalva técnica registrada: subestação real usa brita no pátio (camada superficial que aumenta a tensão de toque/passo suportável, IEEE 80/NBR 15751). Brita mantida só no poço de óleo dos trafos.
+- **TR-03 não existe**: removidos trafo reserva, bases, pórtico e muro corta-fogo do lado dele. Fica só o espaço.
+- **Forçar intertravamento = repetir a ação bloqueada em até 7 s** (PC e VR), com aviso no primeiro bloqueio. Só regras com consequência definida (campo `bypass` ≠ "nenhuma"). Novo `CmdOpt.forcado` no simulador (não exige supervisor) e erro crítico na sessão. Fechar terra/fonte forçado sobre trecho vivo agora gera arco (antes só rotulava "curto franco").
+- **Severidade do acidente** por tensão, distância e EPI (morte × lesão grave × sem lesão), com tela de morte preta e cartão depois.
+- **Andar no pátio é mais lento** que na casa e não dá para correr (grama/brita, estruturas e cabos); tampas de canaleta funcionam como passeio.
+- **Explosão com luz fixa da cena** (não cria luz nova: evita recompilar shaders no Quest).
+- **Mesa no VR**: sentar move a cabeça para a cadeira e põe o supervisório no monitor físico (0,56 m); tela grande é opcional.

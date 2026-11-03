@@ -19,14 +19,14 @@ function place(m: Object3D, head: Vector3, fwd: Vector3, dist: number, dy: numbe
 /** Esfera presa à câmera: clarão (choque/arco), escurecimento (desmaio) e tinta vermelha na zona controlada. */
 export class VRFx {
   mat = new MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0, side: BackSide, depthTest: false, depthWrite: false, fog: false, toneMapped: false });
-  sphere = new Mesh(new SphereGeometry(0.4, 16, 10), this.mat); flash = 0; flashCol = new Color(); fade = 0; fadeTgt = 0; zone = 0;
+  sphere = new Mesh(new SphereGeometry(0.4, 16, 10), this.mat); flash = 0; flashCol = new Color(); fade = 0; fadeTgt = 0; zone = 0; fadeCol = 0x0b0d0f; fadeMax = 0.94;
   constructor(cam: PerspectiveCamera) { this.sphere.renderOrder = 1002; this.sphere.visible = false; this.sphere.frustumCulled = false; noPreset(this.sphere); cam.add(this.sphere); }
   doFlash(hex: number, s: number) { this.flash = s; this.flashCol.setHex(hex); }
-  reset() { this.flash = 0; this.fade = this.fadeTgt = 0; this.zone = 0; }
+  reset() { this.flash = 0; this.fade = this.fadeTgt = 0; this.zone = 0; this.fadeCol = 0x0b0d0f; this.fadeMax = 0.94; }
   update(dt: number) {
     this.flash = Math.max(0, this.flash - dt); this.fade += (this.fadeTgt - this.fade) * Math.min(1, dt * 1.6); let op = 0;
     if (this.flash > 0) { this.mat.color.copy(this.flashCol); op = Math.min(1, this.flash * 1.6); }
-    else if (this.fade > 0.01) { this.mat.color.setHex(0x0b0d0f); op = this.fade * 0.94; }
+    else if (this.fade > 0.01) { this.mat.color.setHex(this.fadeCol); op = this.fade * this.fadeMax; }
     else if (this.zone > 0.02) { this.mat.color.setHex(0xc81e1e); op = 0.05 + this.zone * 0.2; }
     this.mat.opacity = op; this.sphere.visible = op > 0.005;
   }
@@ -35,15 +35,17 @@ export class VRFx {
 export interface AccHost { restart(): void; rescue(a: any): void; report(): void; home(): void }
 /** Cartão do acidente (o que aconteceu, consequência, regra, como evitar) com as mesmas saídas do PC. */
 export class VRAccident {
-  panel = new Panel({ w: 0.86, h: 0.64, px: 1280 }); a: any = null;
+  panel = new Panel({ w: 0.86, h: 0.64, px: 1280 }); a: any = null; phase: 'morte' | 'card' = 'card';
   constructor(public H: AccHost, scene: Scene) { const m = this.panel.mesh; m.visible = false; Object.assign(m.material as any, { depthTest: false, transparent: true }); m.renderOrder = 1003; scene.add(m); this.panel.render = (p) => this.draw(p); } // transparente: desenha depois da esfera de escurecimento
   get open() { return this.panel.mesh.visible; }
-  show(a: any, head: Vector3, fwd: Vector3) { this.a = a; place(this.panel.mesh, head, fwd, 0.95, -0.06); this.panel.mesh.visible = true; this.panel.dirty = true; }
+  show(a: any, head: Vector3, fwd: Vector3, phase: 'morte' | 'card' = 'card') { this.a = a; this.phase = phase; place(this.panel.mesh, head, fwd, 0.95, -0.06); this.panel.mesh.visible = true; this.panel.dirty = true; }
   hide() { this.panel.mesh.visible = false; this.a = null; this.panel.clearHover(); }
   update() { if (this.open) this.panel.update(); }
   private draw(p: Panel) {
-    const a = this.a; if (!a) return; const T: Record<string, string> = { choque: 'Choque elétrico', arco: 'Arco elétrico', passo: 'Tensão de passo', quimico: 'Acidente químico', contato: 'Segunda vítima' };
-    p.rect(0, 0, p.W, 110, '#3a1214'); p.text('ACIDENTE — FALHA CRÍTICA', 32, 34, { size: 24, color: '#ffb4b0', weight: 700 }); p.text(T[a.tipo] || 'Acidente', 32, 78, { size: 44, weight: 700 });
+    const a = this.a; if (!a) return;
+    if (this.phase === 'morte') { p.rect(0, 0, p.W, p.H, '#000'); p.text('VOCÊ MORREU', p.W / 2, p.H / 2 - 40, { size: 96, weight: 800, align: 'center', color: '#e8ebed' }); wrap(p, a.causa, 160, p.H / 2 + 40, p.W - 320, { size: 28, color: UI.dim, maxLines: 3 }); return; }
+    const T: Record<string, string> = { choque: 'Choque elétrico', arco: 'Arco elétrico', passo: 'Tensão de passo', quimico: 'Acidente químico', contato: 'Segunda vítima' };
+    p.rect(0, 0, p.W, 110, '#3a1214'); p.text(a.fatal === false ? 'ACIDENTE COM LESÃO GRAVE — FALHA CRÍTICA' : 'ACIDENTE FATAL — FALHA CRÍTICA', 32, 34, { size: 24, color: '#ffb4b0', weight: 700 }); p.text((T[a.tipo] || 'Acidente') + (a.fatal === false ? ' — lesão grave' : ' — fatal'), 32, 78, { size: 44, weight: 700, max: p.W - 64 });
     let y = 132; for (const [k, v] of [['O que aconteceu', a.causa], ['Consequência', a.lesao], ['Regra', a.regra], ['Como evitar', a.evitar]] as [string, string][]) { p.text(k.toUpperCase(), 32, y + 12, { size: 20, color: UI.accent, weight: 700 }); y = wrap(p, v, 32, y + 30, p.W - 64, { size: 25, maxLines: 3 }) + 10; }
     const by = p.H - 96, bw = (p.W - 64 - 3 * 16) / 4;
     ([['Treinar o resgate', () => this.H.rescue(a), UI.accent], ['Tentar de novo', () => this.H.restart(), ''], ['Relatório (sai do VR)', () => this.H.report(), ''], ['Menu inicial', () => this.H.home(), '']] as [string, () => void, string][])

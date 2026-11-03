@@ -69,7 +69,8 @@ input.full{width:100%}textarea.json{width:100%;height:46vh;font:12px var(--mono)
 .h-zone{position:absolute;inset:0;opacity:0;background:radial-gradient(ellipse at 50% 50%,transparent 45%,#b3141a66 78%,#b3141acc 100%);transition:opacity .25s}.h-zone.pulse{animation:zpulse .8s ease-in-out infinite}
 @keyframes zpulse{50%{filter:brightness(1.5)}}
 .h-flash{position:absolute;inset:0;opacity:0}.h-flash.go{animation:hflash ease-out forwards}@keyframes hflash{0%{opacity:1}100%{opacity:0}}
-.h-fade{position:absolute;inset:0;background:#000;opacity:0;transition:opacity 1s}.h-fade.on{opacity:.92}
+.h-fade{position:absolute;inset:0;background:#000;opacity:0;transition:opacity 1s}.h-fade.on{opacity:.92}.h-fade.on.dead{opacity:1}.h-fade.on.injury{background:#2a0505;opacity:.9}
+.morte{position:fixed;inset:0;z-index:61;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;background:#000;color:var(--tx);pointer-events:none}.morte b{font:800 56px var(--fc);letter-spacing:.12em}.morte span{font:500 16px var(--f);color:var(--tx2);max-width:640px;text-align:center}.morte.hidden{display:none}
 #visor{position:fixed;inset:0;pointer-events:none;z-index:5;background:radial-gradient(ellipse at 50% 42%,transparent 62%,#12303d40 82%,#0b1f28aa 100%);box-shadow:inset 0 0 0 9999px #1a6a8a10}
 
 /* ===================== tablet (DOM mapeado na tela 3D) ===================== */

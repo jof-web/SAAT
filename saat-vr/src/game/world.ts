@@ -1,6 +1,6 @@
 // Mundo 3D do SAAT: monta pátio + casa a partir de plant.json, reflete o estado do sim (só leitura),
 // anima manobras, controla portas/portão e a renderização por zona.
-import { Group, Mesh, Vector3, SphereGeometry, MeshBasicMaterial, ConeGeometry, AdditiveBlending, PointLight, MeshStandardMaterial, type Object3D } from 'three';
+import { Group, Mesh, Vector3, SphereGeometry, MeshBasicMaterial, ConeGeometry, AdditiveBlending, PointLight, MeshStandardMaterial, BoxGeometry, type Object3D } from 'three';
 import type { Engine } from './engine';
 import { buildMaterials, type Mats } from './materials';
 import { vrMat } from './gfx';
@@ -8,7 +8,7 @@ import { Batch } from './batch';
 import { type MCtx, type Zone, type AABB, type Inter, type Part, human, plate, inter } from './common';
 import { insulatorProfile } from './batch';
 import { buildIndoor, setLamp, type Indoor } from './models/indoor';
-import { seccionadora, disjuntor, pararaios, tpc, tp, transformador, glassString, cerca, poste, entorno, colunaConcreto, vigaConcreto, caboGuarda, torre, muroCortaFogo, trafoReserva, PH, chamberMat, xrayMat, type Yard } from './models/yard';
+import { seccionadora, disjuntor, pararaios, tpc, tp, transformador, glassString, cerca, poste, entorno, colunaConcreto, vigaConcreto, caboGuarda, torre, muroCortaFogo, PH, chamberMat, xrayMat, type Yard } from './models/yard';
 import { fmt } from '../ui/dom';
 
 export interface HazardPt { p: Vector3; node: string; nivel: 'AT' | 'MT'; kind: 'cond' | 'cabo' | 'barra' }
@@ -18,8 +18,8 @@ export class GameWorld {
   indoor!: Indoor; yard!: Yard; P: (px: number, py: number) => [number, number];
   fenceRect: [number, number, number, number]; casaRect: [number, number, number, number]; batRect: [number, number, number, number] = [0, 0, 0, 0]; divX: number;
   spawns: Record<string, { x: number; z: number; yaw: number }> = {};
-  hazards: HazardPt[] = []; zoneVis: { m: Mesh; nodes: string[] }[] = []; zonesOn = false;
-  fire: Group; private fireLight: PointLight; private t = 0; private lastV: any = null; private canT = 0;
+  hazards: HazardPt[] = []; walkR: [number, number, number, number][] = []; bayR: [number, number, number, number][] = []; zoneVis: { m: Mesh; nodes: string[] }[] = []; zonesOn = false;
+  fire: Group; private fireLight: PointLight; private boomLight = new PointLight(0xffd59a, 0, 70, 1.4); private booms: { g: Group; t: number; big: boolean; ball: Mesh; sp: { m: Mesh; v: Vector3 }[]; sm: Mesh[] }[] = []; private t = 0; private lastV: any = null; private canT = 0;
   private prev: Record<string, string> = {}; emerg = false;
   onOp: (o: { kind: string; caption: string; cam: Vector3; look: Vector3; xray?: boolean; zone?: string }) => void = () => {};
   doorCol = new Map<string, AABB>();
@@ -33,7 +33,7 @@ export class GameWorld {
     const [cx1, cz1] = this.P(pl.casa.rect[0], pl.casa.rect[1]), [cx2, cz2] = this.P(pl.casa.rect[2], pl.casa.rect[3]); this.casaRect = [cx1, cz1, cx2, cz2]; this.divX = this.P(pl.casa.divisoriaX, 0)[0];
     for (const z of ['patio', 'casa', 'bateria', 'externo', 'shell'] as Zone[]) { const g = new Group(); g.name = 'Z:' + z; this.zones[z] = g; E.scene.add(g); }
     this.build();
-    this.fire = this.makeFire(); this.fireLight = new PointLight(0xff7a1a, 0, 35, 1.5); this.fire.add(this.fireLight); this.zones.patio.add(this.fire);
+    this.fire = this.makeFire(); this.fireLight = new PointLight(0xff7a1a, 0, 35, 1.5); this.fire.add(this.fireLight); this.zones.patio.add(this.fire); E.scene.add(this.boomLight);
     { const I = this.indoor; this.casaRect = I.rect; this.batRect = I.batRect; this.divX = I.batRect[2]; }
     for (const [kk, s] of Object.entries<any>(pl.spawns)) { const [x, z] = this.P(s.px[0], s.px[1]); this.spawns[kk] = { x, z, yaw: ({ N: 0, NE: -Math.PI / 4, E: -Math.PI / 2, SE: (-3 * Math.PI) / 4, S: Math.PI, SW: (3 * Math.PI) / 4, W: Math.PI / 2, NW: Math.PI / 4 } as any)[s.olhar] ?? 0 }; }
     Object.assign(this.spawns, this.indoor.spawns);
@@ -45,9 +45,9 @@ export class GameWorld {
     const d = this.d, pl = d.plant, P = this.P, B = new Batch({ chunk: 12 }), M = this.M;
     const c: MCtx = { b: B, M, root: this.zones, col: this.col, inter: this.inter, parts: this.parts, zone: 'patio' };
     const [fx1, fz1, fx2, fz2] = this.fenceRect, fw = fx2 - fx1, fd = fz2 - fz1, mx = (fx1 + fx2) / 2, mz = (fz1 + fz2) / 2;
-    // piso do pátio (brita) em placas para recorte por bloco
+    // piso do pátio (grama, pedido do usuário; brita só no poço dos trafos) em placas para recorte por bloco
     B.zone = 'patio'; B.cast = false;
-    for (let x = fx1; x < fx2 - 0.01; x += 12) for (let z = fz1; z < fz2 - 0.01; z += 12) { const w = Math.min(12, fx2 - x), dd = Math.min(12, fz2 - z); B.box(w, 0.1, dd, M.gravel, x + w / 2, -0.04, z + dd / 2); }
+    for (let x = fx1; x < fx2 - 0.01; x += 12) for (let z = fz1; z < fz2 - 0.01; z += 12) { const w = Math.min(12, fx2 - x), dd = Math.min(12, fz2 - z); B.box(w, 0.1, dd, M.grass, x + w / 2, -0.04, z + dd / 2); }
     B.cast = true; void fw; void fd; void mx; void mz;
     const [ca, , cb, cz] = this.casaRect; const casaDiv: [number, number, number] = [ca, cb, cz + 0.02];
     entorno(c, this.fenceRect, casaDiv, pl.cerca.portoes);
@@ -102,7 +102,7 @@ export class GameWorld {
     const tpx = PW + 3.0; bzs.forEach((z) => { const t = tp(c, [tpx], z); B.wire(t[0], new Vector3(tpx, busY(tpx), z), 0.016, M.conductor, 0.2, 10); });
     plate(c, 'plaqueta', ['TP BARRA'], 0.5, 0.13, tpx - 0.62, 1.95, bzs[1], -Math.PI / 2);
     for (let x = bx1; x <= bx2; x += 2.6) for (const z of bzs) this.hz(new Vector3(x, busY(x), z), 'BAT', 'AT');
-    // ---- transformadores, pórticos retos sobre cada um, muros corta-fogo, TR-03 reservado ----
+    // ---- transformadores, pórticos retos sobre cada um, muro corta-fogo (o espaço do TR-03 fica vazio: sem base, sem pórtico) ----
     const trf: Record<string, any> = {};
     for (const t of pl.trafos) { const [x, z] = P(t.px[0], t.px[1]); trf[t.id] = transformador(c, x, z, t.id, t.tag); }
     const PT = pl.porticosTrafo, zp = PT.zM, TY = trf.T1.center.z;
@@ -111,8 +111,6 @@ export class GameWorld {
     conT('A2', 'T1'); conT('A3', 'T2');
     for (const T of Object.keys(trf)) for (const h of trf[T].hv) this.hz(h, T + 'c', 'AT');
     for (const m of pl.murosCortaFogo) muroCortaFogo(c, m.xM, TY, m.compM, m.alturaM);
-    trafoReserva(c, pl.trafoReserva.xM, TY, pl.trafoReserva.tag);
-    for (const zz of [P(0, 497)[1], P(0, 597)[1], P(0, 643)[1]]) for (const dx of PH) B.box(0.7, 0.3, 0.7, M.concrete, pl.trafoReserva.xM + dx, 0.1, zz);
     // ---- cabos para-raios: todas as hastes interligadas ----
     const T = (x: number, z: number) => tops[`${x}|${z}`];
     for (let i = 0; i < topL.length - 1; i++) caboGuarda(c, topL[i], topL[i + 1], 0.7);
@@ -122,9 +120,13 @@ export class GameWorld {
     const row = Object.keys(tops).filter((k) => +k.split('|')[1] === zp).map((k) => tops[k]).sort((a, b2) => a.x - b2.x);
     for (let i = 0; i < row.length - 1; i++) caboGuarda(c, row[i], row[i + 1], 0.45);
     // ---- canaletas ----
-    for (const tr of pl.trincheiras) { const [x, z1] = P(tr.x, tr.y[0]), [, z2] = P(tr.x, tr.y[1]);
+    for (const tr of pl.trincheiras) { const [x, z1] = P(tr.x, tr.y[0]), [, z2] = P(tr.x, tr.y[1]); this.walkR.push([x - 0.5, Math.min(z1, z2), x + 0.5, Math.max(z1, z2)]);
       B.box(0.9, 0.12, z2 - z1, M.concrete, x, 0.03, (z1 + z2) / 2); for (let z = z1 + 0.25; z < z2 - 0.2; z += 0.52) { B.box(0.82, 0.05, 0.5, M.concreteLight, x, 0.11, z); B.box(0.08, 0.01, 0.03, M.steelDark, x, 0.14, z); }
       for (const cy of tr.caixas || []) { const [, zc] = P(tr.x, cy); B.box(1.3, 0.16, 1.3, M.concrete, x, 0.05, zc); B.box(1.0, 0.03, 1.0, M.checker, x, 0.14, zc); } }
+    // ---- vãos de equipamentos: brita/estruturas/cabos = passo lento; placa de acesso restrito na entrada ----
+    { const pts = [...Object.values<any>(dis).map((r) => [r.cx, r.cz]), ...Object.values<any>(cbr).map((r) => [r.cx, r.cz])] as [number, number][]; const cols: [number, number, number][] = [];
+      for (const [x, z] of pts) { const k = cols.find((q) => Math.abs(q[0] - x) < 1.5); if (k) { k[1] = Math.min(k[1], z); k[2] = Math.max(k[2], z); } else cols.push([x, z, z]); }
+      for (const [x, z1, z2] of cols) { this.bayR.push([x - 2.4, z1 - 2.2, x + 2.4, z2 + 2.2]); plate(c, 'perigo', ['PERIGO', 'ÁREA ENERGIZADA', 'ACESSO SÓ COM AUTORIZAÇÃO'], 0.42, 0.32, x - 2.6, 1.55, z2 + 2.4, 0); B.box(0.06, 1.4, 0.06, M.galv, x - 2.6, 0.7, z2 + 2.36); } }
     // ---- iluminação ----
     const lights: Mesh[] = [];
     for (const [ix, iy] of pl.iluminacao) { const [x, z] = P(ix, iy); const xx = Math.min(Math.max(x, fx1 + 0.8), fx2 - 0.8), zz = Math.min(Math.max(z, fz1 + 0.8), fz2 - 0.8); lights.push(...poste(c, xx, zz)); }
@@ -165,6 +167,24 @@ export class GameWorld {
     return g;
   }
 
+  /** Explosão do arco: bola de fogo, clarão, fagulhas de metal fundido com gravidade e fumaça que sobe (no PC, no VR e no PiP). */
+  boom(p: Vector3, big = false) {
+    const g = new Group(); g.position.copy(p); const add = (c: number) => new MeshBasicMaterial({ color: c, transparent: true, opacity: 1, blending: AdditiveBlending, depthWrite: false, fog: false, toneMapped: false });
+    const ball = new Mesh(new SphereGeometry(1, 18, 12), add(0xfff0c0)); ball.scale.setScalar(0.05); g.add(ball);
+    this.boomLight.position.copy(p); // luz fixa da cena (sem recompilar shaders ao explodir)
+    const sg = new BoxGeometry(0.015, 0.015, 0.1), sm = add(0xffb347), sp: { m: Mesh; v: Vector3 }[] = [];
+    for (let i = 0; i < (big ? 70 : 45); i++) { const m = new Mesh(sg, sm); const v = new Vector3(Math.random() - 0.5, Math.random() * 0.9 - 0.1, Math.random() - 0.5).normalize().multiplyScalar((big ? 7 : 4.5) * (0.4 + Math.random())); g.add(m); sp.push({ m, v }); }
+    const smat = new MeshBasicMaterial({ color: 0x6e6c69, transparent: true, opacity: 0.38, depthWrite: false, fog: true }), sgeo = new SphereGeometry(0.45, 10, 8), smk: Mesh[] = [];
+    for (let i = 0; i < (big ? 22 : 14); i++) { const m = new Mesh(sgeo, smat.clone()); m.position.set((Math.random() - 0.5) * 1.4, Math.random() * 0.8, (Math.random() - 0.5) * 1.4); m.userData.d = 0.3 + Math.random() * 0.4; g.add(m); smk.push(m); }
+    g.traverse((o: any) => { o.userData.noPreset = true; }); this.E.scene.add(g); this.booms.push({ g, t: 0, big, ball, sp, sm: smk });
+  }
+  private boomFrame(dt: number) {
+    for (const b of this.booms) { b.t += dt; const t = b.t, k = Math.min(1, t / 0.22); b.ball.scale.setScalar((b.big ? 2.6 : 1.3) * (1 - Math.pow(1 - k, 3)) + 0.05); (b.ball.material as MeshBasicMaterial).opacity = Math.max(0, 1 - t / 0.7); (b.ball.material as MeshBasicMaterial).color.setHSL(0.1 - Math.min(0.08, t * 0.12), 1, Math.max(0.35, 0.9 - t));
+      if (b === this.booms[this.booms.length - 1]) this.boomLight.intensity = (b.big ? 500 : 220) * Math.exp(-t * 6); const gy = b.g.position.y;
+      for (const s of b.sp) { if (!s.m.visible) continue; s.v.y -= 9.8 * dt; s.m.position.addScaledVector(s.v, dt); s.m.lookAt(s.m.position.x + s.v.x, s.m.position.y + s.v.y, s.m.position.z + s.v.z); if (s.m.position.y + gy < 0.02) { s.v.multiplyScalar(0); s.m.position.y = 0.02 - gy; } if (t > 1.6) s.m.visible = Math.random() > 0.08; }
+      for (const m of b.sm) { if (t < 0.3) { m.visible = false; continue; } m.visible = true; m.position.y += dt * (0.6 + m.userData.d); m.scale.setScalar(0.6 + t * 0.5); (m.material as MeshBasicMaterial).opacity = Math.max(0, 0.38 * Math.min(1, (t - 0.3) * 3) - t / 26); } }
+    const done = this.booms.filter((b) => b.t > 9); for (const b of done) { b.g.removeFromParent(); b.g.traverse((o: any) => { o.geometry?.dispose?.(); }); } if (done.length) this.booms = this.booms.filter((b) => b.t <= 9);
+  }
   // ======================= estado → cena =======================
   update(v: any, flags: Record<string, any>) {
     const s = v.s, der = v.der, cc = v.ccOk, an = s.anomalias || []; this.lastV = v; const Y = this.yard, I = this.indoor;
@@ -255,7 +275,7 @@ export class GameWorld {
 
   // ======================= laço =======================
   frame(dt: number, p: Vector3, area: string, xray = false) {
-    this.t += dt; const pr = this.d.params.manobra, Y = this.yard, I = this.indoor;
+    this.t += dt; if (this.booms.length) this.boomFrame(dt); const pr = this.d.params.manobra, Y = this.yard, I = this.indoor;
     for (const b of I.beacons) { const m = b.material as MeshStandardMaterial; const on = this.emerg && Math.sin(this.t * 10) > 0; m.emissive.setHex(on ? 0xff2020 : 0); m.emissiveIntensity = on ? 3 : 0; m.color.setHex(on ? 0xff3020 : 0x5a1a14); }
     if (I.emerg) { const m = I.emerg.material as MeshStandardMaterial; m.emissive.setHex(this.emerg ? 0xc8102e : 0); m.emissiveIntensity = this.emerg ? 1.5 : 0; m.color.setHex(0xc8102e); const ax = I.emerg.userData.axis === 'x' ? 'x' : 'z'; I.emerg.position[ax] = (I.emerg.userData.z0 ??= I.emerg.position[ax]) - (ax === 'x' ? -1 : 1) * (this.emerg ? 0.02 : 0); }
     const sd = dt / (pr.seccionadoraMs / 1000), se = dt / (pr.terraMs / 1000);
@@ -282,6 +302,10 @@ export class GameWorld {
     Z.bateria.visible = area === 'bateria' || (inside && I.doors.some((dd) => dd.id.startsWith('I') && dd.open > 0.05)) || (Z.casa.visible && nearBat);
     this.canT += dt; if (this.canT > 0.33) { this.canT = 0; this.canvases(area); }
   }
+  /** Andar no pátio não é como no piso da casa: grama/brita 70 %, dentro do vão (estruturas, cabos, aterramento) 45 %,
+   *  sobre a tampa da canaleta (passeio) 85 %. Correr no pátio não é possível. */
+  walkFactor(x: number, z: number) { const a = this.areaAt(x, z); if (a !== 'patio') return { mul: 1, run: true };
+    const inR = (r: number[]) => x > r[0] && x < r[2] && z > r[1] && z < r[3]; if (this.walkR.some(inR)) return { mul: 0.85, run: false }; if (this.bayR.some(inR)) return { mul: 0.45, run: false }; return { mul: 0.7, run: false }; }
   areaAt(x: number, z: number) { const [fx1, fz1, fx2, fz2] = this.fenceRect, [cx1, cz1, cx2, cz2] = this.casaRect;
     if (x > cx1 && x < cx2 && z > cz1 && z < cz2) { const [bx1, bz1, bx2, bz2] = this.batRect; return x > bx1 && x < bx2 && z > bz1 && z < bz2 ? 'bateria' : 'casa'; } if (x > fx1 && x < fx2 && z > fz1 && z < fz2 && !(z > cz2 && x > cx1 && x < cx2)) return 'patio'; return 'externo'; }
   colliders(): AABB[] { return [...this.col, ...this.doorCol.values()]; }

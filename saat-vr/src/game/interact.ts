@@ -17,7 +17,7 @@ export interface GameApp {
 const LOCAL: Record<string, (id: string) => string> = { cub: (id) => id, cubR: (id) => id, cab: (id) => id, trp: (id) => id, trf: (id) => id, sa: () => 'CC', bat: () => 'CC', ppc: () => 'PROT', scada: () => 'IHM', encontro: () => 'patio', emerg: () => 'radio' };
 
 export class Interaction {
-  target: Inter | null = null; insp: Inter | null = null; private vrInsp: Inter | null = null; private vrAsk: ((ops: [string, () => void][]) => void) | null = null; hover: Part | null = null; hoverItem: string | null = null; lastPart: string | null = null;
+  private forcaT: Record<string, number> = {}; target: Inter | null = null; insp: Inter | null = null; private vrInsp: Inter | null = null; private vrAsk: ((ops: [string, () => void][]) => void) | null = null; hover: Part | null = null; hoverItem: string | null = null; lastPart: string | null = null;
   private rc = new Raycaster(); private mouse = new Vector2(); private card = h('aside', { class: 'icard hidden' }); private tip = h('div', { class: 'itip hidden' });
   private choice = h('div', { class: 'ichoice hidden' }); private cardUps: (() => void)[] = []; private hl: { m: MeshStandardMaterial; e: number; c: number }[] = [];
   private exitBtn = h('button', { class: 'icard-x', onclick: () => this.exit() }, ic('X', 18));
@@ -121,7 +121,9 @@ export class Interaction {
       case 'termo': A.hud.toast(s.anomalias.includes('temp_' + bay) ? 'Etiqueta térmica com faixa VERMELHA: sobreaquecimento no compartimento de barras. Relate.' : 'Etiqueta térmica: faixa verde (normal).', s.anomalias.includes('temp_' + bay) ? 'warn' : 'ok', 5000); break;
       case 'aterr': { const node = bay === 'T1M' ? 'T1m' : 'T2m'; if (A.sess.inv.faltando('aterr_temp_mt').ferr.includes('vara_manobra')) { A.hud.toast('Instalar aterramento temporário exige também a vara de manobra.', 'warn'); break; } C({ t: 'aterr', node, op: s.terraTemp?.[node] ? 'remove' : 'install' }); break; }
       case 'tampa': { const open = !A.rearOpen[bay]; const earth = s.eq['89T-' + bay]?.state === 'closed'; const cu = A.W.indoor.cub[bay];
-        if (open && bay.startsWith('AL') && !earth) { A.hud.toast('Intertravamento mecânico: a tampa traseira só sai com a chave de terra 89T FECHADA.', 'bad', 5000); break; }
+        if (open && bay.startsWith('AL') && !earth) { const k = 'tampa:' + bay, now = performance.now();
+          if (!(this.forcaT[k] && now - this.forcaT[k] < 7000)) { this.forcaT[k] = now; A.hud.toast('Intertravamento mecânico: a tampa traseira só sai com a chave de terra 89T FECHADA. Insistir = FORÇAR a tampa (proibido).', 'bad', 6000); break; }
+          delete this.forcaT[k]; A.sess.erroJogo('critico', 'seguranca', `Forçou a tampa traseira do cubículo ${bay} com a chave de terra aberta`, 'forcou_tampa:' + bay); A.hud.toast('Você FORÇOU a tampa traseira: os terminais do cabo ficaram expostos e podem estar energizados.', 'bad', 6000); }
         A.rearOpen[bay] = open; cu.rearT = open ? 1 : 0; A.sess.marcar(open ? 'tampa_aberta:' + bay : 'tampa_fechada:' + bay, `${open ? 'Removeu' : 'Recolocou'} a tampa traseira do cubículo ${bay}`); A.sfx.click?.(); break; }
       case 'bay:open': C({ t: 'switch', id: p.data.id, op: 'open', via: 'local' }); break;
       case 'bay:close': C({ t: 'switch', id: p.data.id, op: 'close', via: 'local' }); break;

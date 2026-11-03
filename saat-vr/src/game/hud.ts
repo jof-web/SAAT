@@ -49,5 +49,5 @@ export class Hud {
   /** Vinheta vermelha pulsante (zona controlada / tensão de passo). */
   setZone(level: number) { this.zone.style.opacity = String(Math.min(1, level)); this.zone.classList.toggle('pulse', level > 0.5); }
   flash(color = '#dff3ff', ms = 600) { const f = this.flashEl; f.style.background = color; f.classList.remove('go'); void f.offsetWidth; f.style.animationDuration = ms + 'ms'; f.classList.add('go'); }
-  fade(on: boolean, ms = 900) { this.fadeEl.style.transitionDuration = ms + 'ms'; this.fadeEl.classList.toggle('on', on); }
+  fade(on: boolean, ms = 900, mode: '' | 'dead' | 'injury' = '') { this.fadeEl.style.transitionDuration = ms + 'ms'; this.fadeEl.classList.toggle('on', on); this.fadeEl.classList.toggle('dead', on && mode === 'dead'); this.fadeEl.classList.toggle('injury', on && mode === 'injury'); }
 }

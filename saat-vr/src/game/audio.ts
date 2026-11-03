@@ -36,6 +36,8 @@ export class Audio extends Sfx {
   arc(k: number) { this.burst(0.5, 1.2 * k, 300, 0, 0.4); this.burst(1.2, 0.6 * k, 2500, 0.05, 0.3); this.beep(60, 0.6, 0.6 * k, 'sawtooth', 30); }
   accident(tipo: string) { if (tipo === 'arco') this.arc(1); else { this.beep(60, 1.2, 0.5, 'sawtooth'); this.burst(0.8, 0.4, 4000); } setTimeout(() => this.beep(4200, 4, 0.06), 600); for (let i = 0; i < 6; i++) setTimeout(() => this.thump(), 1500 + i * 900); }
   thump() { this.beep(55, 0.18, 0.5, 'sine', 40); }
+  /** Monitor cardíaco: três bipes e linha contínua (morte). */
+  flatline() { for (let i = 0; i < 3; i++) setTimeout(() => this.beep(980, 0.12, 0.12, 'sine'), i * 800); setTimeout(() => this.beep(980, 4.5, 0.1, 'sine'), 2400); }
   tick() { this.beep(1400, 0.03, 0.08, 'square'); }
   shockDea() { this.beep(900, 0.2, 0.2, 'square'); this.burst(0.3, 0.6, 600, 0.2); }
   radio(text: string) { this.burst(0.08, 0.25, 2500, 0, 1); if (!this.voz || !('speechSynthesis' in window)) return; try { const u = new SpeechSynthesisUtterance(text.replace(/^COS[^:]*:\s*/, '')); u.lang = 'pt-BR'; u.rate = 1.08; u.volume = 0.8; const v = speechSynthesis.getVoices().find((x) => x.lang?.startsWith('pt')); if (v) u.voice = v; speechSynthesis.cancel(); speechSynthesis.speak(u); } catch { /* sem voz */ } }

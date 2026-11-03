@@ -55,8 +55,14 @@ export async function bootGame() {
   const pip = { on: false, until: 0, cam: new PerspectiveCamera(40, 1.6, 0.05, 300), xray: false, caption: '', zone: 'patio' }; let pipMute = false;
 
   // ---------- comandos do treinando ----------
+  // forçar intertravamento em campo: repetir a mesma ação local bloqueada em até 7 s (proibido; consequência física real)
+  let forca: { k: string; t: number; rules: string[] } | null = null;
   function cmd(c: Cmd, quiet = false) {
-    if (!sess) return null; alarm.unlock(); audio.unlock(); const r = sess.cmd(c, 'treinando'); avisos();
+    if (!sess) return null; alarm.unlock(); audio.unlock(); const key = JSON.stringify(c), now = performance.now(); let r = sess.cmd(c, 'treinando'); avisos();
+    if (r.result === 'bloqueado' && (c as any).via !== 'remote' && sess.sim.forcavel(r.rules)) {
+      if (forca && forca.k === key && now - forca.t < 7000) { forca = null; r = sess.cmd(c, 'treinando', { bypass: r.rules, forcado: true, just: 'forçado em campo pelo treinando' }); avisos();
+        hud.toast(`Você FORÇOU o intertravamento ${r.rules.length ? r.rules.join(', ') : ''}. ${r.result === 'ok' ? 'O equipamento operou.' : r.msg}`, 'bad', 6000); xr.active && xr.input.hands.forEach((h) => h.pulse(1, 200)); if (r.result === 'ok') audio.play(c.t === 'rack' ? 'rack' : 'cbr'); return r; }
+      forca = { k: key, t: now, rules: r.rules }; hud.toast(`${r.msg}. Insistir (repetir em até 7 s) = FORÇAR o intertravamento: proibido e perigoso.`, 'bad', 7000); return r; }
     if (r.result === 'ok') { if (!quiet) hud.toast(r.msg, r.noop ? 'muted' : 'ok', 2800); audio.play(c.t === 'rack' ? 'rack' : c.t === 'switch' && sess.sim.defs[c.id]?.type === 'CBR' && c.via !== 'remote' ? 'cbr' : c.t === 'switch' && sess.sim.defs[c.id]?.kind === 'earthing' ? 'earth' : ''); return r; }
     hud.toast(r.msg, r.result === 'falha' ? 'warn' : 'bad', 6000); return r;
   }
@@ -276,6 +282,7 @@ export async function bootGame() {
         const ts = Math.floor(sess.sim.s.t / 1000); if (ts !== lastTrendT) { lastTrendT = ts; const v = sess.sim; trend.push({ t: ts, v1: v.der.barras['MT-1'].kV, v2: v.der.barras['MT-2'].kV, m1: v.der.tr.T1.mva, m2: v.der.tr.T2.mva, o1: v.s.tr.T1.oleo, o2: v.s.tr.T2.oleo, vcc: v.s.cc.v }); if (trend.length > 600) trend.shift(); } } }
       slow += dt; bc += dt; autosave += dt; hudT += dt;
       if (slow >= 0.1) { slow = 0; const v = sess.sim.view(); W.update(v, sess.sc?.st.flags || {}); if (monPanel) { monPanel.update(v); const L = sess.sim.log.filter((e: any) => e.kind === 'cmd' && e.actor === 'treinando').slice(-7).reverse(); const sg = L.map((e: any) => e.seq).join(','); if ((opsLog as any)._s !== sg) { (opsLog as any)._s = sg; opsLog.innerHTML = ''; for (const e of L) opsLog.append(h('div', { class: e.result && e.result !== 'ok' ? 'bad' : '' }, h('small', {}, mmss(e.t)), ' ', e.msg)); } } }
+      { const tf = W.walkFactor(P.pos.x, P.pos.z); P.terrainMul = tf.mul; P.canRun = tf.run; }
       if (xr.active) xr.update(dt); else { P.update(dt); correndo(!!(P.keys.ShiftLeft || P.keys.ShiftRight) && P.moving > 0.5, dt); } if (!xr.active) inter.update(); safety.update(dt); if (sess.cfg.missao === 'T0') tutorial();
       if (hudT >= 0.2) { hudT = 0; updateHUD(); tablet.tick(); inter.tick(); if (minimap) mini.update(W.plantPos(P.pos, P.yaw)); }
       if (bc >= 0.25) { bc = 0; broadcast(); }

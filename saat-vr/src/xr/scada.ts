@@ -4,24 +4,28 @@ import { Vector3, type Scene } from 'three';
 import { Panel, UI } from './panel';
 import { drawProcs } from './card';
 
-export interface ScadaHost { sess(): any; cmd(c: any): any; ctx(): any }
+export interface ScadaHost { sess(): any; cmd(c: any): any; ctx(): any; desk?: { seated(): boolean; sit(): void; stand(): void; big(): boolean; setBig(b: boolean): void } }
 const _f = new Vector3();
 export class VRScada {
-  panel = new Panel({ w: 0.92, h: 0.62, px: 1280 }); open = false; tab = 'man'; page = 0; sel: { id: string; op: 'open' | 'close' } | null = null; private t = 0; ask: [string, () => void][] | null = null; proc = { page: 0, ask: (ops: [string, () => void][]) => { this.ask = ops; this.panel.dirty = true; } };
+  panel = new Panel({ w: 0.96, h: 0.54, px: 1280 }); /* 16:9, cabe no monitor da mesa */ open = false; tab = 'man'; page = 0; sel: { id: string; op: 'open' | 'close' } | null = null; private t = 0; ask: [string, () => void][] | null = null; proc = { page: 0, ask: (ops: [string, () => void][]) => { this.ask = ops; this.panel.dirty = true; } };
   constructor(public H: ScadaHost, scene: Scene) { this.panel.render = (p) => this.draw(p); this.panel.mesh.visible = false; scene.add(this.panel.mesh); }
-  show(head: Vector3, fwd: Vector3) { _f.copy(fwd).setY(0).normalize(); const m = this.panel.mesh; m.position.copy(head).addScaledVector(_f, 0.85); m.position.y = head.y - 0.1; m.lookAt(head.x, head.y - 0.05, head.z); m.visible = true; this.open = true; this.sel = null; this.panel.dirty = true; }
+  show(head: Vector3, fwd: Vector3) { _f.copy(fwd).setY(0).normalize(); const m = this.panel.mesh; m.position.copy(head).addScaledVector(_f, 0.85); m.position.y = head.y - 0.1; m.lookAt(head.x, head.y - 0.05, head.z); m.scale.setScalar(1); m.visible = true; this.open = true; this.sel = null; this.panel.dirty = true; }
   atDesk = false;
   /** Tela de toque no monitor da mesa: centro no ponto que a cadeira olha, virada para a cadeira. */
   showAt(look: Vector3, seat: Vector3) { const m = this.panel.mesh; _f.copy(look).sub(seat).setY(0).normalize(); m.position.copy(look).addScaledVector(_f, -0.04); m.position.y = Math.max(look.y, seat.y - 0.12); m.lookAt(seat.x, m.position.y, seat.z); m.scale.setScalar(0.78); m.visible = true; this.open = true; this.atDesk = true; this.sel = null; this.panel.dirty = true; }
+  /** No monitor da mesa (sentado): mesma tela, do tamanho do monitor real. */
+  showMonitor(center: Vector3, toward: Vector3, width: number) { const m = this.panel.mesh; _f.copy(toward).sub(center).setY(0).normalize(); m.position.copy(center).addScaledVector(_f, 0.012); m.lookAt(center.x + _f.x, center.y, center.z + _f.z); m.scale.setScalar(width / 0.96); m.visible = true; this.open = true; this.atDesk = true; this.panel.dirty = true; }
   close() { this.atDesk = false; this.panel.mesh.scale.setScalar(1); this.open = false; this.panel.mesh.visible = false; this.panel.clearHover(); }
   update(dt: number) { if (!this.open) return; this.t += dt; if (this.t > 0.4) { this.t = 0; this.panel.dirty = true; } this.panel.update(); }
   private draw(p: Panel) {
     const s = this.H.sess(); if (!s) return; const sim = s.sim, v = sim.view(), st = v.s;
-    p.rect(0, 0, p.W, 84, '#1f2326'); p.text('SUPERVISÓRIO · SE VALE VERDE', 24, 42, { size: 30, weight: 700 }); p.text('vermelho = fechado · verde = aberto', 760, 42, { size: 22, color: UI.dim });
-    p.button('x', p.W - 84, 10, 68, 64, 'X', () => this.close(), { size: 30 });
+    p.rect(0, 0, p.W, 84, '#1f2326'); p.text('SUPERVISÓRIO · SE VALE VERDE', 24, 42, { size: 30, weight: 700, max: 560 });
+    const D = this.H.desk; if (D && this.atDesk) { if (D.seated()) { p.button('big', 640, 10, 270, 64, D.big() ? 'Voltar ao monitor' : 'Tela grande', () => D.setBig(!D.big()), { size: 24 }); p.button('sit', 924, 10, 260, 64, 'Levantar', () => D.stand(), { size: 24, color: UI.warn, active: true }); }
+      else p.button('sit', 924, 10, 260, 64, 'Sentar à mesa', () => D.sit(), { size: 24, color: UI.ok, active: true }); }
+    if (!D?.seated()) p.button('x', p.W - 84, 10, 68, 64, 'X', () => this.close(), { size: 30 });
     ([['man', 'Manobras'], ['ala', 'Alarmes'], ['trf', 'Transformadores'], ['proc', 'Procedimentos']] as const).forEach(([k, l], i) => p.button('t' + k, 24 + i * 250, 98, 240, 60, l, () => { this.tab = k; this.page = 0; this.sel = null; this.ask = null; }, { active: this.tab === k, size: 26 }));
     if (this.ask) { p.text('Confirmar decisão:', 24, 200, { size: 26, color: UI.accent }); this.ask.forEach(([l, f], i) => p.button('ak' + i, 24, 230 + i * 76, 1232, 66, l, () => { this.ask = null; f(); }, { size: 24, align: 'left' })); p.button('akx', 24, 230 + this.ask.length * 76, 1232, 60, 'Cancelar', () => { this.ask = null; }, { size: 24 }); return; }
-    if (this.tab === 'proc') { drawProcs(p, 24, 178, 1232, 'IHM', this.proc, this.H.ctx(), 7); return; }
+    if (this.tab === 'proc') { drawProcs(p, 24, 178, 1232, 'IHM', this.proc, this.H.ctx(), 6); return; }
     if (!v.ccOk) { p.text('Sem supervisão (falta de CC/comunicação): opere localmente.', 24, 210, { size: 28, color: UI.bad }); return; }
     const y0 = 178;
     if (this.tab === 'man') {

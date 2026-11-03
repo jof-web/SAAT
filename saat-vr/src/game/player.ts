@@ -6,7 +6,7 @@ import { GFX } from './gfx';
 
 export class Player {
   pos = new Vector3(0, 0, 0); yaw = 0; pitch = -0.05; eye = 1.65; crouch = 0; keys: Record<string, boolean> = {};
-  locked = false; enabled = true; lookEnabled = true; speedMul = 1; bob = 0; stepDist = 0; moving = 0;
+  locked = false; enabled = true; lookEnabled = true; speedMul = 1; terrainMul = 1; canRun = true; bob = 0; stepDist = 0; moving = 0;
   onStep: (run: boolean) => void = () => {};
   shake = 0; fall = 0; roll = 0;
   private drag = { on: false, x: 0, y: 0 };
@@ -44,7 +44,7 @@ export class Player {
     }
     let fx = 0, fz = 0; if (this.enabled) { if (k.KeyW || k.ArrowUp) fz += 1; if (k.KeyS || k.ArrowDown) fz -= 1; if (k.KeyA || k.ArrowLeft) fx -= 1; if (k.KeyD || k.ArrowRight) fx += 1; }
     const run = !!(k.ShiftLeft || k.ShiftRight); this.crouch += ((k.KeyC && this.enabled ? 1 : 0) - this.crouch) * Math.min(1, dt * 8);
-    const sp = (run ? 3.6 : 1.7) * (1 - this.crouch * 0.6) * this.speedMul;
+    const sp = (run && this.canRun ? 3.6 : 1.7) * (1 - this.crouch * 0.6) * this.speedMul * this.terrainMul;
     let mx = 0, mz = 0; const l = Math.hypot(fx, fz);
     if (l) { fx /= l; fz /= l; const sn = Math.sin(this.yaw), cs = Math.cos(this.yaw); mx = (-sn * fz + cs * fx) * sp * dt; mz = (-cs * fz - sn * fx) * sp * dt; }
     const p = this.pos; let moved = 0;

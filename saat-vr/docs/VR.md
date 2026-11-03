@@ -32,6 +32,15 @@ Documento de passagem completo: projeto claude.ai › `claude/SAAT-VR-handoff.md
 - **Resgate pelas mãos**: tocar o ombro (consciência), aproximar o rosto 2,5 s (respiração), mãos no peito comprimindo (RCP com bipe), DEA perto do tórax (análise → gatilho = choque).
 - **Cartão de ajuda** (mirar + gatilho) desligado por padrão; liga em Config. O PiP da manobra continua sempre.
 
+## V0.4 (SAAT VR 0.4.0) — consequências, mesa, pátio
+- **Mesa no VR**: chegando perto, o supervisório aparece; botão **Sentar à mesa** leva a cabeça à cadeira (altura de sentado) e a tela vai para o **monitor real** (toque com o dedo). **Tela grande** abre a mesma tela flutuando à frente; **Levantar** (ou empurrar o polegar de andar) volta.
+- **Forçar intertravamento em campo** (PC e VR): repetir a mesma ação local bloqueada em até 7 s força a regra que tem consequência física (I-01, I-02, I-03, I-04, I-10; LOTO, CC, mola e 86 não se forçam). Vira erro crítico e o simulador aplica o efeito: seccionadora sob carga ou terra/fonte sobre trecho vivo → arco; disjuntor fechado extraído → arco no cubículo. Tampa traseira forçada expõe o cabo.
+- **Explosão do arco** (bola de fogo, clarão, fagulhas com gravidade, fumaça) no PC, no VR e no PiP.
+- **Severidade**: 138 kV a menos de 4 m = morte; 13,8 kV sem vestimenta e sem protetor a menos de 1,5 m = morte; EPI parcial = lesão grave; EPI completo = sem lesão (falha registrada). Choque em Rr, contato com vítima energizada e tensão de passo a menos de 1,5 m = morte.
+- **Morte**: clarão, queda, tela 100 % preta, monitor cardíaco em linha contínua, "VOCÊ MORREU" e depois o cartão. Lesão grave: tela vermelho-escura e cartão.
+- **Pátio**: grama (brita só no poço dos trafos); espaço do TR-03 vazio (sem base, pórtico ou ligação); andar no pátio a 70 %, dentro dos vãos 45 %, sobre a tampa da canaleta 85 %; não dá para correr no pátio; placa de área energizada na entrada de cada vão.
+- **Extintores**: carreta PQS 50 kg refeita (tanque abaulado, rótulo, manômetro, rodas com pneu, alça, mangueira e esguicho no suporte) e extintor de parede PQS 6 kg com placa.
+
 ## Orçamento medido (headless, IWER, dois olhos)
 | Ponto | Draw calls | Triângulos |
 |---|---|---|
@@ -40,5 +49,6 @@ Documento de passagem completo: projeto claude.ai › `claude/SAAT-VR-handoff.md
 O FPS do headless não vale: medir no Quest (aba Debug e relatório).
 
 ## Testes
+- `node e2e/consequencias.cjs`: força I-01 (seccionadora sob carga, morte), I-04 (extração com disjuntor fechado, morte) e I-02 (terra sobre circuito vivo, lesão grave com vestimenta).
 - `npm test` (A1–A13 + goldens + RCP) e `e2e/*.cjs` sem erro de console.
 - `node e2e/xr.cjs` (IWER): entra em VR, anda, porta pela mão, capacete inspecionado e vestido pela mão, manivela encaixada e girada no AL1, chave 43 girando o pulso, ABRIR com o dedo, corre (falta), colide na cerca, gira 30°, menu Y, porta pelo raio, cartão do armário, porta da caixa pelo grip, chave 43 e ABRIR 52-LT1 pelo raio (PiP aparece), supervisório, zona controlada e choque pela mão (cartão do acidente, reinício), luvas, draw calls, sai.

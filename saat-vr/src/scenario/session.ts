@@ -67,7 +67,7 @@ export class Session {
   cmd(c: Cmd, actor: Actor = 'treinando', opt: CmdOpt = {}): CmdResult {
     this.rec('cmd', [c, actor, opt]);
     let pos: (() => void) | null = null;
-    if (actor === 'treinando' && this.exigeEpi() && !opt.bypass) {
+    if (actor === 'treinando' && this.exigeEpi() && (!opt.bypass || opt.forcado)) {
       if (c.t === 'vtest' && c.passo === 'provar') {
         const det = this.inv.usar('detector_mt') || this.inv.usar('detector_at');
         if (!det) return this.recusa(c, 'Sem detector de tensão. Pegue o detector adequado no armário de ferramentas.');
@@ -91,6 +91,7 @@ export class Session {
     }
     const r = this.sim.dispatch(c, actor, opt);
     if (r.result === 'ok') pos?.();
+    if (opt.forcado && r.result === 'ok' && this.sc) this.sc.erro('critico', 'seguranca', `Forçou o intertravamento ${(opt.bypass || []).join(', ')} em campo (${c.t} ${(c as any).id || ''}): proibido — NR-10 10.2.8 e procedimento`, 'forcou_intertravamento');
     this.sc?.update(); return r;
   }
   private recusa(c: Cmd, msg: string): CmdResult {

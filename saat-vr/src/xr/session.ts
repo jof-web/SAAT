@@ -31,7 +31,7 @@ const RANGE: Record<string, number> = { door: 3.5, gate: 3.5, eq: 7, reserva: 7,
 
 export class XRLayer {
   rig = new Group(); input: XRInput; loco: Locomotion; debug = new Debug(); check = new Checklist(); menu: Menu; active = false; supported = false; reason = 'verificando…';
-  card: VRCard; scada: VRScada; fx: VRFx; acc: VRAccident; hud: VRHud; pip: VRPip; phys: Physical; private poked = new Map<Panel, boolean[]>(); private deskIn = false;
+  card: VRCard; scada: VRScada; fx: VRFx; acc: VRAccident; hud: VRHud; pip: VRPip; phys: Physical; private poked = new Map<Panel, boolean[]>(); private deskIn = false; seated = false; private seatBig = false;
   boneco = { on: true }; private bonecoPanel = new Panel({ w: 0.062, h: 0.118, px: 240, transparent: true }); private lastBoneco: Boneco | null = null;
   private label = new Panel({ w: 0.46, h: 0.09, px: 640 }); private ray = new Raycaster(); private t = 0; private zone = 0; private zoneT = 0;
   private cand = { t: 9, parts: [] as any[], partHits: [] as Mesh[], byPart: new Map<Mesh, any>(), interHits: [] as Mesh[], byInter: new Map<Mesh, any>() };
@@ -40,6 +40,7 @@ export class XRLayer {
     const E = H.E, R = E.renderer; R.xr.enabled = true; R.xr.setReferenceSpaceType('local-floor'); this.ray.layers.enableAll();
     this.rig.name = 'xr-rig'; E.scene.add(this.rig); this.input = new XRInput(R, this.rig, E.scene);
     this.loco = new Locomotion(this.rig, E.cam, E.scene, (x, z, r) => H.P.hit(x, z, r), () => H.livre());
+    this.loco.terrain = (x, z) => H.W.walkFactor(x, z);
     this.debug.attach(E.cam);
     this.menu = new Menu({ version, loco: this.loco, debug: this.debug, check: this.check, hands: this.input.hands, cam: E.cam, scene: E.scene, renderer: R,
       missao: () => { const m = H.missao(), b = this.lastBoneco; return { ...m, area: H.area(), livre: H.livre(), faltas: H.faltas(), epi: b ? (b.pronto ? 'EPI completo' : `faltam ${b.faltam.length} EPI`) : '—' }; },
@@ -50,7 +51,7 @@ export class XRLayer {
         aplicarAltura: () => { const cm = this.alturaCm(), e = this.loco.applyStature(cm); if (e === null) return 'Altura inválida.'; this.loco.s.autoAltura = true; this.loco.save(); H.salvarAltura(cm); return `Altura ${cm} cm aplicada: olhos a ${e.toFixed(2).replace('.', ',')} m.`; },
         perfil: () => H.alturaPerfil(), local: () => this.nearLocal(), ctx: () => H.ctx() } });
     this.card = new VRCard({ inter: H.inter, W: H.W, sess: () => H.sess(), refreshEpi: () => H.refreshEpi(), toast: (m, k) => H.toast(m, k), cmd: (c) => H.cmd(c), tool: () => H.tool(), safety: H.safety, audio: H.audio, rcpQualidade: (ts) => H.rcpQualidade(ts), ctx: () => H.ctx() }, E.scene);
-    this.scada = new VRScada({ sess: () => H.sess(), cmd: (c) => H.cmd(c), ctx: () => H.ctx() }, E.scene);
+    this.scada = new VRScada({ sess: () => H.sess(), cmd: (c) => H.cmd(c), ctx: () => H.ctx(), desk: { seated: () => this.seated, sit: () => this.sit(), stand: () => this.stand(), big: () => this.seatBig, setBig: (b) => { this.seatBig = b; this.scadaPose(); } } }, E.scene);
     this.phys = new Physical({ W: H.W, inter: H.inter, scene: E.scene, sess: () => H.sess(), cmd: (c) => H.cmd(c), setTool: (id) => H.setTool(id), tool: () => H.tool(), toast: (m, k) => H.toast(m, k), refreshEpi: () => H.refreshEpi(),
       audio: H.audio, takeDea: () => H.takeDea(), deaTaken: () => H.deaTaken(), safety: H.safety, rcpQualidade: (ts) => H.rcpQualidade(ts),
       fallback: (t, ops) => { this.card.show(t, this.head(new Vector3()), this.fwd(new Vector3())); this.card.ask = ops; this.card.panel.dirty = true; } });
@@ -81,7 +82,7 @@ export class XRLayer {
   exit() { void this.H.E.renderer.xr.getSession()?.end(); }
   report() { return buildReport(this.version, this.check, this.debug); }
   /** Novo início/reinício de missão: limpa painéis e efeitos. */
-  reset() { this.fx.reset(); this.acc.hide(); this.card.close(); this.scada.close(); this.pip.hide(); this.hud.clear(); this.phys?.reset(this.input.hands); this.zone = 0; this.deskIn = false; }
+  reset() { this.fx.reset(); this.acc.hide(); this.card.close(); this.scada.close(); this.pip.hide(); this.hud.clear(); this.phys?.reset(this.input.hands); this.zone = 0; this.deskIn = false; if (this.seated) { this.seated = false; this.loco.applyHeight(); } }
   head(out = _h) { return this.H.E.cam.getWorldPosition(out); }
   fwd(out = _f) { return this.H.E.cam.getWorldDirection(out); }
   /** Corpo real para a segurança: cabeça, mãos (palma e frente do controle) e pés. */
@@ -91,7 +92,10 @@ export class XRLayer {
   accident(a: any) {
     this.card.close(); this.scada.close(); this.menu.hide(); this.fx.doFlash(a.tipo === 'arco' ? 0xfff3d6 : 0xeaf6ff, 0.9);
     const buzz = (n: number) => { for (const h of this.input.hands) h.pulse(1, 300); if (n > 0) setTimeout(() => buzz(n - 1), 330); }; buzz(3);
-    setTimeout(() => { this.fx.fadeTgt = 1; }, 900); setTimeout(() => { if (this.active) this.acc.show(a, this.head(new Vector3()), this.fwd(new Vector3())); }, 2300);
+    const fatal = a.fatal !== false; this.fx.fadeCol = fatal ? 0x000000 : 0x3a0606; this.fx.fadeMax = fatal ? 1 : 0.88;
+    setTimeout(() => { this.fx.fadeTgt = 1; }, 900);
+    if (fatal) { setTimeout(() => { if (this.active) this.acc.show(a, this.head(new Vector3()), this.fwd(new Vector3()), 'morte'); }, 2100); setTimeout(() => { if (this.active && this.acc.open) { this.acc.phase = 'card'; this.acc.panel.dirty = true; } }, 6200); }
+    else setTimeout(() => { if (this.active) this.acc.show(a, this.head(new Vector3()), this.fwd(new Vector3())); }, 2600);
   }
   private radioObj = new Group();
   /** Rádio (COS): cartão com read-back, comunicações e decisões da missão. */
@@ -110,7 +114,8 @@ export class XRLayer {
   update(dt: number) {
     if (!this.active) return; const H = this.H, hands = this.input.hands, dead = H.dead(), M = this.loco.s.hand === 'left' ? hands[1] : hands[0];
     this.input.read(); const pj = !dead && M.low;
-    if (!dead) this.loco.update(dt, hands, pj); else { this.loco.moving = false; this.loco.running = false; }
+    if (this.seated && (Math.abs(M.ay) > 0.75 || dead)) this.stand();
+    if (!dead && !this.seated) this.loco.update(dt, hands, pj); else { this.loco.moving = false; this.loco.running = false; }
     this.rig.updateMatrixWorld(true); this.input.poses();
     const h = this.loco.head(_h); H.P.pos.set(h.x, 0, h.z); H.P.yaw = this.loco.headYaw(); H.P.moving = this.loco.moving ? 1 : 0; H.P.crouch = pj ? 1 : 0;
     H.correndo(this.loco.running && this.loco.moving, dt);
@@ -128,6 +133,12 @@ export class XRLayer {
     const bm = this.bonecoPanel.mesh, on = this.boneco.on && !!this.lastBoneco && M.connected && !!M.grip;
     if (on && bm.parent !== M.grip) M.grip!.add(bm); bm.visible = on; if (on) this.bonecoPanel.dirty = true;
   }
+  /** Sentar à mesa: cabeça na cadeira (altura de quem está sentado), olhando o monitor; o supervisório vai para o monitor. */
+  sit() { const ds: any = (this.H.W.indoor as any).deskSeat; if (!ds || this.seated) return; this.seated = true; this.menu.hide(); this.card.close();
+    const f = ds.look.clone().sub(ds.pos); this.loco.placeHead(ds.pos.x, ds.pos.z, Math.atan2(-f.x, -f.z)); this.rig.position.y = ds.pos.y - this.H.E.cam.position.y; this.loco.vig.visible = false; this.scadaPose();
+    this.H.toast('Sentado à mesa. Para levantar: botão Levantar ou empurre o polegar de andar.', 'muted'); }
+  stand() { if (!this.seated) return; const ds: any = (this.H.W.indoor as any).deskSeat; this.seated = false; this.seatBig = false; this.loco.applyHeight(); if (ds) { this.loco.placeHead(ds.pos.x, ds.pos.z + 0.35, null); this.scada.showAt(ds.look, ds.pos); } }
+  private scadaPose() { if (!this.seated) return; const ds: any = (this.H.W.indoor as any).deskSeat; if (this.seatBig) { this.scada.show(this.head(new Vector3()), this.fwd(new Vector3())); this.scada.atDesk = true; } else this.scada.showMonitor(new Vector3(ds.look.x, 1.04, ds.look.z + 0.016), ds.pos, 0.56); }
   /** Mesa de operação: chegou perto, o supervisório aparece no monitor (tela de toque). */
   private desk(head: Vector3) {
     const I: any = this.H.W.indoor, ds = I.deskSeat; if (!ds) return; const d = Math.hypot(head.x - ds.pos.x, head.z - ds.pos.z);

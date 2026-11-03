@@ -101,6 +101,9 @@ const IWER = fs.readFileSync(require.resolve('iwer/build/iwer.min.js'), 'utf8');
   // supervisório: chegou perto da mesa, a tela de toque aparece no monitor
   await ev(() => { const S = window.__saat, ds = S.W.indoor.deskSeat; S.xr.loco.placeHead(ds.pos.x, ds.pos.z + 0.2, 0); }); await wait(1500);
   R.scada = await ev(() => window.__saat.xr.scada.open && window.__saat.xr.scada.atDesk); await shot('10-scada-mesa');
+  await ev(() => window.__saat.xr.sit()); await wait(1800); R.sentado = await ev(() => { const X = window.__saat.xr; return { seated: X.seated, monitor: X.scada.atDesk && Math.abs(X.scada.panel.mesh.scale.x - 0.56 / 0.96) < 0.01, olhos: +X.head(new (window.__saat.P.pos.constructor)()).y.toFixed(2) }; }); await shot('10b-sentado');
+  await ev(() => window.__saat.xr.scada.H.desk.setBig(true)); await wait(900); R.telaGrande = await ev(() => window.__saat.xr.scada.panel.mesh.scale.x === 1); await shot('10c-tela-grande');
+  await ev(() => window.__saat.xr.stand()); await wait(800); R.levantou = await ev(() => !window.__saat.xr.seated);
   await ev(() => { const S = window.__saat; S.xr.scada.close(); S.xr.loco.placeHead(S.W.spawns.patio.x, S.W.spawns.patio.z, 0); }); await wait(600);
   // X17/X22 zona controlada e acidente pela mão real perto de parte energizada (138 kV)
   const hz = await ev(() => { const S = window.__saat, der = S.sess.sim.der, h = S.W.hazards.filter((x) => x.nivel === 'AT' && der.energ[x.node]).sort((a, b) => a.p.y - b.p.y)[0]; S.xr.loco.placeHead(h.p.x + 0.6, h.p.z + 0.6, null); return { x: h.p.x, y: h.p.y, z: h.p.z, node: h.node }; });
@@ -119,6 +122,6 @@ const IWER = fs.readFileSync(require.resolve('iwer/build/iwer.min.js'), 'utf8');
   await ev(() => window.__saat.xr.exit()); await p.waitForFunction(() => !window.__saat.xr.active, null, { timeout: 30000 }); await wait(800);
   R.saiu = await ev(() => { const S = window.__saat; return { cam: S.E.cam.parent === null, x: +S.P.pos.x.toFixed(2), z: +S.P.pos.z.toFixed(2), relatorio: S.xr.report().split('\n').length }; }); await shot('12-desktop');
   console.log(JSON.stringify(R, null, 1));
-  const ok = R.distAndar > 1.0 && R.correu.faltas >= 1 && R.parede.area !== 'externo' && R.parede.x > 0.2 && Math.abs(Math.abs(R.giroGraus) - 30) <= 2 && R.menu === 'float' && R.portaDepois > R.portaAntes + 0.3 && R.cartaoArmario === 'arm' && R.capacete.veste && R.capacete.inspecionado && R.encaixou && /extra|teste|rack|carrinho/i.test(R.manivelaCmd) && R.caixaAberta > 0.4 && R.chave43 === 'local' && R.botaoCaixa !== 'sem comando' && R.pip && R.scada && R.zona > 0 && R.morto && R.cartaoAcidente && !R.reinicio.morto && R.saiu.cam;
+  const ok = R.distAndar > 0.6 && /* pátio: grama a 70 % da velocidade */ R.correu.faltas >= 1 && R.parede.area !== 'externo' && R.parede.x > 0.2 && Math.abs(Math.abs(R.giroGraus) - 30) <= 2 && R.menu === 'float' && R.portaDepois > R.portaAntes + 0.3 && R.cartaoArmario === 'arm' && R.capacete.veste && R.capacete.inspecionado && R.encaixou && /extra|teste|rack|carrinho/i.test(R.manivelaCmd) && R.caixaAberta > 0.4 && R.chave43 === 'local' && R.botaoCaixa !== 'sem comando' && R.pip && R.scada && R.sentado.seated && R.sentado.monitor && R.telaGrande && R.levantou && R.zona > 0 && R.morto && R.cartaoAcidente && !R.reinicio.morto && R.saiu.cam;
   console.log(ok ? 'XR OK' : 'XR FALHOU'); console.log('ERRS', JSON.stringify(errs.slice(0, 6))); await b.close(); process.exit(ok && !errs.length ? 0 : 1);
 })();

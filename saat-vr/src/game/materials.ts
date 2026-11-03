@@ -193,6 +193,9 @@ export function buildMaterials() {
     glassGreen: new MeshPhysicalMaterial({ color: 0x3f6b5a, roughness: 0.1, metalness: 0, transparent: true, opacity: 0.85, clearcoat: 1 }),
     yellow: std({ color: 0xe0b21e, roughness: 0.5, metalness: 0.05 }),
     red: std({ color: 0xb3262b, roughness: 0.45, metalness: 0.05 }),
+    extRed: std({ color: 0xc4161c, roughness: 0.28, metalness: 0.15 }), // pintura de extintor (NBR 7195), brilhante
+    brass: std({ color: 0xb58a3a, roughness: 0.35, metalness: 0.85 }),
+    chrome: std({ color: 0xd6d9dc, roughness: 0.18, metalness: 1 }),
     green: std({ color: 0x1f7a45, roughness: 0.45, metalness: 0.05 }),
     blue: std({ color: 0x1f5aa6, roughness: 0.45, metalness: 0.05 }),
     white: std({ color: 0xeceae4, roughness: 0.5, metalness: 0 }),

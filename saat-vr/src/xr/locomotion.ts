@@ -8,7 +8,7 @@ export const LOCO_DEF = { teleport: false, continuous: true, speed: 1.5, run: 2,
 const UP = new Vector3(0, 1, 0), _v = new Vector3(), _p = new Vector3(), _q = new Quaternion(), _vel = new Vector3(), N = 48;
 
 export class Locomotion {
-  s = { ...LOCO_DEF }; running = false; moving = false; aim: Hand | null = null; valid = false; target = new Vector3(); vigI = 0; fade = 0; wallDark = 0; turnArmed = true;
+  s = { ...LOCO_DEF }; terrain: (x: number, z: number) => { mul: number; run: boolean } = () => ({ mul: 1, run: true }); seatedAt = false; running = false; moving = false; aim: Hand | null = null; valid = false; target = new Vector3(); vigI = 0; fade = 0; wallDark = 0; turnArmed = true;
   arc: Line; marker: Mesh; vig: Mesh; private arcPos = new Float32Array((N + 1) * 3); private vigMat: ShaderMaterial;
   /** blocked(x,z): colisão (AABB + limites). canTeleport(): prática livre. */
   constructor(public rig: Group, public cam: PerspectiveCamera, scene: Scene, public blocked: (x: number, z: number, r?: number) => boolean, public canTeleport: () => boolean) {
@@ -54,7 +54,7 @@ export class Locomotion {
     if (this.s.continuous && M.connected) {
       const x = Math.abs(M.ax) > 0.15 ? M.ax : 0, y = Math.abs(M.ay) > 0.15 ? M.ay : 0;
       if (M.stickDown && !pesJuntos) this.running = !this.running;
-      if (x || y) { const yaw = this.headYaw(); let sp = this.s.speed * (this.running ? this.s.run : 1); if (pesJuntos) { sp = Math.min(sp, 0.3); this.running = false; } sp *= dt;
+      if (x || y) { const yaw = this.headYaw(), H0 = this.head(_p), tf = this.terrain(H0.x, H0.z); let sp = this.s.speed * (this.running && tf.run ? this.s.run : 1) * tf.mul; if (pesJuntos) { sp = Math.min(sp, 0.3); this.running = false; } sp *= dt;
         const fx = -Math.sin(yaw), fz = -Math.cos(yaw); this.moving = !!this.move((fx * -y + Math.cos(yaw) * x) * sp, (fz * -y - Math.sin(yaw) * x) * sp); }
       else this.running = false;
     }
